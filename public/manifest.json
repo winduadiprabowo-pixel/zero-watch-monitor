@@ -1,0 +1,27 @@
+{
+  "name": "ZERØ WATCH — Smart Money Tracker",
+  "short_name": "ZERØ WATCH",
+  "description": "Real-time crypto whale wallet tracker. Smart money flows, on-chain intel, zero cost.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04040a",
+  "theme_color": "#00ff94",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "crypto"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Track Wallets",
+      "short_name": "Wallets",
+      "description": "View tracked whale wallets",
+      "url": "/"
+    }
+  ]
+}
