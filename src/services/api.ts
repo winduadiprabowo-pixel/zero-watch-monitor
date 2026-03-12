@@ -1,10 +1,9 @@
 /**
- * ZERØ WATCH — API Service v12
+ * ZERØ WATCH — API Service v11
  * ==============================
- * v12 changes:
- * - FIX: CoinGecko token price routed via CF Worker proxy (CORS fix)
- * - FIX: AbortSignal handled safely — never passed as undefined to fetch
+ * v11 changes:
  * - Token spam filter: skip token tanpa harga CoinGecko atau USD < $1
+ * - CoinGecko free tier untuk token USD pricing (no key needed)
  * - DEMO_WALLETS constant: 5 active whale wallets siap pakai
  * - Total portfolio USD = ETH + token values (bukan ETH-only)
  */
@@ -180,33 +179,21 @@ async function fetchTokenPrices(
   }
 
   if (needFetch.length > 0) {
-    // Chunk max 25 per request to avoid URL length limits + 400 errors
-    const chunks: string[][] = [];
-    for (let i = 0; i < needFetch.length; i += 25) {
-      chunks.push(needFetch.slice(i, i + 25));
-    }
-    for (const chunk of chunks) {
-      try {
-        const ids = chunk.join(',');
-        // Route via CF Worker proxy to avoid CORS block in production
-        const url = PROXY
-          ? `${PROXY}/coingecko/token_price/ethereum?contract_addresses=${ids}&vs_currencies=usd`
-          : `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${ids}&vs_currencies=usd`;
-        const fetchOpts: RequestInit = {};
-        if (signal) fetchOpts.signal = signal;
-        const res = await fetch(url, fetchOpts);
-        if (res.ok) {
-          const data = await res.json() as Record<string, { usd?: number }>;
-          for (const [addr, info] of Object.entries(data)) {
-            const price = info.usd ?? 0;
-            const key = addr.toLowerCase();
-            result[key] = price;
-            _priceCache.set(key, { usd: price, ts: now });
-          }
+    try {
+      const ids = needFetch.slice(0, 30).join(',');
+      const url = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${ids}&vs_currencies=usd`;
+      const res = await fetch(url, { signal });
+      if (res.ok) {
+        const data = await res.json() as Record<string, { usd?: number }>;
+        for (const [addr, info] of Object.entries(data)) {
+          const price = info.usd ?? 0;
+          const key = addr.toLowerCase();
+          result[key] = price;
+          _priceCache.set(key, { usd: price, ts: now });
         }
-      } catch {
-        // CoinGecko gagal — lanjut tanpa price, spam filter akan skip token unknown
       }
+    } catch {
+      // CoinGecko gagal — lanjut tanpa price, spam filter akan skip token unknown
     }
   }
 
