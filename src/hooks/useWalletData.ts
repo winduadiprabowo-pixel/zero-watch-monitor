@@ -1,10 +1,6 @@
 /**
- * ZERØ WATCH — useWalletData v15
+ * ZERØ WATCH — useWalletData v14
  * ================================
- * v15 fixes:
- * - FIX: useEthPrice — TanStack Query v5 passes signal via queryFn context,
- *   must destructure from context object, not pass getEthPrice directly
- * - FIX: AbortSignal never passed as null/undefined to fetch
  * v14: SOL chain support — routes Solana wallets to solanaApi.ts,
  * EVM wallets ke api.ts (Etherscan/Alchemy via CF Worker proxy).
  * TanStack Query wrapper · AbortController signal ✓
@@ -113,12 +109,10 @@ export const useSingleWallet = (
   })
 }
 
-// v15 FIX: TanStack Query v5 injects signal via queryFn context object
-// Must destructure { signal } from context, NOT pass getEthPrice directly
 export const useEthPrice = () =>
   useQuery<number>({
-    queryKey:        ['eth-price'],
-    queryFn:         ({ signal }) => getEthPrice(signal),
+    queryKey:       ['eth-price'],
+    queryFn:        getEthPrice,
     refetchInterval: 60_000,
     staleTime:       55_000,
     retry:           2,
