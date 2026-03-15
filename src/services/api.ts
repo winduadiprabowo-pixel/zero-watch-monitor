@@ -60,7 +60,7 @@ export interface WalletData {
   lastUpdated: number;
 }
 
-// ── Demo Wallets — pre-loaded suggestions untuk new users ────────────────────
+// ── Demo Wallets ──────────────────────────────────────────────────────────────
 
 export const DEMO_WALLETS: Array<{
   address: string;
@@ -115,8 +115,7 @@ const CHAIN_ID: Record<Chain, number> = {
   OP:   10,
 };
 
-// ── Legit ERC-20 contracts (top tokens by market cap) ─────────────────────────
-// Token di luar list ini butuh CoinGecko price confirmation + USD >= $1
+// ── Legit ERC-20 contracts ────────────────────────────────────────────────────
 
 const LEGIT_TOKEN_CONTRACTS = new Set([
   '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
@@ -154,7 +153,7 @@ const LEGIT_TOKEN_CONTRACTS = new Set([
   '0x2b591e99afe9f32eaa6214f7b7629768c40eeb39', // HEX
 ]);
 
-// ── CoinGecko price fetcher (free tier, no API key) ───────────────────────────
+// ── CoinGecko price fetcher (via proxy) ───────────────────────────────────────
 
 const _priceCache = new Map<string, { usd: number; ts: number }>();
 const PRICE_TTL = 5 * 60_000;
@@ -181,7 +180,7 @@ async function fetchTokenPrices(
   if (needFetch.length > 0) {
     try {
       const ids = needFetch.slice(0, 30).join(',');
-      const url = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${ids}&vs_currencies=usd`;
+      const url = `${PROXY}/coingecko/token_price/ethereum?contract_addresses=${ids}&vs_currencies=usd`;
       const res = await fetch(url, { signal });
       if (res.ok) {
         const data = await res.json() as Record<string, { usd?: number }>;
@@ -193,7 +192,7 @@ async function fetchTokenPrices(
         }
       }
     } catch {
-      // CoinGecko gagal — lanjut tanpa price, spam filter akan skip token unknown
+      // CoinGecko gagal — lanjut tanpa price
     }
   }
 
@@ -279,7 +278,7 @@ export async function getWalletBalance(
   return '0';
 }
 
-// ── Token Holdings v2 — spam filter + CoinGecko USD pricing ──────────────────
+// ── Token Holdings v2 ─────────────────────────────────────────────────────────
 
 export async function getTokenHoldings(
   address: string,
@@ -324,7 +323,6 @@ export async function getTokenHoldings(
     }
 
     const prices = await fetchTokenPrices(rawTokens.map(t => t.addr), signal);
-
     const holdings: TokenHolding[] = [];
 
     for (const token of rawTokens) {
