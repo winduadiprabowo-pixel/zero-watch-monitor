@@ -240,10 +240,13 @@ export async function getEthPrice(signal?: AbortSignal): Promise<number> {
   const now = Date.now();
   if (_cachedEthPrice && now - _ethPriceCacheTime < 60_000) return _cachedEthPrice;
 
+  // Guard: TanStack Query sometimes passes QueryFunctionContext instead of AbortSignal
+  const safeSignal = signal instanceof AbortSignal ? signal : undefined;
+
   try {
     const data = await etherscanGet<{ status: string; result: { ethusd: string } }>(
       { chainid: 1, module: 'stats', action: 'ethprice' },
-      signal
+      safeSignal
     );
     if (data.status === '1') {
       _cachedEthPrice = parseFloat(data.result.ethusd);
