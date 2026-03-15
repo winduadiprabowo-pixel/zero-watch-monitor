@@ -432,8 +432,8 @@ const Index = () => {
     return m
   }, [storeWallets])
 
-  const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
   const tgAlert      = useTelegramAlert()
+  const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
   const { config: priceAlertCfg, setConfig: setPriceAlertCfg } = usePriceAlert(
     ethPrice ?? null,
     (msg) => {
