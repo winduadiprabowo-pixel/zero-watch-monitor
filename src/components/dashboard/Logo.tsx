@@ -25,7 +25,7 @@ const Logo = memo(({ compact }: LogoProps) => {
           style={{ fontFamily: "'Syne', sans-serif", fontSize: '15px', color: 'rgba(255,255,255,0.92)' }}
         >
           ZER
-          <span style={{ color: 'rgba(0,255,148,1)', textShadow: '0 0 12px rgba(0,255,148,0.5)' }}>Ø</span>
+          <span style={{ color: 'rgba(230,161,71,1)', textShadow: '0 0 12px rgba(230,161,71,0.5)' }}>Ø</span>
           <span
             style={{
               color:        'rgba(255,255,255,0.45)',
@@ -52,7 +52,7 @@ const Logo = memo(({ compact }: LogoProps) => {
           style={{ fontFamily: "'Syne', sans-serif", fontSize: '20px', fontWeight: 700, color: 'rgba(255,255,255,0.92)' }}
         >
           ZER
-          <span style={{ color: 'rgba(0,255,148,1)', textShadow: '0 0 16px rgba(0,255,148,0.55)' }}>Ø</span>
+          <span style={{ color: 'rgba(230,161,71,1)', textShadow: '0 0 16px rgba(230,161,71,0.55)' }}>Ø</span>
           {' '}
           <span style={{ color: 'rgba(255,255,255,0.65)' }}>WATCH</span>
         </h1>
@@ -82,7 +82,7 @@ interface ZBLMarkProps { size?: number }
 const ZBLMark = memo(({ size = 28 }: ZBLMarkProps) => {
   const s  = size
   const sw = Math.max(1.5, s * 0.07)
-  const neon  = 'rgba(0,255,148,1)'
+  const neon  = 'rgba(230,161,71,1)'
   const white = 'rgba(255,255,255,0.90)'
 
   return (
@@ -104,7 +104,7 @@ const ZBLMark = memo(({ size = 28 }: ZBLMarkProps) => {
       </defs>
 
       {/* Border frame */}
-      <rect x="1" y="1" width="26" height="26" rx="4" stroke={neon} strokeWidth={sw} fill="rgba(0,255,148,0.05)" filter="url(#neon-glow)" />
+      <rect x="1" y="1" width="26" height="26" rx="4" stroke={neon} strokeWidth={sw} fill="rgba(230,161,71,0.05)" filter="url(#neon-glow)" />
 
       {/* Z */}
       <polyline points="5,7 13,7 5,14 13,14" stroke={white} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" fill="none" />
