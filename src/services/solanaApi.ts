@@ -10,7 +10,8 @@
  */
 
 const SOL_RPC    = 'https://api.mainnet-beta.solana.com'
-const SOL_PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'
+const PROXY = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const SOL_PRICE_URL = `${PROXY}/coingecko/price?ids=solana&vs_currencies=usd`
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,14 +25,14 @@ export interface SolTokenHolding {
 
 export interface SolWalletBalance {
   address:    string
-  solBalance: string   // in SOL
+  solBalance: string
   usdValue:   number
   tokens:     SolTokenHolding[]
 }
 
 export interface SolTransaction {
   signature:   string
-  blockTime:   number   // unix timestamp
+  blockTime:   number
   type:        'TRANSFER' | 'SWAP' | 'UNKNOWN'
   valueSOL:    number
   from:        string
@@ -165,16 +166,14 @@ export async function getSolTokens(
     if (bal <= 0) continue
 
     const known = KNOWN_SPL[mint]
-    if (!known) continue  // skip unknown tokens
+    if (!known) continue
 
-    // Rough USD estimate
     let usdValue = 0
     if (known.symbol === 'USDC' || known.symbol === 'USDT' || known.symbol === 'USDCet') {
       usdValue = bal
     } else if (known.symbol === 'wSOL' || known.symbol === 'mSOL' || known.symbol === 'jitoSOL') {
       usdValue = bal * solPrice
     }
-    // BONK, WEN, WIF — skip USD value calc to avoid extra fetch, just show balance
 
     holdings.push({
       symbol:      known.symbol,
@@ -214,7 +213,6 @@ export async function getSolTransactions(
   limit = 20,
   signal?: AbortSignal
 ): Promise<SolTransaction[]> {
-  // Step 1: get signatures
   const sigs = await rpcPost<SignatureInfo[]>(
     'getSignaturesForAddress',
     [address, { limit, commitment: 'confirmed' }],
@@ -222,7 +220,6 @@ export async function getSolTransactions(
   )
   if (!sigs || sigs.length === 0) return []
 
-  // Step 2: get parsed transactions for first 10
   const txSigs = sigs.slice(0, 10).map(s => s.signature)
   const parsed = await rpcPost<(ParsedTx | null)[]>(
     'getMultipleParsedTransactions' as string,
@@ -230,7 +227,6 @@ export async function getSolTransactions(
     signal
   )
 
-  // Fallback: use signature list data only
   if (!parsed) {
     return sigs.slice(0, limit).map(sig => ({
       signature: sig.signature,
@@ -260,7 +256,7 @@ export async function getSolTransactions(
     const instrs = tx.transaction.message.instructions
     const hasSwap = instrs.some(ix =>
       (ix.program ?? ix.programId ?? '').toLowerCase().includes('swap') ||
-      (ix.programId ?? '') === 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB' // Jupiter v4
+      (ix.programId ?? '') === 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB'
     )
 
     results.push({
@@ -289,8 +285,8 @@ export async function fetchSolWalletData(
     getSolTransactions(address, 20, signal),
   ])
 
-  const tokens  = await getSolTokens(address, solPrice, signal)
-  const solUsd  = parseFloat(solBalance) * solPrice
+  const tokens   = await getSolTokens(address, solPrice, signal)
+  const solUsd   = parseFloat(solBalance) * solPrice
   const tokenUsd = tokens.reduce((s, t) => s + t.usdValue, 0)
 
   return {
