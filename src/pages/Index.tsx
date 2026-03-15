@@ -434,9 +434,8 @@ const Index = () => {
 
   const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
   const tgAlert      = useTelegramAlert()
-  const { data: ethPriceData } = useEthPrice()
   const { config: priceAlertCfg, setConfig: setPriceAlertCfg } = usePriceAlert(
-    ethPriceData ?? null,
+    ethPrice ?? null,
     (msg) => {
       tgAlert.sendAlert(msg)
       // Also Web Notification
