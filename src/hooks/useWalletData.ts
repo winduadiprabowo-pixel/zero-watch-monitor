@@ -11,7 +11,16 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
 import { fetchWalletData, getEthPrice } from '@/services/api'
-import { saveSnapshot } from '@/hooks/useWalletHistory'
+// saveSnapshot inline — avoid circular dependency
+async function saveSnapshot(address: string, chain: string, usdValue: number, ethBalance: string): Promise<void> {
+  try {
+    await fetch('https://zero-watch-history.winduadiprabowo.workers.dev/history/snapshot', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ address, chain, usdValue, ethBalance }),
+    })
+  } catch { /* silently fail */ }
+}
 import type { WalletData } from '@/services/api'
 import { fetchSolWalletData } from '@/services/solanaApi'
 
