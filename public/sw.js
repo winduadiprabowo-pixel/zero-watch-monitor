@@ -1,13 +1,13 @@
 /**
- * ZERØ WATCH — Service Worker v20
+ * ZERØ WATCH — Service Worker v21
  * ================================
- * Cache: zero-watch-v26
+ * Cache: zero-watch-v27
  * - Static assets cached on install
  * - Network-first for API calls
  * - Cache-first for static assets
  */
 
-const CACHE_NAME = 'zero-watch-v26'
+const CACHE_NAME = 'zero-watch-v27'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -39,7 +39,8 @@ self.addEventListener('fetch', event => {
 
   // Network-first for API calls
   if (url.pathname.includes('/api/') || url.pathname.includes('/etherscan') ||
-      url.pathname.includes('/alchemy') || url.hostname !== location.hostname) {
+      url.pathname.includes('/alchemy') || url.pathname.includes('/tron') ||
+      url.hostname !== location.hostname) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     )
