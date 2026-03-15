@@ -1,60 +1,89 @@
-import React, { memo } from 'react';
+/**
+ * ZERØ WATCH — Logo v20
+ * =======================
+ * v20 POLISH:
+ * - ZBL monogram lebih sharp
+ * - Neon glow effect pada Ø
+ * - Subtitle "Smart Money Tracker" lebih prominent
+ * - Compact mode: cleaner layout
+ * rgba() only ✓  React.memo + displayName ✓
+ */
+
+import React, { memo } from 'react'
 
 interface LogoProps {
-  compact?: boolean;
+  compact?: boolean
 }
 
-/**
- * ZERØ WATCH Logo
- * Pakai ZBL monogram + wordmark "ZERØ WATCH"
- * Logo ZBL: Z + B + L dalam satu bentuk geometris sharp
- */
 const Logo = memo(({ compact }: LogoProps) => {
   if (compact) {
     return (
       <div className="flex items-center gap-2 animate-fade-up">
-        {/* ZBL monogram mini */}
         <ZBLMark size={22} />
-        <span className="font-display text-base tracking-tight leading-none">
-          ZER<span className="text-neon glow-neon">Ø</span>
-          <span className="text-white/50 text-xs font-mono font-normal ml-1.5 tracking-widest">WATCH</span>
+        <span
+          className="font-bold leading-none tracking-tight"
+          style={{ fontFamily: "'Syne', sans-serif", fontSize: '15px', color: 'rgba(255,255,255,0.92)' }}
+        >
+          ZER
+          <span style={{ color: 'rgba(0,255,148,1)', textShadow: '0 0 12px rgba(0,255,148,0.5)' }}>Ø</span>
+          <span
+            style={{
+              color:        'rgba(255,255,255,0.45)',
+              fontSize:     '10px',
+              fontFamily:   "'IBM Plex Mono', monospace",
+              fontWeight:   400,
+              marginLeft:   '6px',
+              letterSpacing:'0.20em',
+            }}
+          >
+            WATCH
+          </span>
         </span>
       </div>
-    );
+    )
   }
 
   return (
     <div className="flex items-center gap-3 px-4 py-5 animate-fade-up">
-      {/* ZBL monogram */}
-      <ZBLMark size={28} />
+      <ZBLMark size={30} />
       <div>
-        <h1 className="font-display text-xl tracking-tight leading-none">
-          ZER<span className="text-neon glow-neon">Ø</span>{' '}
-          <span className="text-white/70">WATCH</span>
+        <h1
+          className="leading-none tracking-tight"
+          style={{ fontFamily: "'Syne', sans-serif", fontSize: '20px', fontWeight: 700, color: 'rgba(255,255,255,0.92)' }}
+        >
+          ZER
+          <span style={{ color: 'rgba(0,255,148,1)', textShadow: '0 0 16px rgba(0,255,148,0.55)' }}>Ø</span>
+          {' '}
+          <span style={{ color: 'rgba(255,255,255,0.65)' }}>WATCH</span>
         </h1>
-        <span className="text-[9px] text-white/25 tracking-[0.22em] uppercase font-mono block mt-0.5">
+        <span
+          className="block mt-0.5"
+          style={{
+            fontFamily:    "'IBM Plex Mono', monospace",
+            fontSize:      '9px',
+            color:         'rgba(255,255,255,0.22)',
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+          }}
+        >
           Smart Money Tracker
         </span>
       </div>
     </div>
-  );
-});
+  )
+})
 
-Logo.displayName = 'Logo';
+Logo.displayName = 'Logo'
 
 // ── ZBL Monogram Mark ─────────────────────────────────────────────────────────
 
-interface ZBLMarkProps {
-  size?: number;
-}
+interface ZBLMarkProps { size?: number }
 
 const ZBLMark = memo(({ size = 28 }: ZBLMarkProps) => {
-  const s = size;
-  // stroke width proportional
-  const sw = Math.max(1.5, s * 0.07);
-  // neon color
-  const neon = 'rgba(0,255,148,1)';
-  const white = 'rgba(255,255,255,0.90)';
+  const s  = size
+  const sw = Math.max(1.5, s * 0.07)
+  const neon  = 'rgba(0,255,148,1)'
+  const white = 'rgba(255,255,255,0.90)'
 
   return (
     <svg
@@ -66,85 +95,39 @@ const ZBLMark = memo(({ size = 28 }: ZBLMarkProps) => {
       aria-label="ZBL"
       style={{ flexShrink: 0 }}
     >
-      {/* Border frame */}
-      <rect
-        x="1"
-        y="1"
-        width="26"
-        height="26"
-        rx="3"
-        stroke={neon}
-        strokeWidth={sw}
-        fill="rgba(0,255,148,0.06)"
-      />
+      {/* Glow filter */}
+      <defs>
+        <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.2" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
 
-      {/* Z — top-left to mid-left diagonal */}
-      {/* Z shape: top line, diagonal down-right, bottom line */}
-      <polyline
-        points="5,7 13,7 5,14 13,14"
-        stroke={white}
-        strokeWidth={sw}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
+      {/* Border frame */}
+      <rect x="1" y="1" width="26" height="26" rx="4" stroke={neon} strokeWidth={sw} fill="rgba(0,255,148,0.05)" filter="url(#neon-glow)" />
+
+      {/* Z */}
+      <polyline points="5,7 13,7 5,14 13,14" stroke={white} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" fill="none" />
 
       {/* Vertical separator */}
-      <line
-        x1="15"
-        y1="6"
-        x2="15"
-        y2="22"
-        stroke={neon}
-        strokeWidth={sw * 0.5}
-        strokeLinecap="round"
-        opacity={0.4}
-      />
+      <line x1="15" y1="6" x2="15" y2="22" stroke={neon} strokeWidth={sw * 0.5} strokeLinecap="round" opacity={0.35} />
 
-      {/* B — two bumps on right side of separator */}
       {/* B spine */}
-      <line
-        x1="17"
-        y1="7"
-        x2="17"
-        y2="21"
-        stroke={white}
-        strokeWidth={sw}
-        strokeLinecap="round"
-      />
+      <line x1="17" y1="7" x2="17" y2="21" stroke={white} strokeWidth={sw} strokeLinecap="round" />
       {/* B top bump */}
-      <path
-        d="M17,7 Q23,7 23,10.5 Q23,14 17,14"
-        stroke={white}
-        strokeWidth={sw}
-        strokeLinecap="round"
-        fill="none"
-      />
-      {/* B bottom bump */}
-      <path
-        d="M17,14 Q24,14 24,17.5 Q24,21 17,21"
-        stroke={neon}
-        strokeWidth={sw}
-        strokeLinecap="round"
-        fill="none"
-      />
+      <path d="M17,7 Q23,7 23,10.5 Q23,14 17,14" stroke={white} strokeWidth={sw} strokeLinecap="round" fill="none" />
+      {/* B bottom bump — neon */}
+      <path d="M17,14 Q24,14 24,17.5 Q24,21 17,21" stroke={neon} strokeWidth={sw} strokeLinecap="round" fill="none" filter="url(#neon-glow)" />
 
-      {/* L — bottom-left area, below Z */}
-      <polyline
-        points="5,16 5,22 12,22"
-        stroke={neon}
-        strokeWidth={sw}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
+      {/* L */}
+      <polyline points="5,16 5,22 12,22" stroke={neon} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#neon-glow)" />
 
-      {/* Neon corner accent — bottom right */}
-      <circle cx="25" cy="25" r="1.2" fill={neon} opacity={0.8} />
+      {/* Corner accent dot */}
+      <circle cx="25" cy="25" r="1.2" fill={neon} opacity={0.85} />
     </svg>
-  );
-});
+  )
+})
 
-ZBLMark.displayName = 'ZBLMark';
+ZBLMark.displayName = 'ZBLMark'
 
-export default Logo;
+export default Logo
