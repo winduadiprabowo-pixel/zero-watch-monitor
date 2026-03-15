@@ -30,7 +30,7 @@ interface WalletSidebarProps {
 const tagCfg: Record<WalletTag, { bg: string; text: string; border: string }> = {
   'CEX Whale':    { bg: 'rgba(245,158,11,0.10)',  text: 'rgba(252,196,60,1)',   border: 'rgba(245,158,11,0.25)' },
   'DeFi Insider': { bg: 'rgba(59,130,246,0.10)',  text: 'rgba(147,197,253,1)',  border: 'rgba(59,130,246,0.25)' },
-  'Smart Money':  { bg: 'rgba(0,255,148,0.08)',   text: 'rgba(0,255,148,0.9)',  border: 'rgba(0,255,148,0.22)' },
+  'Smart Money':  { bg: 'rgba(230,161,71,0.08)',   text: 'rgba(230,161,71,0.9)',  border: 'rgba(230,161,71,0.22)' },
   'DAO Treasury': { bg: 'rgba(139,92,246,0.10)',  text: 'rgba(167,139,250,1)',  border: 'rgba(139,92,246,0.25)' },
   'MEV Bot':      { bg: 'rgba(239,68,68,0.10)',   text: 'rgba(252,129,129,1)',  border: 'rgba(239,68,68,0.25)' },
 }
@@ -42,10 +42,14 @@ const SIGNAL_DOT: Record<string, string> = {
   DORMANT:      'rgba(255,255,255,0.18)',
 }
 
-function hexToRgb(hex: string): string {
-  const clean = hex.replace('#', '')
-  const n = parseInt(clean, 16)
-  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`
+function colorToRgb(color: string): string {
+  // Parse rgba(R,G,B,A) → "R,G,B"
+  const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+  if (m) return `${m[1]},${m[2]},${m[3]}`
+  // Fallback: parse hex
+  const clean = color.replace('#', '')
+  const n = parseInt(clean.length === 3 ? clean.split('').map(c=>c+c).join('') : clean, 16)
+  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`
 }
 
 // ── Wallet Row ────────────────────────────────────────────────────────────────
@@ -62,7 +66,7 @@ const WalletRow = memo(({
   onNotesChange: (id: string, notes: string) => void
 }) => {
   const tagC   = tagCfg[wallet.tag as WalletTag] ?? { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)', border: 'rgba(255,255,255,0.1)' }
-  const dotRgb = hexToRgb(dot)
+  const dotRgb = colorToRgb(dot)
 
   const handleClick = useCallback(() => onSelect(wallet.id), [wallet.id, onSelect])
 
@@ -111,7 +115,7 @@ const WalletRow = memo(({
             {wallet.txNew > 0 && (
               <span
                 className="font-mono font-bold px-1 py-0.5 rounded-full flex-shrink-0"
-                style={{ fontSize: '7px', background: 'rgba(0,255,148,0.10)', color: 'rgba(0,255,148,1)', border: '1px solid rgba(0,255,148,0.22)' }}
+                style={{ fontSize: '7px', background: 'rgba(230,161,71,0.10)', color: 'rgba(230,161,71,1)', border: '1px solid rgba(230,161,71,0.22)' }}
               >
                 {wallet.txNew}
               </span>
@@ -160,7 +164,7 @@ const WalletRow = memo(({
               resize:       'none',
               lineHeight:   1.5,
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.25)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.25)' }}
             onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
           />
         </div>
@@ -204,11 +208,11 @@ const WalletSidebar = memo(({
         <button
           onClick={() => setCollapsed(false)}
           className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-          style={{ background: 'rgba(0,255,148,0.08)', border: '1px solid rgba(0,255,148,0.20)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,148,0.14)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,148,0.08)' }}
+          style={{ background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.20)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(230,161,71,0.14)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(230,161,71,0.08)' }}
         >
-          <ChevronRight className="w-3.5 h-3.5" style={{ color: 'rgba(0,255,148,0.8)' }} />
+          <ChevronRight className="w-3.5 h-3.5" style={{ color: 'rgba(230,161,71,0.8)' }} />
         </button>
         {/* Mini wallet dots */}
         <div className="flex flex-col gap-1.5 mt-2">
@@ -219,8 +223,8 @@ const WalletSidebar = memo(({
               className="w-2.5 h-2.5 rounded-full transition-all"
               title={w.label}
               style={{
-                background: w.id === selectedWalletId ? (colorMap[w.id] ?? '#00FF94') : 'rgba(255,255,255,0.14)',
-                boxShadow:  w.id === selectedWalletId ? `0 0 6px ${colorMap[w.id] ?? '#00FF94'}` : 'none',
+                background: w.id === selectedWalletId ? (colorMap[w.id] ?? 'rgba(230,161,71,1)') : 'rgba(255,255,255,0.14)',
+                boxShadow:  w.id === selectedWalletId ? `0 0 6px ${colorMap[w.id] ?? 'rgba(230,161,71,1)'}` : 'none',
               }}
             />
           ))}
@@ -253,7 +257,7 @@ const WalletSidebar = memo(({
             onChange={handleSearchChange}
             className="w-full rounded-xl pl-7 pr-7 py-2 font-mono outline-none transition-all"
             style={{ fontSize: '11px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.28)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.28)' }}
             onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
           />
           {searchQuery && (
@@ -287,9 +291,9 @@ const WalletSidebar = memo(({
               style={{
                 fontSize:      '8px',
                 letterSpacing: '0.06em',
-                background:    isActive ? 'rgba(0,255,148,0.10)' : 'rgba(255,255,255,0.03)',
-                border:        `1px solid ${isActive ? 'rgba(0,255,148,0.30)' : 'rgba(255,255,255,0.07)'}`,
-                color:         isActive ? 'rgba(0,255,148,0.95)' : 'rgba(255,255,255,0.32)',
+                background:    isActive ? 'rgba(230,161,71,0.10)' : 'rgba(255,255,255,0.03)',
+                border:        `1px solid ${isActive ? 'rgba(230,161,71,0.30)' : 'rgba(255,255,255,0.07)'}`,
+                color:         isActive ? 'rgba(230,161,71,0.95)' : 'rgba(255,255,255,0.32)',
                 fontWeight:    isActive ? 600 : 400,
               }}
             >
@@ -307,7 +311,7 @@ const WalletSidebar = memo(({
         </span>
         <span
           className="font-mono font-bold px-1.5 py-0.5 rounded"
-          style={{ fontSize: '8px', background: 'rgba(0,255,148,0.08)', color: 'rgba(0,255,148,0.7)', border: '1px solid rgba(0,255,148,0.16)' }}
+          style={{ fontSize: '8px', background: 'rgba(230,161,71,0.08)', color: 'rgba(230,161,71,0.7)', border: '1px solid rgba(230,161,71,0.16)' }}
         >
           {wallets.length}
         </span>
@@ -325,7 +329,7 @@ const WalletSidebar = memo(({
             key={w.id}
             wallet={w}
             isSelected={selectedWalletId === w.id}
-            dot={colorMap[w.id] ?? '#00FF94'}
+            dot={colorMap[w.id] ?? 'rgba(230,161,71,1)'}
             onSelect={onSelectWallet}
             index={i}
             notes={notesMap[w.id]}
