@@ -1,17 +1,18 @@
 /**
- * ZERØ WATCH — MarketTab v1
+ * ZERØ WATCH — MarketTab v20
  * ==========================
- * Tab 5 di WalletIntelPanel: Market Sentiment + Live Whale Flows.
- * - rgba() only ✓  IBM Plex Mono ✓  dark theme ✓
- * - React.memo + displayName ✓  useMemo + useCallback ✓
+ * v20 POLISH:
+ * - Fear & Greed card: angka lebih besar, gradient background sesuai nilai
+ * - Funding rates: card style v17 (rounded-xl)
+ * - Stats grid: card style matching dashboard
+ * - Whale feed rows: card rows matching ActivityFeed v20
+ * rgba() only ✓  IBM Plex Mono ✓  React.memo + displayName ✓
  */
 
 import { memo, useMemo } from 'react'
-import { TrendingUp, TrendingDown, Activity, ExternalLink, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, ExternalLink, RefreshCw, Zap } from 'lucide-react'
 import { useWhaleTracker, shortAddr, type WhaleTx } from '@/hooks/useWhaleTracker'
 import { useSentiment, type FearGreedLabel } from '@/hooks/useSentiment'
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const fmtUsd = (n: number) => {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`
@@ -36,68 +37,71 @@ function fgColor(v: number): string {
   return 'rgba(0,255,148,1)'
 }
 
-// ── Fear & Greed Card ─────────────────────────────────────────────────────────
-
-interface FearGreedCardProps {
-  index:   number | null
-  label:   FearGreedLabel | null
-  loading: boolean
+function fgGradFrom(v: number): string {
+  if (v <= 20) return 'rgba(239,68,68,0.10)'
+  if (v <= 40) return 'rgba(251,146,60,0.10)'
+  if (v <= 60) return 'rgba(251,191,36,0.08)'
+  if (v <= 80) return 'rgba(52,211,153,0.10)'
+  return 'rgba(0,255,148,0.08)'
 }
 
+// ── Fear & Greed Card ─────────────────────────────────────────────────────────
+
+interface FearGreedCardProps { index: number | null; label: FearGreedLabel | null; loading: boolean }
+
 const FearGreedCard = memo(({ index, label, loading }: FearGreedCardProps) => {
-  const color = index !== null ? fgColor(index) : 'rgba(255,255,255,0.3)'
-  const pct   = index ?? 50
+  const color    = index !== null ? fgColor(index) : 'rgba(255,255,255,0.3)'
+  const gradFrom = index !== null ? fgGradFrom(index) : 'rgba(255,255,255,0.02)'
+  const pct      = index ?? 50
 
   return (
     <div
-      className="rounded-md p-3 space-y-2"
-      style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.065)' }}
+      className="rounded-xl p-4 relative overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, ${gradFrom} 0%, rgba(255,255,255,0.015) 100%)`,
+        border:     `1px solid ${color.replace(',1)', ',0.20)')}`,
+      }}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Fear & Greed</span>
-        <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
-          alternative.me
+      {/* Top accent line */}
+      <div
+        className="absolute top-0 left-6 right-6 h-px pointer-events-none"
+        style={{ background: `linear-gradient(90deg, transparent, ${color.replace(',1)', ',0.4)')}, transparent)` }}
+      />
+
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          Fear & Greed
         </span>
+        <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.18)' }}>alternative.me</span>
       </div>
 
       {loading ? (
-        <div className="h-8 rounded animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
+        <div className="h-10 rounded-lg animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
       ) : (
         <>
-          <div className="flex items-end justify-between">
-            <span
-              className="font-mono font-bold leading-none"
-              style={{ fontSize: '1.75rem', color }}
-            >
+          <div className="flex items-end justify-between mb-3">
+            <span className="font-mono font-bold leading-none" style={{ fontSize: '2.4rem', color }}>
               {index ?? '—'}
             </span>
-            <span className="text-xs font-mono font-semibold pb-0.5" style={{ color }}>
-              {label ?? '—'}
-            </span>
+            <span className="text-sm font-mono font-bold pb-1" style={{ color }}>{label ?? '—'}</span>
           </div>
 
           {/* Gauge bar */}
-          <div
-            className="h-1.5 rounded-full overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.06)' }}
-          >
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
-                width: `${pct}%`,
+                width:     `${pct}%`,
                 background: color,
-                boxShadow: `0 0 6px ${color.replace(/,\s*1\)$/, ', 0.4)')}`,
+                boxShadow: `0 0 8px ${color.replace(',1)', ',0.4)')}`,
               }}
             />
           </div>
 
-          <div
-            className="flex justify-between text-[8px] font-mono"
-            style={{ color: 'rgba(255,255,255,0.18)' }}
-          >
-            <span>FEAR</span>
-            <span>NEUTRAL</span>
-            <span>GREED</span>
+          <div className="flex justify-between mt-1.5">
+            {['FEAR', 'NEUTRAL', 'GREED'].map(t => (
+              <span key={t} className="font-mono" style={{ fontSize: '8px', color: 'rgba(255,255,255,0.18)' }}>{t}</span>
+            ))}
           </div>
         </>
       )}
@@ -113,7 +117,7 @@ interface FundingRowProps { symbol: string; rate: number | null }
 const FundingRow = memo(({ symbol, rate }: FundingRowProps) => {
   if (rate === null) return (
     <div className="flex items-center justify-between py-1.5">
-      <span className="text-[10px] font-mono text-muted-foreground">{symbol}</span>
+      <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>{symbol}</span>
       <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>—</span>
     </div>
   )
@@ -128,22 +132,15 @@ const FundingRow = memo(({ symbol, rate }: FundingRowProps) => {
     <div className="flex items-center justify-between py-1.5">
       <div className="flex items-center gap-1.5">
         <Icon className="w-3 h-3" style={{ color }} />
-        <span className="text-[10px] font-mono text-foreground">{symbol}</span>
+        <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.75)' }}>{symbol}</span>
         <span
           className="text-[8px] font-mono px-1.5 rounded"
-          style={{
-            background: positive ? 'rgba(52,211,153,0.08)' : 'rgba(239,68,68,0.08)',
-            border:     `1px solid ${positive ? 'rgba(52,211,153,0.2)' : 'rgba(239,68,68,0.2)'}`,
-            color,
-          }}
+          style={{ background: positive ? 'rgba(52,211,153,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${positive ? 'rgba(52,211,153,0.2)' : 'rgba(239,68,68,0.2)'}`, color }}
         >
           {badge}
         </span>
       </div>
-      <span
-        className="text-[11px] font-mono font-semibold tabular-nums"
-        style={{ color }}
-      >
+      <span className="text-[11px] font-mono font-bold tabular-nums" style={{ color }}>
         {positive ? '+' : ''}{pct}%
       </span>
     </div>
@@ -151,7 +148,7 @@ const FundingRow = memo(({ symbol, rate }: FundingRowProps) => {
 })
 FundingRow.displayName = 'FundingRow'
 
-// ── Whale Tx Row ──────────────────────────────────────────────────────────────
+// ── Whale Tx Card Row ─────────────────────────────────────────────────────────
 
 const WhaleTxRow = memo(({ tx }: { tx: WhaleTx }) => {
   const from   = tx.fromLabel ?? shortAddr(tx.from)
@@ -167,31 +164,40 @@ const WhaleTxRow = memo(({ tx }: { tx: WhaleTx }) => {
 
   return (
     <div
-      className="py-2 border-b"
-      style={{ borderColor: isMega ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)' }}
+      className="rounded-xl px-3 py-2.5 mb-1.5 transition-all"
+      style={{
+        background:  isMega ? 'rgba(251,191,36,0.04)' : 'rgba(255,255,255,0.022)',
+        border:      isMega ? '1px solid rgba(251,191,36,0.18)' : '1px solid rgba(255,255,255,0.055)',
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.background  = isMega ? 'rgba(251,191,36,0.07)' : 'rgba(255,255,255,0.035)'
+        el.style.borderColor = isMega ? 'rgba(251,191,36,0.28)' : 'rgba(255,255,255,0.10)'
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.background  = isMega ? 'rgba(251,191,36,0.04)' : 'rgba(255,255,255,0.022)'
+        el.style.borderColor = isMega ? 'rgba(251,191,36,0.18)' : 'rgba(255,255,255,0.055)'
+      }}
     >
       <div className="flex items-center justify-between mb-0.5">
-        <div className="flex items-center gap-1 min-w-0">
-          {isMega && <span className="text-[9px] flex-shrink-0">🔥</span>}
+        <div className="flex items-center gap-1.5 min-w-0">
+          {isMega && <span className="text-[10px] flex-shrink-0">🔥</span>}
           <span
-            className="text-[8px] font-mono px-1 rounded flex-shrink-0"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: `1px solid ${tokenClr.replace(/,\s*[\d.]+\)$/, ', 0.15)')}`,
-              color: tokenClr,
-            }}
+            className="text-[8px] font-mono px-1.5 py-0.5 rounded flex-shrink-0"
+            style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${tokenClr.replace(/,\s*[\d.]+\)$/, ', 0.18)')}`, color: tokenClr }}
           >
             {sym}
           </span>
-          <span className="text-[9px] text-muted-foreground font-mono truncate">{from}</span>
+          <span className="text-[9px] font-mono truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{from}</span>
           <span className="text-[8px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.18)' }}>→</span>
-          <span className="text-[9px] text-muted-foreground font-mono truncate">{to}</span>
+          <span className="text-[9px] font-mono truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{to}</span>
         </div>
         <a
           href={`https://etherscan.io/tx/${tx.hash}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0 ml-1"
+          className="flex-shrink-0 ml-1 transition-colors"
           style={{ color: 'rgba(255,255,255,0.15)' }}
           onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,148,0.7)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.15)' }}
@@ -199,13 +205,9 @@ const WhaleTxRow = memo(({ tx }: { tx: WhaleTx }) => {
           <ExternalLink className="w-2.5 h-2.5" />
         </a>
       </div>
-
       <div className="flex items-center justify-between">
-        <span className="text-[9px] text-muted-foreground">{tsAgo(tx.timestamp)}</span>
-        <span
-          className="text-[11px] font-mono font-semibold tabular-nums"
-          style={{ color: isMega ? 'rgba(251,191,36,1)' : 'rgba(255,255,255,0.85)' }}
-        >
+        <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.28)' }}>{tsAgo(tx.timestamp)}</span>
+        <span className="text-[11px] font-mono font-bold tabular-nums" style={{ color: isMega ? 'rgba(251,191,36,1)' : 'rgba(255,255,255,0.85)' }}>
           {fmtUsd(tx.valueUsd)}
         </span>
       </div>
@@ -217,17 +219,8 @@ WhaleTxRow.displayName = 'WhaleTxRow'
 // ── Main MarketTab ────────────────────────────────────────────────────────────
 
 const MarketTab = memo(() => {
-  const {
-    txs, gas, loading: whaleLoading,
-    error: whaleError, stats, refetch,
-  } = useWhaleTracker()
-
-  const {
-    fearGreedIndex, fearGreedLabel,
-    fundingRateEth, fundingRateBtc,
-    loading: sentLoading,
-  } = useSentiment()
-
+  const { txs, gas, loading: whaleLoading, error: whaleError, stats, refetch } = useWhaleTracker()
+  const { fearGreedIndex, fearGreedLabel, fundingRateEth, fundingRateBtc, loading: sentLoading } = useSentiment()
   const recentTxs = useMemo(() => txs.slice(0, 20), [txs])
 
   const netFlowSignal = useMemo(() => {
@@ -236,8 +229,6 @@ const MarketTab = memo(() => {
     return {
       dir:   net > 0 ? 'INFLOW' : 'OUTFLOW',
       color: net > 0 ? 'rgba(239,68,68,0.9)' : 'rgba(52,211,153,0.9)',
-      // Exchange inflow = coins moving TO exchanges = bearish signal (selling pressure)
-      // Exchange outflow = coins leaving exchanges = bullish signal (accumulation)
       label: net > 0 ? '↑ Selling Pressure' : '↓ Accumulation Signal',
     }
   }, [stats.exchangeIn, stats.exchangeOut])
@@ -245,70 +236,31 @@ const MarketTab = memo(() => {
   return (
     <div className="p-4 space-y-3">
 
-      {/* ── Fear & Greed ── */}
-      <FearGreedCard
-        index={fearGreedIndex}
-        label={fearGreedLabel}
-        loading={sentLoading}
-      />
+      {/* Fear & Greed */}
+      <FearGreedCard index={fearGreedIndex} label={fearGreedLabel} loading={sentLoading} />
 
-      {/* ── Funding Rates ── */}
-      <div
-        className="rounded-md p-3"
-        style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.065)' }}
-      >
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Perpetual Funding
-          </span>
-          <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            Binance Perp
-          </span>
+      {/* Funding Rates */}
+      <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.065)' }}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Perpetual Funding</span>
+          <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.18)' }}>Binance Perp</span>
         </div>
         <FundingRow symbol="ETH/USDT" rate={fundingRateEth} />
         <FundingRow symbol="BTC/USDT" rate={fundingRateBtc} />
       </div>
 
-      {/* ── Exchange Flow Stats ── */}
+      {/* Exchange Flow Stats */}
       {!whaleLoading && (
         <div className="grid grid-cols-2 gap-2">
           {([
-            {
-              label: 'Total Volume',
-              value: fmtUsd(stats.totalUsd),
-              color: 'rgba(255,255,255,0.85)',
-            },
-            {
-              label: 'Whale TXs',
-              value: String(stats.whaleCount),
-              color: 'rgba(255,255,255,0.85)',
-            },
-            {
-              label: 'CEX Inflow',
-              value: fmtUsd(stats.exchangeIn),
-              color: 'rgba(239,68,68,0.9)',
-            },
-            {
-              label: 'CEX Outflow',
-              value: fmtUsd(stats.exchangeOut),
-              color: 'rgba(52,211,153,0.9)',
-            },
+            { label: 'Total Volume', value: fmtUsd(stats.totalUsd),     color: 'rgba(255,255,255,0.88)' },
+            { label: 'Whale TXs',   value: String(stats.whaleCount),     color: 'rgba(255,255,255,0.88)' },
+            { label: 'CEX Inflow',  value: fmtUsd(stats.exchangeIn),    color: 'rgba(239,68,68,0.9)' },
+            { label: 'CEX Outflow', value: fmtUsd(stats.exchangeOut),   color: 'rgba(52,211,153,0.9)' },
           ] as const).map(s => (
-            <div
-              key={s.label}
-              className="rounded-md p-2.5"
-              style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.055)',
-              }}
-            >
-              <div className="text-[9px] text-muted-foreground mb-0.5">{s.label}</div>
-              <div
-                className="text-[12px] font-mono font-semibold tabular-nums"
-                style={{ color: s.color }}
-              >
-                {s.value}
-              </div>
+            <div key={s.label} className="rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.055)' }}>
+              <div className="text-[9px] font-mono mb-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.label}</div>
+              <div className="text-[13px] font-mono font-bold tabular-nums" style={{ color: s.color }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -317,49 +269,31 @@ const MarketTab = memo(() => {
       {/* Net flow signal badge */}
       {netFlowSignal && (
         <div
-          className="rounded-md px-3 py-2 flex items-center justify-between"
-          style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: `1px solid ${netFlowSignal.color.replace(/,\s*[\d.]+\)$/, ', 0.15)')}`,
-          }}
+          className="rounded-xl px-3 py-2.5 flex items-center justify-between"
+          style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${netFlowSignal.color.replace(/,\s*[\d.]+\)$/, ', 0.15)')}` }}
         >
-          <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Exchange Signal
-          </span>
-          <span className="text-[10px] font-mono font-semibold" style={{ color: netFlowSignal.color }}>
-            {netFlowSignal.label}
-          </span>
+          <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.45)' }}>Exchange Signal</span>
+          <span className="text-[10px] font-mono font-bold" style={{ color: netFlowSignal.color }}>{netFlowSignal.label}</span>
         </div>
       )}
 
-      {/* ── Live Whale Feed ── */}
+      {/* Live Whale Feed */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <Activity className="w-3 h-3 text-muted-foreground" />
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Live Whale Flows
-            </span>
+            <Activity className="w-3 h-3" style={{ color: 'rgba(0,255,148,0.5)' }} />
+            <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>Live Whale Flows</span>
             {recentTxs.length > 0 && (
-              <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{ background: 'rgba(0,255,148,0.8)' }}
-              />
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0,255,148,0.8)' }} />
             )}
           </div>
-
           <div className="flex items-center gap-2">
             {gas && (
               <span
                 className="text-[9px] font-mono"
-                style={{
-                  color: gas.fastGwei < 20
-                    ? 'rgba(52,211,153,0.8)'
-                    : gas.fastGwei < 60
-                      ? 'rgba(0,194,255,0.8)'
-                      : 'rgba(251,191,36,0.8)',
-                }}
+                style={{ color: gas.fastGwei < 20 ? 'rgba(52,211,153,0.8)' : gas.fastGwei < 60 ? 'rgba(0,194,255,0.8)' : 'rgba(251,191,36,0.8)' }}
               >
+                <Zap className="w-2.5 h-2.5 inline mr-0.5" style={{ verticalAlign: 'middle' }} />
                 {gas.fastGwei.toFixed(0)} gwei
               </span>
             )}
@@ -376,48 +310,26 @@ const MarketTab = memo(() => {
           </div>
         </div>
 
-        {/* Shimmer loading */}
         {whaleLoading && recentTxs.length === 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {[1, 2, 3, 4].map(i => (
-              <div
-                key={i}
-                className="h-10 rounded animate-pulse"
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  animationDelay: `${i * 0.08}s`,
-                }}
-              />
+              <div key={i} className="h-12 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.03)', animationDelay: `${i * 0.08}s` }} />
             ))}
           </div>
         ) : whaleError ? (
-          <div
-            className="text-center py-6 text-[10px] font-mono rounded-md"
-            style={{
-              color: 'rgba(239,68,68,0.7)',
-              background: 'rgba(239,68,68,0.05)',
-              border: '1px solid rgba(239,68,68,0.1)',
-            }}
-          >
+          <div className="text-center py-6 text-[10px] font-mono rounded-xl" style={{ color: 'rgba(239,68,68,0.7)', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)' }}>
             {whaleError}
           </div>
         ) : recentTxs.length === 0 ? (
-          <div className="text-center py-8 text-[10px] text-muted-foreground font-mono">
+          <div className="text-center py-8 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>
             Fetching whale transactions…
           </div>
         ) : (
-          <div>
-            {recentTxs.map(tx => (
-              <WhaleTxRow key={tx.hash} tx={tx} />
-            ))}
-          </div>
+          <div>{recentTxs.map(tx => <WhaleTxRow key={tx.hash} tx={tx} />)}</div>
         )}
       </div>
 
-      <div
-        className="text-[9px] font-mono text-center"
-        style={{ color: 'rgba(255,255,255,0.12)' }}
-      >
+      <div className="text-[9px] font-mono text-center" style={{ color: 'rgba(255,255,255,0.12)' }}>
         ETH + ERC20 txs ≥$1M from 40+ labeled wallets · 30s refresh
       </div>
     </div>
