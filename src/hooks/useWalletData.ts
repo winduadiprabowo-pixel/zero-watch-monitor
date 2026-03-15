@@ -1,40 +1,38 @@
 /**
- * ZERØ WATCH — useWalletData v21
+ * ZERØ WATCH — useWalletData v22
  * ================================
- * v21: Queue-based lazy loading — fetch 1 wallet per 200ms
- * Handles 51 wallets tanpa kena Etherscan rate limit.
- * - First 5 wallets: fetch immediately (visible)
- * - Rest: queue with 200ms delay between each
- * - Selected wallet: always prioritized
- * - Auto-snapshot to CF KV history
+ * v22: TRX chain support via tronApi.
+ *      Queue-based lazy loading — fetch 1 wallet per 200ms.
+ *      Handles 44+ wallets tanpa kena rate limit.
  *
  * rgba() only ✓  AbortController ✓  mountedRef ✓
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
 import { fetchWalletData, getEthPrice } from '@/services/api'
 import type { WalletData } from '@/services/api'
 import { fetchSolWalletData } from '@/services/solanaApi'
 import { fetchBtcWalletData } from '@/services/bitcoinApi'
+import { fetchTronWalletData } from '@/services/tronApi'
 
-const POLL        = 60_000   // 60s polling (was 30s — reduce API load)
+const POLL        = 60_000
 const STALE       = 50_000
-const QUEUE_DELAY = 250      // ms between each wallet fetch
-const PRIORITY    = 5        // fetch first N wallets immediately
+const QUEUE_DELAY = 250
+const PRIORITY    = 5
 
-// ── saveSnapshot inline — throttled 1x/hour per wallet ──────────────────────
+// ── saveSnapshot — throttled 1x/hour per wallet ──────────────────────────────
 
 const _snapThrottle = new Map<string, number>()
-const SNAP_TTL = 60 * 60_000  // 1 hour
+const SNAP_TTL = 60 * 60_000
 
 async function saveSnapshot(
   address: string, chain: string, usdValue: number, ethBalance: string
 ): Promise<void> {
-  const key = `${chain}:${address}`
+  const key  = `${chain}:${address}`
   const last = _snapThrottle.get(key) ?? 0
-  if (Date.now() - last < SNAP_TTL) return  // skip if < 1 hour
+  if (Date.now() - last < SNAP_TTL) return
   _snapThrottle.set(key, Date.now())
 
   try {
@@ -46,13 +44,14 @@ async function saveSnapshot(
   } catch { /* silently fail */ }
 }
 
-// ── Unified fetch adapter ────────────────────────────────────────────────────
+// ── Unified fetch adapter ─────────────────────────────────────────────────────
 
 async function fetchAnyWalletData(
   address: string,
   chain:   string,
   signal:  AbortSignal
 ): Promise<WalletData> {
+
   if (chain === 'BTC') {
     const btc = await fetchBtcWalletData(address, signal)
     return {
@@ -108,19 +107,45 @@ async function fetchAnyWalletData(
       lastUpdated: sol.lastUpdated,
     }
   }
+
+  if (chain === 'TRX') {
+    const trx = await fetchTronWalletData(address, signal)
+    return {
+      address:      trx.address,
+      balance: {
+        address:    trx.address,
+        ethBalance: trx.balance.trxBalance,   // TRX balance (reusing ethBalance field)
+        usdValue:   trx.balance.usdValue,
+        tokens:     [],
+      },
+      transactions: trx.transactions.map(tx => ({
+        hash:         tx.txid,
+        from:         tx.type === 'OUT' ? address : 'external',
+        to:           tx.type === 'IN'  ? address : 'external',
+        value:        tx.valueTrx.toFixed(6),
+        timeStamp:    String(Math.floor(tx.blockTime / 1000)),
+        isError:      tx.status === 'FAILED' ? '1' : '0',
+        functionName: tx.type,
+        gasUsed:      tx.fee.toFixed(6),
+        type:         'TRANSFER' as const,
+      })),
+      lastUpdated: trx.lastUpdated,
+    }
+  }
+
+  // ETH / ARB / BASE / OP / BNB — all EVM
   return fetchWalletData(address, chain as 'ETH' | 'ARB' | 'BASE' | 'OP', signal)
 }
 
-// ── Queue-based lazy loader ──────────────────────────────────────────────────
+// ── Queue-based lazy loader ───────────────────────────────────────────────────
 
 export const useAllWalletData = () => {
-  const wallets      = useWalletStore(selectWallets)
-  const queryClient  = useQueryClient()
-  const abortMap     = useRef<Map<string, AbortController>>(new Map())
-  const queueRef     = useRef<ReturnType<typeof setTimeout>[]>([])
-  const mountedRef   = useRef(true)
+  const wallets     = useWalletStore(selectWallets)
+  const queryClient = useQueryClient()
+  const abortMap    = useRef<Map<string, AbortController>>(new Map())
+  const queueRef    = useRef<ReturnType<typeof setTimeout>[]>([])
+  const mountedRef  = useRef(true)
 
-  // Aggregate results from individual wallet queries
   const results = wallets.map(w =>
     queryClient.getQueryData<WalletData>(['wallet-lazy', w.address, w.chain])
   )
@@ -129,10 +154,7 @@ export const useAllWalletData = () => {
     queryClient.isFetching({ queryKey: ['wallet-lazy', w.address, w.chain] }) > 0
   )
 
-  // Fetch single wallet and cache
-  const fetchOne = useCallback(async (
-    address: string, chain: string
-  ) => {
+  const fetchOne = useCallback(async (address: string, chain: string) => {
     if (!mountedRef.current) return
 
     const existing = abortMap.current.get(address)
@@ -143,36 +165,24 @@ export const useAllWalletData = () => {
     try {
       const data = await fetchAnyWalletData(address, chain, ctrl.signal)
       if (!mountedRef.current) return
-
       queryClient.setQueryData(['wallet-lazy', address, chain], data)
-
-      // Auto-snapshot
       saveSnapshot(address, chain, data.balance.usdValue, data.balance.ethBalance)
-    } catch {
-      // silently fail per wallet
-    }
+    } catch { /* silently fail per wallet */ }
   }, [queryClient])
 
-  // Launch queue on wallets change
   useEffect(() => {
     mountedRef.current = true
-
-    // Clear previous timers
     queueRef.current.forEach(t => clearTimeout(t))
     queueRef.current = []
-
-    // Abort all previous fetches
     abortMap.current.forEach(c => c.abort())
     abortMap.current.clear()
 
     if (wallets.length === 0) return
 
-    // Priority wallets — fetch immediately (first PRIORITY)
     wallets.slice(0, PRIORITY).forEach(w => {
       fetchOne(w.address, w.chain)
     })
 
-    // Rest — queue with delay
     wallets.slice(PRIORITY).forEach((w, i) => {
       const t = setTimeout(() => {
         if (mountedRef.current) fetchOne(w.address, w.chain)
@@ -180,7 +190,6 @@ export const useAllWalletData = () => {
       queueRef.current.push(t)
     })
 
-    // Refetch cycle
     const refetchInterval = setInterval(() => {
       if (!mountedRef.current) return
       wallets.forEach((w, i) => {
@@ -206,11 +215,11 @@ export const useAllWalletData = () => {
   }
 }
 
-// ── Single wallet hook (unchanged) ──────────────────────────────────────────
+// ── Single wallet hook ────────────────────────────────────────────────────────
 
 export const useSingleWallet = (
   address: string,
-  chain:   'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL'
+  chain:   'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL' | 'TRX' | 'BNB'
 ) => {
   const abortRef = useRef<AbortController | null>(null)
 
