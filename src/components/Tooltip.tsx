@@ -2,7 +2,7 @@
  * ZERØ WATCH — Tooltip v1
  * =========================
  * Lightweight hover tooltip — zero dependency.
- * Pakai pure CSS + absolute positioning.
+ * Mobile: skip tooltip (touch users don't hover).
  * rgba() only ✓  React.memo + displayName ✓
  */
 
@@ -39,34 +39,31 @@ const Tooltip = memo(({ content, children, position = 'top', delay = 300 }: Tool
 
   return (
     <span
-      className="relative inline-flex items-center"
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
       onMouseEnter={show}
       onMouseLeave={hide}
-      onFocus={show}
-      onBlur={hide}
     >
       {children}
       {visible && (
         <span
-          className="absolute z-50 pointer-events-none animate-fade-in"
-          style={{
-            ...posStyle,
-            whiteSpace:     'nowrap',
-            maxWidth:       '220px',
-            whiteSpaceCollapse: 'collapse',
-          }}
+          className="animate-fade-in"
+          style={{ position: 'absolute', zIndex: 100, pointerEvents: 'none', ...posStyle }}
         >
           <span
-            className="block font-mono rounded-xl px-3 py-2"
             style={{
-              fontSize:    '10px',
-              lineHeight:  '1.5',
-              background:  'rgba(10,10,20,0.97)',
-              border:      '1px solid rgba(0,255,148,0.20)',
-              color:       'rgba(255,255,255,0.80)',
-              boxShadow:   '0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,255,148,0.08)',
-              whiteSpace:  'normal',
-              maxWidth:    '200px',
+              display:       'block',
+              fontFamily:    "'IBM Plex Mono',monospace",
+              fontSize:      '10px',
+              lineHeight:    1.5,
+              padding:       '8px 12px',
+              borderRadius:  '10px',
+              background:    'rgba(10,10,20,0.97)',
+              border:        '1px solid rgba(0,255,148,0.20)',
+              color:         'rgba(255,255,255,0.80)',
+              boxShadow:     '0 8px 24px rgba(0,0,0,0.5)',
+              whiteSpace:    'normal',
+              maxWidth:      '200px',
+              width:         'max-content',
             }}
           >
             {content}
@@ -80,17 +77,15 @@ const Tooltip = memo(({ content, children, position = 'top', delay = 300 }: Tool
 Tooltip.displayName = 'Tooltip'
 export default Tooltip
 
-// ── Pre-built tooltips untuk istilah ZERØ WATCH ───────────────────────────────
-
 export const TOOLTIPS = {
-  conviction:    'Score 0-100 seberapa kuat directional bet wallet ini. Makin tinggi = makin yakin dia akumul atau distribusi.',
-  dormant:       'Wallet tidak ada transaksi signifikan dalam 30 hari. Bisa aktivasi kapan saja.',
-  accumulating:  'Wallet lebih banyak menerima ETH daripada mengirim dalam 30 hari. Bullish signal.',
-  distributing:  'Wallet lebih banyak mengirim ETH daripada menerima. Possible selling pressure.',
-  hunting:       'Wallet aktif trading tapi tidak ada arah jelas. MEV bot atau active trader.',
-  smartScore:    'Composite score dari balance (35%) + aktivitas 30d (35%) + whale pattern (30%).',
-  cluster:       'Wallet ini gerak dalam waktu <5 menit dengan wallet lain. Kemungkinan koordinasi.',
-  bigMove:       'Transaksi > $5000 dalam 1 jam terakhir dari wallet ini.',
-  copySignal:    'Transaksi SWAP/DEPOSIT/BORROW dari wallet ini yang bisa di-mirror.',
-  unknownWhale:  'Wallet tanpa label publik yang gerak > $1M. Bisa insider atau smart money baru.',
+  conviction:   'Score 0-100 seberapa kuat directional bet wallet ini. Makin tinggi = makin yakin dia akumul atau distribusi.',
+  dormant:      'Tidak ada transaksi signifikan 30 hari. Bisa aktivasi kapan saja.',
+  accumulating: 'Lebih banyak menerima ETH daripada mengirim 30 hari terakhir. Bullish signal.',
+  distributing: 'Lebih banyak mengirim ETH daripada menerima. Possible selling pressure.',
+  hunting:      'Aktif trading tapi tidak ada arah jelas. MEV bot atau active trader.',
+  smartScore:   'Composite score: balance (35%) + aktivitas 30d (35%) + whale pattern (30%).',
+  cluster:      'Wallet ini gerak dalam waktu <5 menit dengan wallet lain. Kemungkinan koordinasi.',
+  bigMove:      'Transaksi >$5000 dalam 1 jam terakhir.',
+  copySignal:   'Transaksi SWAP/DEPOSIT/BORROW yang bisa di-mirror.',
+  unknownWhale: 'Wallet tanpa label publik yang gerak >$1M. Insider atau smart money baru.',
 } as const
