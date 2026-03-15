@@ -45,6 +45,10 @@ import type { Transaction }        from '@/services/api'
 import { Download, Zap, Eye, TrendingUp, TrendingDown, Activity, Shield } from 'lucide-react'
 import { useWhaleAlerts }          from '@/hooks/useWhaleAlerts'
 import WhaleAlertToggle            from '@/components/WhaleAlertToggle'
+import { TelegramSetupModal }      from '@/components/TelegramSetupModal'
+import { useTelegramAlert }        from '@/hooks/useTelegramAlert'
+import { usePriceAlert }           from '@/hooks/usePriceAlert'
+import { Send }                    from 'lucide-react'
 
 type MobileTab = 'wallets' | 'intel' | 'stats'
 
@@ -305,12 +309,13 @@ MobileHeader.displayName = 'MobileHeader'
 // ── Desktop/Tablet AddBtn ─────────────────────────────────────────────────────
 
 interface AddBtnProps {
-  onAdd: () => void; onExport: () => void; onUpgrade: () => void
+  onAdd: () => void; onExport: () => void; onUpgrade: () => void; onTgSetup: () => void
   isProActive: boolean; isFetching: boolean; isError: boolean
   alerts: import('@/hooks/useWhaleAlerts').WhaleAlertsState
+  tgEnabled: boolean
 }
 
-const AddBtn = memo(({ onAdd, onExport, onUpgrade, isProActive, isFetching, isError, alerts }: AddBtnProps) => (
+const AddBtn = memo(({ onAdd, onExport, onUpgrade, onTgSetup, isProActive, isFetching, isError, alerts, tgEnabled }: AddBtnProps) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px 12px' }}>
     <button
       onClick={onAdd}
@@ -321,6 +326,15 @@ const AddBtn = memo(({ onAdd, onExport, onUpgrade, isProActive, isFetching, isEr
       + ADD WALLET
     </button>
     <WhaleAlertToggle alerts={alerts} compact />
+    <button
+      onClick={onTgSetup}
+      title="Telegram Alerts"
+      style={{ padding: '8px 10px', borderRadius: '10px', background: tgEnabled ? 'rgba(0,136,204,0.12)' : 'rgba(255,255,255,0.04)', border: tgEnabled ? '1px solid rgba(0,136,204,0.30)' : '1px solid rgba(255,255,255,0.08)', color: tgEnabled ? 'rgba(100,181,246,0.9)' : 'rgba(255,255,255,0.35)', cursor: 'pointer', transition: 'all 0.15s', boxShadow: tgEnabled ? '0 0 10px rgba(0,136,204,0.15)' : 'none' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,136,204,0.40)'; e.currentTarget.style.color = 'rgba(100,181,246,1)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = tgEnabled ? 'rgba(0,136,204,0.30)' : 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = tgEnabled ? 'rgba(100,181,246,0.9)' : 'rgba(255,255,255,0.35)' }}
+    >
+      <Send style={{ width: '14px', height: '14px' }} />
+    </button>
     {isProActive ? (
       <button onClick={onExport} style={{ padding: '8px 10px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(0,255,148,0.7)', cursor: 'pointer', transition: 'border-color 0.15s' }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.25)' }}
@@ -353,6 +367,7 @@ const Index = () => {
   const [addOpen, setAddOpen]                   = useState(false)
   const [upgradeOpen, setUpgradeOpen]           = useState(false)
   const [exportOpen, setExportOpen]             = useState(false)
+  const [tgOpen, setTgOpen]                     = useState(false)
 
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
@@ -417,7 +432,19 @@ const Index = () => {
     return m
   }, [storeWallets])
 
-  const whaleAlerts = useWhaleAlerts(walletIntelMap, walletLabels)
+  const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
+  const tgAlert      = useTelegramAlert()
+  const { data: ethPriceData } = useEthPrice()
+  const { config: priceAlertCfg, setConfig: setPriceAlertCfg } = usePriceAlert(
+    ethPriceData ?? null,
+    (msg) => {
+      tgAlert.sendAlert(msg)
+      // Also Web Notification
+      if (whaleAlerts.permission === 'granted') {
+        new Notification('ZERØ WATCH Price Alert', { body: msg.replace(/<[^>]+>/g,''), icon: '/icon-192.png' })
+      }
+    }
+  )
 
   const selectedWallet       = allWallets.find(w => w.id === selectedWalletId) ?? null
   const selectedWalletIdx    = storeWallets.findIndex(w => w.id === selectedWalletId)
@@ -441,9 +468,10 @@ const Index = () => {
   // Common modals
   const modals = (
     <>
-      <AddWalletModal open={addOpen}     onClose={() => setAddOpen(false)}     onUpgrade={() => setUpgradeOpen(true)} />
-      <UpgradeModal   open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
-      <ExportModal    open={exportOpen}  onClose={() => setExportOpen(false)} />
+      <AddWalletModal      open={addOpen}     onClose={() => setAddOpen(false)}     onUpgrade={() => setUpgradeOpen(true)} />
+      <UpgradeModal        open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <ExportModal         open={exportOpen}  onClose={() => setExportOpen(false)} />
+      <TelegramSetupModal  open={tgOpen}      onClose={() => setTgOpen(false)} tg={tgAlert} />
     </>
   )
 
@@ -640,7 +668,8 @@ const Index = () => {
           <Logo />
           <AddBtn
             onAdd={() => setAddOpen(true)} onExport={handleExportClick}
-            onUpgrade={() => setUpgradeOpen(true)} isProActive={isProActive}
+            onUpgrade={() => setUpgradeOpen(true)} onTgSetup={() => setTgOpen(true)}
+            isProActive={isProActive} tgEnabled={tgAlert.enabled}
             isFetching={isFetching} isError={!!isError} alerts={whaleAlerts}
           />
           <WalletSidebar
