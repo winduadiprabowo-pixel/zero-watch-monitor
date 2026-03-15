@@ -1,10 +1,10 @@
 /**
- * ZERØ WATCH — Index v15
+ * ZERØ WATCH — Index v17
  * ========================
- * v15 TOTAL REWRITE:
- * - Auto-seed default whale wallets on mount
- * - Hero onboarding screen "SIGNAL DETECTED" — bukan generic empty state
- * - Desktop/Tablet/Mobile semua rapi
+ * v17:
+ * - DyorBanner injected (sticky bottom, dismissable)
+ * - UnknownWhaleCard injected (live unknown whale signals)
+ * - Share to X via UnknownWhaleCard
  * - rgba() only ✓  React.memo ✓  useCallback/useMemo ✓
  */
 
@@ -20,6 +20,8 @@ import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
 import { AddWalletModal }          from '@/components/AddWalletModal'
 import { UpgradeModal }            from '@/components/UpgradeModal'
 import { ExportModal }             from '@/components/ExportModal'
+import DyorBanner                  from '@/components/DyorBanner'
+import UnknownWhaleCard            from '@/components/dashboard/UnknownWhaleCard'
 import { filterTags }              from '@/data/mockData'
 import type { Wallet, ActivityEvent } from '@/data/mockData'
 import { useIsMobile }             from '@/hooks/use-mobile'
@@ -36,12 +38,12 @@ import {
 import type { WalletIntelligence } from '@/services/whaleAnalytics'
 import type { Transaction }        from '@/services/api'
 import { Download, Zap, Eye, TrendingUp, TrendingDown, Activity, Shield } from 'lucide-react'
-import { useWhaleAlerts } from '@/hooks/useWhaleAlerts'
-import WhaleAlertToggle from '@/components/WhaleAlertToggle'
+import { useWhaleAlerts }          from '@/hooks/useWhaleAlerts'
+import WhaleAlertToggle            from '@/components/WhaleAlertToggle'
 
 type MobileTab = 'wallets' | 'intel' | 'stats'
 
-// ── UI data mappers ─────────────────────────────────────────────────────────
+// ── UI data mappers ──────────────────────────────────────────────────────────
 
 function toUiWallet(
   storeWallet: ReturnType<typeof selectWallets>[number],
@@ -67,7 +69,6 @@ function toUiWallet(
     ? txs.slice(0, 10).reverse().map(t => Math.max(parseFloat(t.value) || 0.001, 0.001))
     : [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
-  // Use tag from store (set during seed/add), fallback to index rotation only if missing
   const FALLBACK_TAGS = ['CEX Whale', 'DeFi Insider', 'Smart Money', 'DAO Treasury', 'MEV Bot'] as const
   const tag = (storeWallet as typeof storeWallet & { tag?: string }).tag as typeof FALLBACK_TAGS[number]
     ?? FALLBACK_TAGS[index % FALLBACK_TAGS.length]
@@ -118,59 +119,40 @@ function toUiEvents(
   }))
 }
 
-// ── Hero Onboarding Screen ─────────────────────────────────────────────────
-// Muncul saat wallets kosong tapi belum seeded.
-// Tidak akan pernah muncul di v15 karena auto-seed on mount.
-// Kept as fallback.
+// ── Hero Screen ───────────────────────────────────────────────────────────────
 
 const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: () => void }) => {
   const signals = [
-    { label: 'ACCUMULATING', addr: '0xd8dA...6045', val: '$2.1M', color: 'rgba(52,211,153,1)', icon: TrendingUp },
-    { label: 'DISTRIBUTING', addr: '0xBE0e...33E8', val: '$8.4M', color: 'rgba(239,68,68,1)',  icon: TrendingDown },
-    { label: 'HUNTING',      addr: '0x28C6...d60', val: '$440K', color: 'rgba(251,191,36,1)',  icon: Activity },
+    { label: 'ACCUMULATING', addr: '0xd8dA...6045', val: '$2.1M', color: 'rgba(52,211,153,1)',  icon: TrendingUp },
+    { label: 'DISTRIBUTING', addr: '0xBE0e...33E8', val: '$8.4M', color: 'rgba(239,68,68,1)',   icon: TrendingDown },
+    { label: 'HUNTING',      addr: '0x28C6...d60',  val: '$440K', color: 'rgba(251,191,36,1)',  icon: Activity },
   ]
 
   return (
     <div
-      className="flex flex-col items-center justify-center gap-8 px-6"
-      style={{
-        height:     '100dvh',
-        background: 'rgba(4,4,10,1)',
-        paddingTop: 'env(safe-area-inset-top,0px)',
-      }}
+      className="flex flex-col items-center justify-center gap-8 px-6 relative overflow-hidden"
+      style={{ height: '100dvh', background: 'rgba(4,4,10,1)', paddingTop: 'env(safe-area-inset-top,0px)' }}
     >
-      {/* Grid scan lines bg */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'linear-gradient(rgba(0,255,148,0.012) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,148,0.012) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
+          backgroundImage: 'linear-gradient(rgba(0,255,148,0.010) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,148,0.010) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
         }}
       />
-
-      {/* Top glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
-        style={{
-          width:      '600px',
-          height:     '280px',
-          background: 'radial-gradient(ellipse at top, rgba(0,255,148,0.07) 0%, transparent 70%)',
-        }}
+        style={{ width: '600px', height: '280px', background: 'radial-gradient(ellipse at top, rgba(0,255,148,0.07) 0%, transparent 70%)' }}
       />
 
-      {/* Logo */}
       <div className="relative animate-fade-up">
         <Logo compact />
       </div>
 
-      {/* Hero copy */}
       <div className="text-center space-y-3 relative animate-fade-up" style={{ animationDelay: '0.08s' }}>
         <div
           className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2"
-          style={{
-            background: 'rgba(0,255,148,0.06)',
-            border:     '1px solid rgba(0,255,148,0.18)',
-          }}
+          style={{ background: 'rgba(0,255,148,0.06)', border: '1px solid rgba(0,255,148,0.18)' }}
         >
           <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0,255,148,1)', boxShadow: '0 0 6px rgba(0,255,148,0.8)' }} />
           <span className="text-[9px] font-mono tracking-widest" style={{ color: 'rgba(0,255,148,0.8)' }}>LIVE SURVEILLANCE ACTIVE</span>
@@ -189,19 +171,17 @@ const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: (
         </p>
       </div>
 
-      {/* Live signal preview cards */}
       <div className="w-full max-w-sm space-y-2 relative animate-fade-up" style={{ animationDelay: '0.14s' }}>
         <div className="text-[9px] font-mono tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.18)' }}>
-          LIVE SIGNALS — SAMPLE DATA
+          LIVE SIGNALS — SAMPLE
         </div>
         {signals.map((s, i) => (
           <div
             key={i}
             className="flex items-center justify-between px-3 py-2.5 rounded-xl"
             style={{
-              background:     `rgba(${s.label === 'ACCUMULATING' ? '52,211,153' : s.label === 'DISTRIBUTING' ? '239,68,68' : '251,191,36'},0.04)`,
-              border:         `1px solid ${s.color.replace(',1)', ',0.15)')}`,
-              animationDelay: `${0.18 + i * 0.06}s`,
+              background: `rgba(${s.label === 'ACCUMULATING' ? '52,211,153' : s.label === 'DISTRIBUTING' ? '239,68,68' : '251,191,36'},0.05)`,
+              border:     `1px solid ${s.color.replace(',1)', ',0.18)')}`,
             }}
           >
             <div className="flex items-center gap-2">
@@ -214,15 +194,14 @@ const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: (
         ))}
       </div>
 
-      {/* CTAs */}
       <div className="w-full max-w-sm space-y-3 relative animate-fade-up" style={{ animationDelay: '0.28s' }}>
         <button
           onClick={onAdd}
           className="w-full py-3.5 rounded-xl font-mono font-bold text-sm tracking-wider transition-all active:scale-[0.98]"
           style={{
-            background:  'rgba(0,255,148,1)',
-            color:       '#020a06',
-            boxShadow:   '0 0 28px rgba(0,255,148,0.25), 0 4px 16px rgba(0,0,0,0.4)',
+            background:    'rgba(0,255,148,1)',
+            color:         '#020a06',
+            boxShadow:     '0 0 28px rgba(0,255,148,0.25), 0 4px 16px rgba(0,0,0,0.4)',
             letterSpacing: '0.06em',
           }}
         >
@@ -233,11 +212,7 @@ const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: (
         <button
           onClick={onUpgrade}
           className="w-full py-3 rounded-xl font-mono text-xs tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-          style={{
-            background: 'rgba(0,255,148,0.05)',
-            border:     '1px solid rgba(0,255,148,0.2)',
-            color:      'rgba(0,255,148,0.7)',
-          }}
+          style={{ background: 'rgba(0,255,148,0.05)', border: '1px solid rgba(0,255,148,0.2)', color: 'rgba(0,255,148,0.7)' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.4)'; e.currentTarget.style.color = 'rgba(0,255,148,1)' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.2)'; e.currentTarget.style.color = 'rgba(0,255,148,0.7)' }}
         >
@@ -262,7 +237,7 @@ const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: (
 })
 HeroScreen.displayName = 'HeroScreen'
 
-// ── Mobile Header ─────────────────────────────────────────────────────────
+// ── Mobile Header ─────────────────────────────────────────────────────────────
 
 interface MobileHeaderProps {
   isProActive: boolean
@@ -310,7 +285,6 @@ const MobileHeader = memo(({
     </div>
 
     <div className="flex items-center gap-2">
-      {/* LIVE dot */}
       <div
         className="flex items-center gap-1.5 px-2 py-1 rounded-full"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
@@ -325,15 +299,12 @@ const MobileHeader = memo(({
         />
         <span
           className="text-[8px] font-mono tracking-widest"
-          style={{
-            color: isFetching ? 'rgba(251,191,36,0.8)' : isError ? 'rgba(239,68,68,0.7)' : 'rgba(0,255,148,0.75)',
-          }}
+          style={{ color: isFetching ? 'rgba(251,191,36,0.8)' : isError ? 'rgba(239,68,68,0.7)' : 'rgba(0,255,148,0.75)' }}
         >
           {isFetching ? 'SYNC' : isError ? 'ERR' : 'LIVE'}
         </span>
       </div>
 
-      {/* PRO CTA */}
       {isProActive ? (
         <button
           onClick={onExport}
@@ -375,7 +346,68 @@ const MobileHeader = memo(({
 ))
 MobileHeader.displayName = 'MobileHeader'
 
-// ── Main Component ────────────────────────────────────────────────────────
+// ── Desktop AddBtn ─────────────────────────────────────────────────────────────
+
+interface AddBtnProps {
+  onAdd:        () => void
+  onExport:     () => void
+  onUpgrade:    () => void
+  isProActive:  boolean
+  isFetching:   boolean
+  isError:      boolean
+  alerts:       import('@/hooks/useWhaleAlerts').WhaleAlertsState
+}
+
+const AddBtn = memo(({ onAdd, onExport, onUpgrade, isProActive, isFetching, isError, alerts }: AddBtnProps) => (
+  <div className="flex items-center gap-2 px-3 pb-3">
+    <button
+      onClick={onAdd}
+      className="flex-1 text-xs py-2 rounded-xl font-mono font-semibold transition-all"
+      style={{
+        background:    'rgba(0,255,148,0.08)',
+        border:        '1px solid rgba(0,255,148,0.25)',
+        color:         'rgba(0,255,148,0.9)',
+        letterSpacing: '0.06em',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.14)'; e.currentTarget.style.borderColor = 'rgba(0,255,148,0.40)' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.08)'; e.currentTarget.style.borderColor = 'rgba(0,255,148,0.25)' }}
+    >
+      + ADD WALLET
+    </button>
+    <WhaleAlertToggle alerts={alerts} compact />
+    {isProActive ? (
+      <button
+        onClick={onExport}
+        className="py-2 px-2.5 rounded-xl font-mono transition-all"
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(0,255,148,0.7)' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.25)' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
+      >
+        <Download className="w-3.5 h-3.5" />
+      </button>
+    ) : (
+      <button
+        onClick={onUpgrade}
+        className="text-xs py-2 px-2.5 rounded-xl font-mono font-bold transition-all"
+        style={{
+          background:    'rgba(0,255,148,0.06)',
+          border:        '1px solid rgba(0,255,148,0.20)',
+          color:         'rgba(0,255,148,0.8)',
+          letterSpacing: '0.04em',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.12)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.06)' }}
+      >
+        PRO
+      </button>
+    )}
+    {isFetching && <span className="text-[10px] font-mono animate-pulse" style={{ color: 'rgba(255,255,255,0.2)' }}>⟳</span>}
+    {isError    && <span className="text-[10px] font-mono" style={{ color: 'rgba(239,68,68,0.7)' }} title="API error — retrying">!</span>}
+  </div>
+))
+AddBtn.displayName = 'AddBtn'
+
+// ── Main Index ────────────────────────────────────────────────────────────────
 
 const Index = () => {
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null)
@@ -390,12 +422,11 @@ const Index = () => {
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
-  const storeWallets  = useWalletStore(selectWallets)
-  const isProActive   = useWalletStore(s => s.isProActive())
-  const seedDefaults  = useWalletStore(s => s.seedDefaultWallets)
-  const seeded        = useWalletStore(s => s._seeded)
+  const storeWallets = useWalletStore(selectWallets)
+  const isProActive  = useWalletStore(s => s.isProActive())
+  const seedDefaults = useWalletStore(s => s.seedDefaultWallets)
+  const seeded       = useWalletStore(s => s._seeded)
 
-  // ── Auto-seed on first mount ────────────────────────────────────────────
   useEffect(() => {
     if (!seeded) seedDefaults()
   }, [seeded, seedDefaults])
@@ -445,7 +476,6 @@ const Index = () => {
     return detectClusters(input)
   }, [storeWallets, apiDataArr])
 
-  // ── Whale Alerts ────────────────────────────────────────────────────────────
   const walletLabels = useMemo<Record<string, string>>(() => {
     const m: Record<string, string> = {}
     storeWallets.forEach(w => { m[w.id] = w.label })
@@ -481,41 +511,10 @@ const Index = () => {
     </>
   )
 
-  // Desktop sidebar AddBtn
-  const AddBtn = () => (
-    <div className="flex items-center gap-2 px-3 pb-2">
-      <button
-        onClick={() => setAddOpen(true)}
-        className="flex-1 text-xs py-1.5 rounded-lg bg-neon/10 border border-neon/30 text-neon hover:bg-neon/20 transition-all font-mono"
-      >
-        + ADD WALLET
-      </button>
-      <WhaleAlertToggle alerts={whaleAlerts} compact />
-      {isProActive ? (
-        <button onClick={handleExportClick}
-          className="text-xs py-1.5 px-2 rounded-lg border border-neon/30 text-neon hover:bg-neon/10 transition-all font-mono"
-        >
-          <Download className="w-3.5 h-3.5" />
-        </button>
-      ) : (
-        <button onClick={() => setUpgradeOpen(true)}
-          className="text-xs py-1.5 px-2 rounded-lg border border-white/10 text-white/40 hover:border-neon/30 hover:text-neon transition-all font-mono"
-        >
-          PRO
-        </button>
-      )}
-      {isFetching && <span className="text-white/20 text-xs animate-pulse">⟳</span>}
-      {isError    && <span className="text-red-400 text-xs" title="API error — retrying">!</span>}
-    </div>
-  )
-
-  // Wallets belum seeded (flash pertama kali) — loading screen singkat
+  // Loading screen
   if (!seeded) {
     return (
-      <div
-        className="flex items-center justify-center"
-        style={{ height: '100dvh', background: 'rgba(4,4,10,1)' }}
-      >
+      <div className="flex items-center justify-center" style={{ height: '100dvh', background: 'rgba(4,4,10,1)' }}>
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'rgba(0,255,148,0.8)', boxShadow: '0 0 8px rgba(0,255,148,0.6)' }} />
           <span className="text-[10px] font-mono tracking-widest" style={{ color: 'rgba(0,255,148,0.5)' }}>INITIALIZING...</span>
@@ -524,7 +523,7 @@ const Index = () => {
     )
   }
 
-  // Seeded tapi user hapus semua wallet → hero screen
+  // Hero screen
   if (storeWallets.length === 0) {
     return (
       <>
@@ -534,7 +533,7 @@ const Index = () => {
     )
   }
 
-  // ── MOBILE ──────────────────────────────────────────────────────────────
+  // ── MOBILE ──────────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div
@@ -554,6 +553,8 @@ const Index = () => {
         <div className="flex-1 overflow-hidden min-h-0">
           {mobileTab === 'wallets' && (
             <div className="flex flex-col h-full animate-fade-up">
+              {/* Unknown whale card — mobile wallets tab */}
+              <UnknownWhaleCard />
               <WalletSidebar
                 wallets={filteredWallets} selectedWalletId={selectedWalletId}
                 activeFilter={activeFilter} searchQuery={searchQuery}
@@ -582,7 +583,7 @@ const Index = () => {
               {!isProActive && (
                 <button
                   onClick={() => setUpgradeOpen(true)}
-                  className="mx-3 my-2 py-3 px-4 rounded-xl flex items-center gap-3 transition-all active:scale-98 text-left"
+                  className="mx-3 my-2 py-3 px-4 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98] text-left"
                   style={{ background: 'rgba(0,255,148,0.05)', border: '1px solid rgba(0,255,148,0.22)' }}
                 >
                   <Zap className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(0,255,148,1)' }} />
@@ -611,44 +612,55 @@ const Index = () => {
           )}
         </div>
 
-        <div
-          className="flex-shrink-0"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        >
+        <div className="flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <MobileBottomNav activeTab={mobileTab} onTabChange={setMobileTab} />
         </div>
 
+        <DyorBanner />
         {modals}
       </div>
     )
   }
 
-  // ── TABLET ──────────────────────────────────────────────────────────────
+  // ── TABLET ──────────────────────────────────────────────────────────────────
   if (isTablet) {
     return (
-      <div className="scanline-overlay noise-bg flex h-screen overflow-hidden bg-background">
-        <div className="flex flex-col border-r border-border">
-          <Logo />
-          <AddBtn />
-          <WalletSidebar
-            wallets={filteredWallets} selectedWalletId={selectedWalletId}
-            activeFilter={activeFilter} searchQuery={searchQuery}
-            onSelectWallet={handleSelectWallet} onFilterChange={setActiveFilter}
-            onSearchChange={setSearchQuery}
-          />
-        </div>
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <StatsBar />
-          <WalletTable
-            wallets={filteredWallets} selectedWalletId={selectedWalletId}
-            onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
-          />
-          <button
-            onClick={() => setFeedDrawerOpen(true)}
-            className="fixed bottom-4 right-4 z-40 bg-neon/15 border border-neon/40 text-neon text-xs px-4 py-2 rounded-full hover:bg-neon/25 transition-colors font-mono"
-          >
-            Intel ↑
-          </button>
+      <div className="scanline-overlay noise-bg flex flex-col h-screen overflow-hidden bg-background">
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-col border-r" style={{ borderColor: 'rgba(255,255,255,0.065)' }}>
+            <Logo />
+            <AddBtn
+              onAdd={() => setAddOpen(true)} onExport={handleExportClick}
+              onUpgrade={() => setUpgradeOpen(true)} isProActive={isProActive}
+              isFetching={isFetching} isError={!!isError} alerts={whaleAlerts}
+            />
+            <WalletSidebar
+              wallets={filteredWallets} selectedWalletId={selectedWalletId}
+              activeFilter={activeFilter} searchQuery={searchQuery}
+              onSelectWallet={handleSelectWallet} onFilterChange={setActiveFilter}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <StatsBar />
+            <UnknownWhaleCard />
+            <WalletTable
+              wallets={filteredWallets} selectedWalletId={selectedWalletId}
+              onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
+            />
+            <button
+              onClick={() => setFeedDrawerOpen(true)}
+              className="fixed bottom-4 right-4 z-40 font-mono text-xs px-4 py-2 rounded-full transition-all"
+              style={{
+                background: 'rgba(0,255,148,0.12)',
+                border:     '1px solid rgba(0,255,148,0.35)',
+                color:      'rgba(0,255,148,1)',
+                boxShadow:  '0 0 16px rgba(0,255,148,0.15)',
+              }}
+            >
+              Intel ↑
+            </button>
+          </div>
         </div>
         <Sheet open={feedDrawerOpen} onOpenChange={setFeedDrawerOpen}>
           <SheetContent side="bottom" className="h-[75vh] p-0 bg-card border-t border-border">
@@ -660,36 +672,53 @@ const Index = () => {
             />
           </SheetContent>
         </Sheet>
+        <DyorBanner />
         {modals}
       </div>
     )
   }
 
-  // ── DESKTOP ──────────────────────────────────────────────────────────────
+  // ── DESKTOP ──────────────────────────────────────────────────────────────────
   return (
-    <div className="scanline-overlay noise-bg flex h-screen overflow-hidden bg-background">
-      <div className="flex flex-col border-r border-border">
-        <Logo />
-        <AddBtn />
-        <WalletSidebar
-          wallets={filteredWallets} selectedWalletId={selectedWalletId}
-          activeFilter={activeFilter} searchQuery={searchQuery}
-          onSelectWallet={handleSelectWallet} onFilterChange={setActiveFilter}
-          onSearchChange={setSearchQuery}
+    <div className="scanline-overlay noise-bg flex flex-col h-screen overflow-hidden bg-background">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left sidebar */}
+        <div className="flex flex-col border-r" style={{ borderColor: 'rgba(255,255,255,0.065)' }}>
+          <Logo />
+          <AddBtn
+            onAdd={() => setAddOpen(true)} onExport={handleExportClick}
+            onUpgrade={() => setUpgradeOpen(true)} isProActive={isProActive}
+            isFetching={isFetching} isError={!!isError} alerts={whaleAlerts}
+          />
+          <WalletSidebar
+            wallets={filteredWallets} selectedWalletId={selectedWalletId}
+            activeFilter={activeFilter} searchQuery={searchQuery}
+            onSelectWallet={handleSelectWallet} onFilterChange={setActiveFilter}
+            onSearchChange={setSearchQuery}
+          />
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <StatsBar />
+          {/* Unknown whale card — di antara StatsBar dan WalletTable */}
+          <UnknownWhaleCard />
+          <WalletTable
+            wallets={filteredWallets} selectedWalletId={selectedWalletId}
+            onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
+          />
+        </div>
+
+        {/* Right intel panel */}
+        <WalletIntelPanel
+          events={filteredEvents} selectedWallet={selectedWallet}
+          selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
+          leaderboard={leaderboard} clusters={clusters}
         />
       </div>
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <StatsBar />
-        <WalletTable
-          wallets={filteredWallets} selectedWalletId={selectedWalletId}
-          onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
-        />
-      </div>
-      <WalletIntelPanel
-        events={filteredEvents} selectedWallet={selectedWallet}
-        selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
-        leaderboard={leaderboard} clusters={clusters}
-      />
+
+      {/* DYOR Banner — sticky bottom full width */}
+      <DyorBanner />
       {modals}
     </div>
   )
