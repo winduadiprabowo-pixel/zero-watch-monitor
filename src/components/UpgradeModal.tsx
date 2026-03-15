@@ -26,7 +26,7 @@ const PRO_FEATURES = [
     icon:  Brain,
     label: 'Whale Intelligence Score',
     desc:  'ACCUMULATING / DISTRIBUTING / HUNTING signal per wallet',
-    color: 'rgba(0,255,148,1)',
+    color: 'rgba(230,161,71,1)',
   },
   {
     icon:  TrendingUp,
@@ -82,7 +82,7 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
           style={{
             background:   'rgba(6,6,14,1)',
             borderRadius: '20px',
-            boxShadow:    '0 0 0 1px rgba(0,255,148,0.12), 0 0 60px rgba(0,255,148,0.08), 0 32px 64px rgba(0,0,0,0.7)',
+            boxShadow:    '0 0 0 1px rgba(230,161,71,0.12), 0 0 60px rgba(230,161,71,0.08), 0 32px 64px rgba(0,0,0,0.7)',
             maxHeight:    '90dvh',
             overflowY:    'auto',
           }}
@@ -90,7 +90,7 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
           {/* Top glow line */}
           <div
             className="sticky top-0 left-0 right-0 h-px z-10"
-            style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(0,255,148,0.55) 50%, transparent 100%)' }}
+            style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(230,161,71,0.55) 50%, transparent 100%)' }}
           />
 
           {/* Ambient bloom */}
@@ -102,17 +102,17 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
               transform: 'translateX(-50%)',
               width:     '300px',
               height:    '160px',
-              background: 'radial-gradient(ellipse at center, rgba(0,255,148,0.09) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse at center, rgba(230,161,71,0.09) 0%, transparent 70%)',
             }}
           />
 
           <div className="relative px-6 pt-6 pb-7 space-y-5">
             <DialogHeader>
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4" style={{ color: 'rgba(0,255,148,0.8)' }} />
+                <Zap className="w-4 h-4" style={{ color: 'rgba(230,161,71,0.8)' }} />
                 <DialogTitle
                   className="text-[10px] tracking-[0.2em] uppercase"
-                  style={{ color: 'rgba(0,255,148,0.7)' }}
+                  style={{ color: 'rgba(230,161,71,0.7)' }}
                 >
                   ZERØ WATCH PRO
                 </DialogTitle>
@@ -142,23 +142,23 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
             <div
               className="rounded-2xl p-4 text-center relative overflow-hidden"
               style={{
-                background: 'rgba(0,255,148,0.04)',
-                border:     '1px solid rgba(0,255,148,0.18)',
+                background: 'rgba(230,161,71,0.04)',
+                border:     '1px solid rgba(230,161,71,0.18)',
               }}
             >
               <div
                 className="absolute inset-0 pointer-events-none"
-                style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(0,255,148,0.06) 0%, transparent 65%)' }}
+                style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(230,161,71,0.06) 0%, transparent 65%)' }}
               />
               <div
                 className="text-[56px] font-mono font-bold leading-none tabular-nums"
-                style={{ color: 'rgba(0,255,148,1)', textShadow: '0 0 30px rgba(0,255,148,0.3)' }}
+                style={{ color: 'rgba(230,161,71,1)', textShadow: '0 0 30px rgba(230,161,71,0.3)' }}
               >
                 $9
               </div>
               <div
                 className="text-[11px] font-mono mt-1"
-                style={{ color: 'rgba(0,255,148,0.6)' }}
+                style={{ color: 'rgba(230,161,71,0.6)' }}
               >
                 ONE-TIME · NO SUBSCRIPTION · NO EXPIRY
               </div>
@@ -211,7 +211,7 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
             >
               <div className="flex -space-x-1">
-                {['#00FF94','#00C2FF','#FFD93D','#C77DFF'].map((c, i) => (
+                {['rgba(230,161,71,1)','rgba(0,194,255,1)','rgba(255,217,61,1)','rgba(199,125,255,1)'].map((c, i) => (
                   <div
                     key={i}
                     className="w-5 h-5 rounded-full border"
@@ -228,7 +228,7 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
             {isProActive ? (
               <div
                 className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-mono text-sm font-bold"
-                style={{ background: 'rgba(0,255,148,0.08)', border: '1px solid rgba(0,255,148,0.25)', color: 'rgba(0,255,148,0.8)' }}
+                style={{ background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.25)', color: 'rgba(230,161,71,0.8)' }}
               >
                 <Lock className="w-4 h-4" />
                 PRO ACTIVE — ALL FEATURES UNLOCKED
@@ -239,9 +239,9 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
                   onClick={handleBuy}
                   className="w-full py-3.5 rounded-xl font-bold font-mono text-sm transition-all active:scale-[0.98]"
                   style={{
-                    background:    'linear-gradient(135deg, rgba(0,255,148,1) 0%, rgba(0,200,120,1) 100%)',
-                    color:         '#020a06',
-                    boxShadow:     '0 0 24px rgba(0,255,148,0.28), 0 4px 16px rgba(0,0,0,0.4)',
+                    background:    'linear-gradient(135deg, rgba(230,161,71,1) 0%, rgba(0,200,120,1) 100%)',
+                    color:         'rgba(2,10,6,1)',
+                    boxShadow:     '0 0 24px rgba(230,161,71,0.28), 0 4px 16px rgba(0,0,0,0.4)',
                     letterSpacing: '0.06em',
                   }}
                 >
@@ -256,7 +256,7 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
                     border:     '1px solid rgba(255,255,255,0.08)',
                     color:      'rgba(255,255,255,0.3)',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.2)'; e.currentTarget.style.color = 'rgba(0,255,148,0.7)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.2)'; e.currentTarget.style.color = 'rgba(230,161,71,0.7)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.3)' }}
                 >
                   Already purchased? Enter license key →
