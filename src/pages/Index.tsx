@@ -1,11 +1,15 @@
 /**
  * ZERØ WATCH — Index v17
  * ========================
- * v17:
- * - DyorBanner injected (sticky bottom, dismissable)
- * - UnknownWhaleCard injected (live unknown whale signals)
- * - Share to X via UnknownWhaleCard
- * - rgba() only ✓  React.memo ✓  useCallback/useMemo ✓
+ * v17 FULL RESPONSIVE:
+ * - Desktop: 3-panel split (sidebar 272px | main flex | intel 340px)
+ * - Tablet (768-1024px): 2-panel (sidebar | main) + intel bottom sheet
+ * - Mobile (<768px): tabs (wallets | intel | stats) + bottom nav
+ * - DyorBanner: sticky bottom semua device
+ * - UnknownWhaleCard: di main content area semua device
+ * - Safe area inset: iOS notch support
+ *
+ * rgba() only ✓  React.memo ✓  useCallback/useMemo ✓
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
@@ -17,11 +21,11 @@ import WalletTable                 from '@/components/dashboard/WalletTable'
 import ActivityFeed                from '@/components/dashboard/ActivityFeed'
 import WalletIntelPanel            from '@/components/dashboard/WalletIntelPanel'
 import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
+import UnknownWhaleCard            from '@/components/dashboard/UnknownWhaleCard'
 import { AddWalletModal }          from '@/components/AddWalletModal'
 import { UpgradeModal }            from '@/components/UpgradeModal'
 import { ExportModal }             from '@/components/ExportModal'
 import DyorBanner                  from '@/components/DyorBanner'
-import UnknownWhaleCard            from '@/components/dashboard/UnknownWhaleCard'
 import { filterTags }              from '@/data/mockData'
 import type { Wallet, ActivityEvent } from '@/data/mockData'
 import { useIsMobile }             from '@/hooks/use-mobile'
@@ -90,10 +94,7 @@ function toUiWallet(
     pnl:      0,
     active:   txs.length > 0,
     lastMove,
-    txNew:    txs.filter(t => {
-      const age = Date.now() / 1000 - parseInt(t.timeStamp)
-      return age < 3600
-    }).length,
+    txNew:    txs.filter(t => (Date.now() / 1000 - parseInt(t.timeStamp)) < 3600).length,
     sparkData,
   }
 }
@@ -123,111 +124,94 @@ function toUiEvents(
 
 const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: () => void }) => {
   const signals = [
-    { label: 'ACCUMULATING', addr: '0xd8dA...6045', val: '$2.1M', color: 'rgba(52,211,153,1)',  icon: TrendingUp },
-    { label: 'DISTRIBUTING', addr: '0xBE0e...33E8', val: '$8.4M', color: 'rgba(239,68,68,1)',   icon: TrendingDown },
-    { label: 'HUNTING',      addr: '0x28C6...d60',  val: '$440K', color: 'rgba(251,191,36,1)',  icon: Activity },
+    { label: 'ACCUMULATING', addr: '0xd8dA...6045', val: '$2.1M', color: 'rgba(52,211,153,1)',  Icon: TrendingUp  },
+    { label: 'DISTRIBUTING', addr: '0xBE0e...33E8', val: '$8.4M', color: 'rgba(239,68,68,1)',   Icon: TrendingDown },
+    { label: 'HUNTING',      addr: '0x28C6...d60',  val: '$440K', color: 'rgba(251,191,36,1)',  Icon: Activity    },
   ]
 
   return (
     <div
-      className="flex flex-col items-center justify-center gap-8 px-6 relative overflow-hidden"
-      style={{ height: '100dvh', background: 'rgba(4,4,10,1)', paddingTop: 'env(safe-area-inset-top,0px)' }}
+      style={{
+        height:          '100dvh',
+        background:      'rgba(4,4,10,1)',
+        paddingTop:      'env(safe-area-inset-top, 0px)',
+        display:         'flex',
+        flexDirection:   'column',
+        alignItems:      'center',
+        justifyContent:  'center',
+        gap:             '32px',
+        padding:         '24px',
+        position:        'relative',
+        overflow:        'hidden',
+      }}
     >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(0,255,148,0.010) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,148,0.010) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
-        }}
-      />
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
-        style={{ width: '600px', height: '280px', background: 'radial-gradient(ellipse at top, rgba(0,255,148,0.07) 0%, transparent 70%)' }}
-      />
+      {/* Grid bg */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(0,255,148,0.010) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,148,0.010) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+      {/* Top bloom */}
+      <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '600px', height: '280px', background: 'radial-gradient(ellipse at top, rgba(0,255,148,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div className="relative animate-fade-up">
+      <div className="animate-fade-up" style={{ zIndex: 1 }}>
         <Logo compact />
       </div>
 
-      <div className="text-center space-y-3 relative animate-fade-up" style={{ animationDelay: '0.08s' }}>
-        <div
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2"
-          style={{ background: 'rgba(0,255,148,0.06)', border: '1px solid rgba(0,255,148,0.18)' }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0,255,148,1)', boxShadow: '0 0 6px rgba(0,255,148,0.8)' }} />
-          <span className="text-[9px] font-mono tracking-widest" style={{ color: 'rgba(0,255,148,0.8)' }}>LIVE SURVEILLANCE ACTIVE</span>
+      <div className="animate-fade-up" style={{ textAlign: 'center', zIndex: 1, animationDelay: '0.08s' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '99px', background: 'rgba(0,255,148,0.06)', border: '1px solid rgba(0,255,148,0.18)', marginBottom: '12px' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(0,255,148,1)', boxShadow: '0 0 6px rgba(0,255,148,0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.12em', color: 'rgba(0,255,148,0.8)' }}>LIVE SURVEILLANCE ACTIVE</span>
         </div>
 
-        <h1
-          className="font-mono font-bold leading-tight"
-          style={{ fontSize: 'clamp(22px, 5vw, 34px)', color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.01em' }}
-        >
+        <h1 style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: 'clamp(20px,5vw,32px)', color: 'rgba(255,255,255,0.95)', lineHeight: 1.3, marginBottom: '12px' }}>
           They move first.<br />
           <span style={{ color: 'rgba(0,255,148,1)' }}>You watch.</span>
         </h1>
 
-        <p className="font-mono text-sm max-w-xs mx-auto" style={{ color: 'rgba(255,255,255,0.3)', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '13px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.6, maxWidth: '300px', margin: '0 auto' }}>
           Track whale wallets in real-time. See accumulation, distribution, and big moves before CT does.
         </p>
       </div>
 
-      <div className="w-full max-w-sm space-y-2 relative animate-fade-up" style={{ animationDelay: '0.14s' }}>
-        <div className="text-[9px] font-mono tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.18)' }}>
-          LIVE SIGNALS — SAMPLE
+      <div className="animate-fade-up" style={{ width: '100%', maxWidth: '360px', zIndex: 1, animationDelay: '0.14s' }}>
+        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.18)', marginBottom: '10px' }}>
+          LIVE SIGNALS — SAMPLE DATA
         </div>
         {signals.map((s, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between px-3 py-2.5 rounded-xl"
-            style={{
-              background: `rgba(${s.label === 'ACCUMULATING' ? '52,211,153' : s.label === 'DISTRIBUTING' ? '239,68,68' : '251,191,36'},0.05)`,
-              border:     `1px solid ${s.color.replace(',1)', ',0.18)')}`,
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: s.color, boxShadow: `0 0 5px ${s.color}` }} />
-              <span className="text-[9px] font-mono font-bold tracking-wider" style={{ color: s.color }}>{s.label}</span>
-              <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.addr}</span>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '12px', background: `rgba(${s.label === 'ACCUMULATING' ? '52,211,153' : s.label === 'DISTRIBUTING' ? '239,68,68' : '251,191,36'},0.05)`, border: `1px solid ${s.color.replace(',1)', ',0.18)')}`, marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: s.color, boxShadow: `0 0 5px ${s.color}`, animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block', flexShrink: 0 }} />
+              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: s.color }}>{s.label}</span>
+              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>{s.addr}</span>
             </div>
-            <span className="text-[11px] font-mono font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.val}</span>
+            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{s.val}</span>
           </div>
         ))}
       </div>
 
-      <div className="w-full max-w-sm space-y-3 relative animate-fade-up" style={{ animationDelay: '0.28s' }}>
+      <div className="animate-fade-up" style={{ width: '100%', maxWidth: '360px', zIndex: 1, animationDelay: '0.28s', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <button
           onClick={onAdd}
-          className="w-full py-3.5 rounded-xl font-mono font-bold text-sm tracking-wider transition-all active:scale-[0.98]"
-          style={{
-            background:    'rgba(0,255,148,1)',
-            color:         '#020a06',
-            boxShadow:     '0 0 28px rgba(0,255,148,0.25), 0 4px 16px rgba(0,0,0,0.4)',
-            letterSpacing: '0.06em',
-          }}
+          style={{ width: '100%', padding: '14px', borderRadius: '14px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '13px', letterSpacing: '0.06em', background: 'rgba(0,255,148,1)', color: '#020a06', boxShadow: '0 0 28px rgba(0,255,148,0.25), 0 4px 16px rgba(0,0,0,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 0 36px rgba(0,255,148,0.35), 0 6px 20px rgba(0,0,0,0.4)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(0,255,148,0.25), 0 4px 16px rgba(0,0,0,0.4)' }}
         >
-          <Eye className="w-4 h-4 inline mr-2 -mt-0.5" />
           START WATCHING WHALES
         </button>
-
         <button
           onClick={onUpgrade}
-          className="w-full py-3 rounded-xl font-mono text-xs tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-          style={{ background: 'rgba(0,255,148,0.05)', border: '1px solid rgba(0,255,148,0.2)', color: 'rgba(0,255,148,0.7)' }}
+          style={{ width: '100%', padding: '12px', borderRadius: '14px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', letterSpacing: '0.06em', background: 'rgba(0,255,148,0.05)', border: '1px solid rgba(0,255,148,0.2)', color: 'rgba(0,255,148,0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.15s' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.4)'; e.currentTarget.style.color = 'rgba(0,255,148,1)' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.2)'; e.currentTarget.style.color = 'rgba(0,255,148,0.7)' }}
         >
-          <Zap className="w-3.5 h-3.5" />
-          UNLOCK PRO — $9 lifetime · Whale Intel + Alerts
+          <Zap style={{ width: '14px', height: '14px' }} />
+          UNLOCK PRO — $9 lifetime
         </button>
-
-        <div className="flex items-center justify-center gap-4 pt-1">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
           {[
-            { icon: Shield, text: 'Read-only. No wallet connect.' },
-            { icon: Eye,    text: 'Anonymous. No signup.' },
+            { Icon: Shield, text: 'Read-only. No wallet connect.' },
+            { Icon: Eye,    text: 'Anonymous. No signup.' },
           ].map((f, i) => (
-            <div key={i} className="flex items-center gap-1">
-              <f.icon className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-              <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>{f.text}</span>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <f.Icon style={{ width: '11px', height: '11px', color: 'rgba(255,255,255,0.2)' }} />
+              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.2)' }}>{f.text}</span>
             </div>
           ))}
         </div>
@@ -249,24 +233,26 @@ interface MobileHeaderProps {
   alerts:      import('@/hooks/useWhaleAlerts').WhaleAlertsState
 }
 
-const MobileHeader = memo(({
-  isProActive, isFetching, isError, onExport, onUpgrade, onAdd, alerts,
-}: MobileHeaderProps) => (
+const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgrade, onAdd, alerts }: MobileHeaderProps) => (
   <div
-    className="flex-shrink-0 flex items-center justify-between px-4 relative"
+    className="flex-shrink-0"
     style={{
-      paddingTop:    'calc(env(safe-area-inset-top, 0px) + 10px)',
-      paddingBottom: '10px',
-      background:    'rgba(4,4,10,0.96)',
-      backdropFilter: 'blur(16px)',
+      display:         'flex',
+      alignItems:      'center',
+      justifyContent:  'space-between',
+      paddingTop:      'calc(env(safe-area-inset-top, 0px) + 10px)',
+      paddingBottom:   '10px',
+      paddingLeft:     '16px',
+      paddingRight:    '16px',
+      background:      'rgba(4,4,10,0.96)',
+      backdropFilter:  'blur(16px)',
+      position:        'relative',
     }}
   >
-    <div
-      className="absolute bottom-0 left-0 right-0 h-px"
-      style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(0,255,148,0.18) 40%, rgba(0,255,148,0.08) 70%, transparent 100%)' }}
-    />
+    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(0,255,148,0.18) 40%, rgba(0,255,148,0.08) 70%, transparent)' }} />
 
-    <div className="flex items-center gap-2 animate-fade-up">
+    {/* Logo */}
+    <div className="animate-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
         <rect x="1" y="1" width="26" height="26" rx="3" stroke="rgba(0,255,148,1)" strokeWidth="2" fill="rgba(0,255,148,0.06)" />
         <polyline points="5,7 13,7 5,14 13,14" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
@@ -276,69 +262,38 @@ const MobileHeader = memo(({
         <path d="M17,14 Q24,14 24,17.5 Q24,21 17,21" stroke="rgba(0,255,148,1)" strokeWidth="2" strokeLinecap="round" fill="none"/>
         <polyline points="5,16 5,22 12,22" stroke="rgba(0,255,148,1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
       </svg>
-      <span className="font-mono font-bold text-base leading-none tracking-tight">
+      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '15px', lineHeight: 1 }}>
         ZER<span style={{ color: 'rgba(0,255,148,1)' }}>Ø</span>
-        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', letterSpacing: '0.12em', marginLeft: '4px', fontWeight: 400 }}>
-          WATCH
-        </span>
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', letterSpacing: '0.14em', marginLeft: '4px', fontWeight: 400 }}>WATCH</span>
       </span>
     </div>
 
-    <div className="flex items-center gap-2">
-      <div
-        className="flex items-center gap-1.5 px-2 py-1 rounded-full"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-      >
-        <span
-          className="w-1.5 h-1.5 rounded-full"
-          style={{
-            background: isFetching ? 'rgba(251,191,36,1)' : isError ? 'rgba(239,68,68,1)' : 'rgba(0,255,148,1)',
-            boxShadow:  isFetching ? '0 0 4px rgba(251,191,36,0.8)' : isError ? '0 0 4px rgba(239,68,68,0.8)' : '0 0 4px rgba(0,255,148,0.8)',
-            animation:  'pulse-glow 2s ease-in-out infinite',
-          }}
-        />
-        <span
-          className="text-[8px] font-mono tracking-widest"
-          style={{ color: isFetching ? 'rgba(251,191,36,0.8)' : isError ? 'rgba(239,68,68,0.7)' : 'rgba(0,255,148,0.75)' }}
-        >
+    {/* Right actions */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* Live dot */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '99px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isFetching ? 'rgba(251,191,36,1)' : isError ? 'rgba(239,68,68,1)' : 'rgba(0,255,148,1)', boxShadow: isFetching ? '0 0 4px rgba(251,191,36,0.8)' : isError ? '0 0 4px rgba(239,68,68,0.8)' : '0 0 4px rgba(0,255,148,0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', letterSpacing: '0.10em', color: isFetching ? 'rgba(251,191,36,0.8)' : isError ? 'rgba(239,68,68,0.7)' : 'rgba(0,255,148,0.75)' }}>
           {isFetching ? 'SYNC' : isError ? 'ERR' : 'LIVE'}
         </span>
       </div>
 
+      {/* PRO / CSV */}
       {isProActive ? (
-        <button
-          onClick={onExport}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono transition-all active:scale-95"
-          style={{ background: 'rgba(0,255,148,0.06)', border: '1px solid rgba(0,255,148,0.25)', color: 'rgba(0,255,148,0.9)', fontSize: '10px' }}
-        >
-          <Download className="w-3 h-3" />
+        <button onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', background: 'rgba(0,255,148,0.06)', border: '1px solid rgba(0,255,148,0.25)', color: 'rgba(0,255,148,0.9)', cursor: 'pointer' }}>
+          <Download style={{ width: '12px', height: '12px' }} />
           CSV
         </button>
       ) : (
-        <button
-          onClick={onUpgrade}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono font-bold transition-all active:scale-95"
-          style={{
-            background:    'rgba(0,255,148,0.12)',
-            border:        '1px solid rgba(0,255,148,0.40)',
-            color:         'rgba(0,255,148,1)',
-            fontSize:      '10px',
-            boxShadow:     '0 0 14px rgba(0,255,148,0.18)',
-            letterSpacing: '0.04em',
-          }}
-        >
-          <Zap className="w-3 h-3" />
+        <button onClick={onUpgrade} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '10px', background: 'rgba(0,255,148,0.12)', border: '1px solid rgba(0,255,148,0.40)', color: 'rgba(0,255,148,1)', cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 14px rgba(0,255,148,0.18)' }}>
+          <Zap style={{ width: '12px', height: '12px' }} />
           PRO $9
         </button>
       )}
 
       <WhaleAlertToggle alerts={alerts} compact />
 
-      <button
-        onClick={onAdd}
-        className="px-3 py-1.5 rounded-full font-mono transition-all active:scale-95"
-        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.65)', fontSize: '10px' }}
-      >
+      <button onClick={onAdd} style={{ padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.65)', cursor: 'pointer' }}>
         + ADD
       </button>
     </div>
@@ -346,29 +301,19 @@ const MobileHeader = memo(({
 ))
 MobileHeader.displayName = 'MobileHeader'
 
-// ── Desktop AddBtn ─────────────────────────────────────────────────────────────
+// ── Desktop/Tablet AddBtn ─────────────────────────────────────────────────────
 
 interface AddBtnProps {
-  onAdd:        () => void
-  onExport:     () => void
-  onUpgrade:    () => void
-  isProActive:  boolean
-  isFetching:   boolean
-  isError:      boolean
-  alerts:       import('@/hooks/useWhaleAlerts').WhaleAlertsState
+  onAdd: () => void; onExport: () => void; onUpgrade: () => void
+  isProActive: boolean; isFetching: boolean; isError: boolean
+  alerts: import('@/hooks/useWhaleAlerts').WhaleAlertsState
 }
 
 const AddBtn = memo(({ onAdd, onExport, onUpgrade, isProActive, isFetching, isError, alerts }: AddBtnProps) => (
-  <div className="flex items-center gap-2 px-3 pb-3">
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px 12px' }}>
     <button
       onClick={onAdd}
-      className="flex-1 text-xs py-2 rounded-xl font-mono font-semibold transition-all"
-      style={{
-        background:    'rgba(0,255,148,0.08)',
-        border:        '1px solid rgba(0,255,148,0.25)',
-        color:         'rgba(0,255,148,0.9)',
-        letterSpacing: '0.06em',
-      }}
+      style={{ flex: 1, padding: '8px 0', borderRadius: '10px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 600, fontSize: '11px', letterSpacing: '0.06em', background: 'rgba(0,255,148,0.08)', border: '1px solid rgba(0,255,148,0.25)', color: 'rgba(0,255,148,0.9)', cursor: 'pointer', transition: 'all 0.15s' }}
       onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.14)'; e.currentTarget.style.borderColor = 'rgba(0,255,148,0.40)' }}
       onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.08)'; e.currentTarget.style.borderColor = 'rgba(0,255,148,0.25)' }}
     >
@@ -376,33 +321,22 @@ const AddBtn = memo(({ onAdd, onExport, onUpgrade, isProActive, isFetching, isEr
     </button>
     <WhaleAlertToggle alerts={alerts} compact />
     {isProActive ? (
-      <button
-        onClick={onExport}
-        className="py-2 px-2.5 rounded-xl font-mono transition-all"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(0,255,148,0.7)' }}
+      <button onClick={onExport} style={{ padding: '8px 10px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(0,255,148,0.7)', cursor: 'pointer', transition: 'border-color 0.15s' }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.25)' }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
       >
-        <Download className="w-3.5 h-3.5" />
+        <Download style={{ width: '14px', height: '14px' }} />
       </button>
     ) : (
-      <button
-        onClick={onUpgrade}
-        className="text-xs py-2 px-2.5 rounded-xl font-mono font-bold transition-all"
-        style={{
-          background:    'rgba(0,255,148,0.06)',
-          border:        '1px solid rgba(0,255,148,0.20)',
-          color:         'rgba(0,255,148,0.8)',
-          letterSpacing: '0.04em',
-        }}
+      <button onClick={onUpgrade} style={{ padding: '8px 10px', borderRadius: '10px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '11px', letterSpacing: '0.04em', background: 'rgba(0,255,148,0.06)', border: '1px solid rgba(0,255,148,0.20)', color: 'rgba(0,255,148,0.8)', cursor: 'pointer', transition: 'background 0.15s' }}
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.12)' }}
         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.06)' }}
       >
         PRO
       </button>
     )}
-    {isFetching && <span className="text-[10px] font-mono animate-pulse" style={{ color: 'rgba(255,255,255,0.2)' }}>⟳</span>}
-    {isError    && <span className="text-[10px] font-mono" style={{ color: 'rgba(239,68,68,0.7)' }} title="API error — retrying">!</span>}
+    {isFetching && <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.2)', animation: 'pulse-glow 1.5s ease-in-out infinite' }}>⟳</span>}
+    {isError    && <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(239,68,68,0.7)' }} title="API error — retrying">!</span>}
   </div>
 ))
 AddBtn.displayName = 'AddBtn'
@@ -445,11 +379,11 @@ const Index = () => {
   )
   const filteredWallets = useMemo(() =>
     allWallets.filter(w => {
-      const matchesFilter = activeFilter === 'ALL' || w.tag === activeFilter
-      const matchesSearch = !searchQuery
+      const matchFilter = activeFilter === 'ALL' || w.tag === activeFilter
+      const matchSearch = !searchQuery
         || w.label.toLowerCase().includes(searchQuery.toLowerCase())
         || w.address.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchesFilter && matchesSearch
+      return matchFilter && matchSearch
     }),
     [allWallets, activeFilter, searchQuery]
   )
@@ -503,6 +437,7 @@ const Index = () => {
     else setUpgradeOpen(true)
   }, [isProActive])
 
+  // Common modals
   const modals = (
     <>
       <AddWalletModal open={addOpen}     onClose={() => setAddOpen(false)}     onUpgrade={() => setUpgradeOpen(true)} />
@@ -511,19 +446,19 @@ const Index = () => {
     </>
   )
 
-  // Loading screen
+  // Loading
   if (!seeded) {
     return (
-      <div className="flex items-center justify-center" style={{ height: '100dvh', background: 'rgba(4,4,10,1)' }}>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'rgba(0,255,148,0.8)', boxShadow: '0 0 8px rgba(0,255,148,0.6)' }} />
-          <span className="text-[10px] font-mono tracking-widest" style={{ color: 'rgba(0,255,148,0.5)' }}>INITIALIZING...</span>
+      <div style={{ height: '100dvh', background: 'rgba(4,4,10,1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(0,255,148,0.8)', boxShadow: '0 0 8px rgba(0,255,148,0.6)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', letterSpacing: '0.14em', color: 'rgba(0,255,148,0.5)' }}>INITIALIZING...</span>
         </div>
       </div>
     )
   }
 
-  // Hero screen
+  // Hero
   if (storeWallets.length === 0) {
     return (
       <>
@@ -533,28 +468,26 @@ const Index = () => {
     )
   }
 
-  // ── MOBILE ──────────────────────────────────────────────────────────────────
+  // ── MOBILE (<768px) ───────────────────────────────────────────────────────
+
   if (isMobile) {
     return (
       <div
-        className="scanline-overlay noise-bg flex flex-col overflow-hidden bg-background"
-        style={{ height: '100dvh' }}
+        className="scanline-overlay noise-bg"
+        style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
       >
         <MobileHeader
-          isProActive={isProActive}
-          isFetching={isFetching}
-          isError={!!isError}
-          onExport={handleExportClick}
-          onUpgrade={() => setUpgradeOpen(true)}
-          onAdd={() => setAddOpen(true)}
-          alerts={whaleAlerts}
+          isProActive={isProActive} isFetching={isFetching} isError={!!isError}
+          onExport={handleExportClick} onUpgrade={() => setUpgradeOpen(true)}
+          onAdd={() => setAddOpen(true)} alerts={whaleAlerts}
         />
 
-        <div className="flex-1 overflow-hidden min-h-0">
+        {/* Tab content */}
+        <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+
           {mobileTab === 'wallets' && (
-            <div className="flex flex-col h-full animate-fade-up">
-              {/* Unknown whale card — mobile wallets tab */}
-              <UnknownWhaleCard />
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }} className="animate-fade-up">
+              <UnknownWhaleCard mobile />
               <WalletSidebar
                 wallets={filteredWallets} selectedWalletId={selectedWalletId}
                 activeFilter={activeFilter} searchQuery={searchQuery}
@@ -565,7 +498,7 @@ const Index = () => {
           )}
 
           {mobileTab === 'intel' && (
-            <div className="flex flex-col h-full overflow-hidden animate-fade-up">
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} className="animate-fade-up">
               <WalletIntelPanel
                 events={filteredEvents} selectedWallet={selectedWallet}
                 selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
@@ -576,33 +509,34 @@ const Index = () => {
 
           {mobileTab === 'stats' && (
             <div
-              className="flex flex-col h-full overflow-y-auto animate-fade-up"
-              style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+              style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+              className="animate-fade-up"
             >
               <StatsBar mobile />
               {!isProActive && (
                 <button
                   onClick={() => setUpgradeOpen(true)}
-                  className="mx-3 my-2 py-3 px-4 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98] text-left"
-                  style={{ background: 'rgba(0,255,148,0.05)', border: '1px solid rgba(0,255,148,0.22)' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', width: 'calc(100% - 24px)', margin: '8px 12px', padding: '12px 16px', borderRadius: '14px', background: 'rgba(0,255,148,0.05)', border: '1px solid rgba(0,255,148,0.22)', cursor: 'pointer', textAlign: 'left' as const, transition: 'all 0.15s' }}
+                  onTouchStart={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.08)' }}
+                  onTouchEnd={e => { e.currentTarget.style.background = 'rgba(0,255,148,0.05)' }}
                 >
-                  <Zap className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(0,255,148,1)' }} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-mono font-bold" style={{ color: 'rgba(0,255,148,1)' }}>
+                  <Zap style={{ width: '16px', height: '16px', color: 'rgba(0,255,148,1)', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700, color: 'rgba(0,255,148,1)' }}>
                       UNLOCK PRO — $9 lifetime
                     </div>
-                    <div className="text-[10px] font-mono mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', marginTop: '2px', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
                       Unlimited wallets · Whale Intel · CSV Export
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold flex-shrink-0" style={{ color: 'rgba(0,255,148,0.8)' }}>→</span>
+                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700, color: 'rgba(0,255,148,0.8)', flexShrink: 0 }}>→</span>
                 </button>
               )}
               <WalletTable
                 wallets={filteredWallets} selectedWalletId={selectedWalletId}
                 onSelectWallet={handleSelectWallet} compact walletIntelMap={walletIntelMap}
               />
-              <div className="border-t mt-2 flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '8px' }}>
                 <ActivityFeed
                   events={filteredEvents} selectedWallet={selectedWallet}
                   selectedWalletTokens={selectedWalletTokens} embedded
@@ -612,9 +546,12 @@ const Index = () => {
           )}
         </div>
 
-        <div className="flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <MobileBottomNav activeTab={mobileTab} onTabChange={setMobileTab} />
-        </div>
+        {/* Bottom nav + safe area */}
+        <MobileBottomNav
+          activeTab={mobileTab}
+          onTabChange={setMobileTab}
+          hasAlert={whaleAlerts.alertCount > 0}
+        />
 
         <DyorBanner />
         {modals}
@@ -622,12 +559,19 @@ const Index = () => {
     )
   }
 
-  // ── TABLET ──────────────────────────────────────────────────────────────────
+  // ── TABLET (768-1024px) ───────────────────────────────────────────────────
+
   if (isTablet) {
     return (
-      <div className="scanline-overlay noise-bg flex flex-col h-screen overflow-hidden bg-background">
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex flex-col border-r" style={{ borderColor: 'rgba(255,255,255,0.065)' }}>
+      <div
+        className="scanline-overlay noise-bg"
+        style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
+      >
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+          {/* Left sidebar — compressed for tablet */}
+          <div
+            style={{ width: '240px', minWidth: '240px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.065)' }}
+          >
             <Logo />
             <AddBtn
               onAdd={() => setAddOpen(true)} onExport={handleExportClick}
@@ -641,29 +585,28 @@ const Index = () => {
               onSearchChange={setSearchQuery}
             />
           </div>
-          <div className="flex-1 flex flex-col overflow-hidden">
+
+          {/* Main content */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <StatsBar />
             <UnknownWhaleCard />
             <WalletTable
               wallets={filteredWallets} selectedWalletId={selectedWalletId}
               onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
             />
-            <button
-              onClick={() => setFeedDrawerOpen(true)}
-              className="fixed bottom-4 right-4 z-40 font-mono text-xs px-4 py-2 rounded-full transition-all"
-              style={{
-                background: 'rgba(0,255,148,0.12)',
-                border:     '1px solid rgba(0,255,148,0.35)',
-                color:      'rgba(0,255,148,1)',
-                boxShadow:  '0 0 16px rgba(0,255,148,0.15)',
-              }}
-            >
-              Intel ↑
-            </button>
           </div>
         </div>
+
+        {/* Intel bottom sheet trigger */}
+        <button
+          onClick={() => setFeedDrawerOpen(true)}
+          style={{ position: 'fixed', bottom: '56px', right: '16px', zIndex: 40, display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '11px', fontWeight: 600, background: 'rgba(0,255,148,0.12)', border: '1px solid rgba(0,255,148,0.35)', color: 'rgba(0,255,148,1)', cursor: 'pointer', boxShadow: '0 0 16px rgba(0,255,148,0.15)', letterSpacing: '0.04em' }}
+        >
+          Intel ↑
+        </button>
+
         <Sheet open={feedDrawerOpen} onOpenChange={setFeedDrawerOpen}>
-          <SheetContent side="bottom" className="h-[75vh] p-0 bg-card border-t border-border">
+          <SheetContent side="bottom" style={{ height: '75dvh', padding: 0, background: 'rgba(6,6,14,1)', borderTop: '1px solid rgba(255,255,255,0.065)' }}>
             <SheetTitle className="sr-only">Wallet Intelligence</SheetTitle>
             <WalletIntelPanel
               events={filteredEvents} selectedWallet={selectedWallet}
@@ -672,18 +615,27 @@ const Index = () => {
             />
           </SheetContent>
         </Sheet>
+
         <DyorBanner />
         {modals}
       </div>
     )
   }
 
-  // ── DESKTOP ──────────────────────────────────────────────────────────────────
+  // ── DESKTOP (>1024px) ─────────────────────────────────────────────────────
+
   return (
-    <div className="scanline-overlay noise-bg flex flex-col h-screen overflow-hidden bg-background">
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar */}
-        <div className="flex flex-col border-r" style={{ borderColor: 'rgba(255,255,255,0.065)' }}>
+    <div
+      className="scanline-overlay noise-bg"
+      style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
+    >
+      {/* Main 3-panel layout */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+
+        {/* Left sidebar — 272px fixed */}
+        <div
+          style={{ width: '272px', minWidth: '272px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.065)' }}
+        >
           <Logo />
           <AddBtn
             onAdd={() => setAddOpen(true)} onExport={handleExportClick}
@@ -698,10 +650,9 @@ const Index = () => {
           />
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Main content — flex 1 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <StatsBar />
-          {/* Unknown whale card — di antara StatsBar dan WalletTable */}
           <UnknownWhaleCard />
           <WalletTable
             wallets={filteredWallets} selectedWalletId={selectedWalletId}
@@ -709,7 +660,7 @@ const Index = () => {
           />
         </div>
 
-        {/* Right intel panel */}
+        {/* Right intel panel — 340px fixed */}
         <WalletIntelPanel
           events={filteredEvents} selectedWallet={selectedWallet}
           selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
@@ -717,7 +668,7 @@ const Index = () => {
         />
       </div>
 
-      {/* DYOR Banner — sticky bottom full width */}
+      {/* DYOR Banner — sticky bottom */}
       <DyorBanner />
       {modals}
     </div>
