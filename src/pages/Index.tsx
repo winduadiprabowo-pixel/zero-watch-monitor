@@ -1,5 +1,5 @@
 /**
- * ZERØ WATCH — Index v17
+ * ZERØ WATCH — Index v23
  * ========================
  * v17 FULL RESPONSIVE:
  * - Desktop: 3-panel split (sidebar 272px | main flex | intel 340px)
@@ -501,7 +501,7 @@ const Index = () => {
   if (isMobile) {
     return (
       <div
-        className="scanline-overlay noise-bg"
+        className="scanline-overlay noise-bg mesh-bg grid-overlay"
         style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
       >
         <MobileHeader
@@ -592,7 +592,7 @@ const Index = () => {
   if (isTablet) {
     return (
       <div
-        className="scanline-overlay noise-bg"
+        className="scanline-overlay noise-bg mesh-bg grid-overlay"
         style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
       >
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
@@ -654,7 +654,7 @@ const Index = () => {
 
   return (
     <div
-      className="scanline-overlay noise-bg"
+      className="scanline-overlay noise-bg mesh-bg grid-overlay"
       style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
     >
       {/* Main 3-panel layout */}
@@ -662,7 +662,7 @@ const Index = () => {
 
         {/* Left sidebar — 272px fixed */}
         <div
-          style={{ width: '272px', minWidth: '272px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.065)' }}
+          style={{ width: '256px', minWidth: '256px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.065)' }}
         >
           <Logo />
           <AddBtn
