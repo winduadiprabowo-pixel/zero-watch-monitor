@@ -26,6 +26,7 @@ import { AddWalletModal }          from '@/components/AddWalletModal'
 import { UpgradeModal }            from '@/components/UpgradeModal'
 import { ExportModal }             from '@/components/ExportModal'
 import DyorBanner                  from '@/components/DyorBanner'
+import Footer                       from '@/components/Footer'
 import { filterTags }              from '@/data/mockData'
 import type { Wallet, ActivityEvent } from '@/data/mockData'
 import { useIsMobile }             from '@/hooks/use-mobile'
@@ -669,6 +670,7 @@ const Index = () => {
       </div>
 
       {/* DYOR Banner — sticky bottom */}
+      <Footer />
       <DyorBanner />
       {modals}
     </div>
