@@ -1,13 +1,16 @@
 /**
- * ZERØ WATCH — ExportModal v13
+ * ZERØ WATCH — ExportModal v20
  * ==============================
- * PRO CSV export — 3 tipe: Wallet Summary · Transactions · Token Holdings
+ * v20 POLISH — card style v17:
+ * - Rounded-xl cards, hover glow
+ * - Stats row lebih prominent
+ * - PRO badge di header
  * rgba() only ✓  IBM Plex Mono ✓  React.memo + displayName ✓
  */
 
 import React, { useState, useCallback, memo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Download, FileText, Activity, Coins, CheckCircle2 } from 'lucide-react'
+import { Download, FileText, Activity, Coins, CheckCircle2, Crown } from 'lucide-react'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
 import { useAllWalletData } from '@/hooks/useWalletData'
 import {
@@ -62,7 +65,6 @@ export const ExportModal = memo(({ open, onClose }: Props) => {
     if (loading) return
     setLoading(id)
     setDone(null)
-    // tiny delay so spinner renders before heavy CSV work
     await new Promise(r => setTimeout(r, 180))
     fn(storeWallets, apiDataArr)
     setLoading(null)
@@ -74,7 +76,7 @@ export const ExportModal = memo(({ open, onClose }: Props) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
         className="text-white font-mono max-w-sm border-0 p-0 overflow-hidden"
-        style={{ background: 'rgba(6,6,14,1)' }}
+        style={{ background: 'rgba(6,6,14,1)', borderRadius: '18px' }}
       >
         {/* Top accent line */}
         <div
@@ -84,27 +86,41 @@ export const ExportModal = memo(({ open, onClose }: Props) => {
 
         <div className="relative px-6 pt-6 pb-7 space-y-4">
           <DialogHeader>
-            <div className="flex items-center gap-2">
-              <Download className="w-4 h-4" style={{ color: 'rgba(0,255,148,0.7)' }} />
-              <DialogTitle
-                className="text-[10px] tracking-[0.2em] uppercase"
-                style={{ color: 'rgba(0,255,148,0.7)' }}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Download className="w-4 h-4" style={{ color: 'rgba(0,255,148,0.7)' }} />
+                <DialogTitle
+                  className="text-[10px] tracking-[0.2em] uppercase"
+                  style={{ color: 'rgba(0,255,148,0.7)' }}
+                >
+                  CSV Export
+                </DialogTitle>
+              </div>
+              {/* PRO badge */}
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-lg"
+                style={{ background: 'rgba(0,255,148,0.08)', border: '1px solid rgba(0,255,148,0.20)' }}
               >
-                CSV Export
-              </DialogTitle>
+                <Crown className="w-2.5 h-2.5" style={{ color: 'rgba(0,255,148,0.8)' }} />
+                <span className="text-[8px] font-mono font-bold tracking-wider" style={{ color: 'rgba(0,255,148,0.8)' }}>PRO</span>
+              </div>
             </div>
           </DialogHeader>
 
-          {/* Stats line */}
+          {/* Stats row */}
           <div
-            className="text-[10px] font-mono px-3 py-2 rounded-lg"
-            style={{
-              background: 'rgba(255,255,255,0.025)',
-              border:     '1px solid rgba(255,255,255,0.055)',
-              color:      'rgba(255,255,255,0.35)',
-            }}
+            className="flex items-center gap-3 text-[10px] font-mono px-3 py-2.5 rounded-xl"
+            style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.055)' }}
           >
-            {storeWallets.length} wallet{storeWallets.length !== 1 ? 's' : ''} · {totalTxs} transactions loaded
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold" style={{ color: 'rgba(0,255,148,0.9)' }}>{storeWallets.length}</span>
+              <span style={{ color: 'rgba(255,255,255,0.3)' }}>wallet{storeWallets.length !== 1 ? 's' : ''}</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.12)' }}>·</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold" style={{ color: 'rgba(0,255,148,0.9)' }}>{totalTxs}</span>
+              <span style={{ color: 'rgba(255,255,255,0.3)' }}>transactions</span>
+            </div>
           </div>
 
           {/* Export options */}
@@ -118,34 +134,27 @@ export const ExportModal = memo(({ open, onClose }: Props) => {
                   key={id}
                   onClick={() => handleExport(id, fn)}
                   disabled={loading !== null}
-                  className="w-full text-left px-3 py-3 rounded-xl transition-all flex items-start gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="w-full text-left px-3 py-3 rounded-xl transition-all flex items-start gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
-                    background:  isDone
-                      ? 'rgba(0,255,148,0.06)'
-                      : 'rgba(255,255,255,0.025)',
-                    border: `1px solid ${isDone
-                      ? 'rgba(0,255,148,0.25)'
-                      : 'rgba(255,255,255,0.065)'}`,
+                    background: isDone ? 'rgba(0,255,148,0.06)' : 'rgba(255,255,255,0.025)',
+                    border:     `1px solid ${isDone ? 'rgba(0,255,148,0.25)' : 'rgba(255,255,255,0.065)'}`,
                   }}
                   onMouseEnter={e => {
                     if (!loading && !isDone) {
-                      e.currentTarget.style.background   = 'rgba(255,255,255,0.04)'
-                      e.currentTarget.style.borderColor  = 'rgba(0,255,148,0.2)'
+                      e.currentTarget.style.background  = 'rgba(255,255,255,0.04)'
+                      e.currentTarget.style.borderColor = 'rgba(0,255,148,0.2)'
                     }
                   }}
                   onMouseLeave={e => {
                     if (!isDone) {
-                      e.currentTarget.style.background   = 'rgba(255,255,255,0.025)'
-                      e.currentTarget.style.borderColor  = 'rgba(255,255,255,0.065)'
+                      e.currentTarget.style.background  = 'rgba(255,255,255,0.025)'
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.065)'
                     }
                   }}
                 >
                   {/* Icon */}
                   {isDone ? (
-                    <CheckCircle2
-                      className="w-4 h-4 mt-0.5 flex-shrink-0"
-                      style={{ color: 'rgba(0,255,148,0.8)' }}
-                    />
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'rgba(0,255,148,0.8)' }} />
                   ) : (
                     <Icon
                       className="w-4 h-4 mt-0.5 flex-shrink-0"
@@ -156,35 +165,21 @@ export const ExportModal = memo(({ open, onClose }: Props) => {
                   {/* Text */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span
-                        className="text-xs font-medium"
-                        style={{ color: isDone ? 'rgba(0,255,148,0.9)' : 'rgba(255,255,255,0.8)' }}
-                      >
+                      <span className="text-xs font-medium" style={{ color: isDone ? 'rgba(0,255,148,0.9)' : 'rgba(255,255,255,0.8)' }}>
                         {label}
                       </span>
                       {isLoading && (
-                        <span
-                          className="text-[9px] font-mono animate-pulse"
-                          style={{ color: 'rgba(0,255,148,0.7)' }}
-                        >
+                        <span className="text-[9px] font-mono animate-pulse" style={{ color: 'rgba(0,255,148,0.7)' }}>
                           generating…
                         </span>
                       )}
                       {isDone && (
-                        <span
-                          className="text-[9px] font-mono"
-                          style={{ color: 'rgba(0,255,148,0.7)' }}
-                        >
+                        <span className="text-[9px] font-mono" style={{ color: 'rgba(0,255,148,0.7)' }}>
                           ✓ downloaded
                         </span>
                       )}
                     </div>
-                    <div
-                      className="text-[10px] mt-0.5"
-                      style={{ color: 'rgba(255,255,255,0.3)' }}
-                    >
-                      {desc}
-                    </div>
+                    <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{desc}</div>
                   </div>
 
                   {/* Arrow */}
@@ -200,10 +195,7 @@ export const ExportModal = memo(({ open, onClose }: Props) => {
           {/* Footer note */}
           <p
             className="text-[9px] font-mono text-center border-t pt-3"
-            style={{
-              color:       'rgba(255,255,255,0.18)',
-              borderColor: 'rgba(255,255,255,0.05)',
-            }}
+            style={{ color: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.05)' }}
           >
             Exports current session data · Add wallets to include them
           </p>
