@@ -107,7 +107,8 @@ export const useWalletStore = create<WalletStore>()(
 
       resetToPlanFree: () => set({ plan: 'free', proExpiresAt: null }),
 
-      // Seed 5 default whale wallets — only once, bypass FREE_LIMIT
+      // Seed default whale wallets — only once, bypass FREE_LIMIT
+      // Works regardless of plan — seeded wallets don't count toward limit
       seedDefaultWallets: () => {
         const { _seeded } = get()
         if (_seeded) return
