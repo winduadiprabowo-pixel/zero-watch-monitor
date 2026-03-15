@@ -34,7 +34,7 @@ function fgColor(v: number): string {
   if (v <= 40) return 'rgba(251,146,60,1)'
   if (v <= 60) return 'rgba(251,191,36,1)'
   if (v <= 80) return 'rgba(52,211,153,1)'
-  return 'rgba(0,255,148,1)'
+  return 'rgba(230,161,71,1)'
 }
 
 function fgGradFrom(v: number): string {
@@ -42,7 +42,7 @@ function fgGradFrom(v: number): string {
   if (v <= 40) return 'rgba(251,146,60,0.10)'
   if (v <= 60) return 'rgba(251,191,36,0.08)'
   if (v <= 80) return 'rgba(52,211,153,0.10)'
-  return 'rgba(0,255,148,0.08)'
+  return 'rgba(230,161,71,0.08)'
 }
 
 // ── Fear & Greed Card ─────────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ const WhaleTxRow = memo(({ tx }: { tx: WhaleTx }) => {
   const tokenClr = tx.type === 'ETH'
     ? 'rgba(0,194,255,0.8)'
     : sym === 'USDT' || sym === 'USDC' || sym === 'DAI'
-      ? 'rgba(0,255,148,0.7)'
+      ? 'rgba(230,161,71,0.7)'
       : 'rgba(251,146,60,0.8)'
 
   return (
@@ -199,7 +199,7 @@ const WhaleTxRow = memo(({ tx }: { tx: WhaleTx }) => {
           rel="noopener noreferrer"
           className="flex-shrink-0 ml-1 transition-colors"
           style={{ color: 'rgba(255,255,255,0.15)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,148,0.7)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.7)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.15)' }}
         >
           <ExternalLink className="w-2.5 h-2.5" />
@@ -281,10 +281,10 @@ const MarketTab = memo(() => {
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <Activity className="w-3 h-3" style={{ color: 'rgba(0,255,148,0.5)' }} />
+            <Activity className="w-3 h-3" style={{ color: 'rgba(230,161,71,0.5)' }} />
             <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>Live Whale Flows</span>
             {recentTxs.length > 0 && (
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0,255,148,0.8)' }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(230,161,71,0.8)' }} />
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -301,7 +301,7 @@ const MarketTab = memo(() => {
               onClick={refetch}
               className="transition-colors"
               style={{ color: 'rgba(255,255,255,0.2)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(0,255,148,0.7)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(230,161,71,0.7)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)' }}
               title="Refresh"
             >
