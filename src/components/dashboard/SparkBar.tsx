@@ -12,7 +12,7 @@ interface SparkBarProps {
   color?: string
 }
 
-const SparkBar = memo(({ data, color = 'rgba(0,255,148,0.45)' }: SparkBarProps) => {
+const SparkBar = memo(({ data, color = 'rgba(230,161,71,0.45)' }: SparkBarProps) => {
   const max = useMemo(
     () => Math.max(...data, 0.001),
     [data]
