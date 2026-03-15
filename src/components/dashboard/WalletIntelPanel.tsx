@@ -19,7 +19,7 @@ import ConvictionBreakdown from '@/components/dashboard/ConvictionBreakdown'
 import { useWalletHistory } from '@/hooks/useWalletHistory'
 import {
   Brain, Copy, BarChart2, Trophy,
-  Zap, Clock, Activity, ArrowUpRight,
+  Zap, Clock, Activity, ArrowUpRight, AlertTriangle,
   ArrowDownLeft, Flame, GitMerge, AlertTriangle,
   Globe, ExternalLink, LucideIcon,
 } from 'lucide-react'
@@ -27,8 +27,9 @@ import type { Wallet, ActivityEvent, ActionType } from '@/data/mockData'
 import type { TokenHolding } from '@/services/api'
 import type { WalletIntelligence, LeaderboardEntry, WhaleStatus } from '@/services/whaleAnalytics'
 import MarketTab from './MarketTab'
+import CrossFlowPanel from './CrossFlowPanel'
 
-type Tab = 'INTEL' | 'SIGNALS' | 'TOKENS' | 'BOARD' | 'MARKET'
+type Tab = 'INTEL' | 'SIGNALS' | 'TOKENS' | 'BOARD' | 'MARKET' | 'FLOWS'
 
 interface WalletIntelPanelProps {
   events:               ActivityEvent[]
@@ -796,11 +797,12 @@ BoardTab.displayName = 'BoardTab'
 // ── Main Panel ─────────────────────────────────────────────────────────────────
 
 const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
-  { id: 'INTEL',   label: 'INTEL',   icon: Brain    },
-  { id: 'SIGNALS', label: 'SIGNALS', icon: Copy     },
-  { id: 'TOKENS',  label: 'TOKENS',  icon: BarChart2 },
-  { id: 'BOARD',   label: 'BOARD',   icon: Trophy   },
-  { id: 'MARKET',  label: 'MARKET',  icon: Globe    },
+  { id: 'INTEL',   label: 'INTEL',   icon: Brain         },
+  { id: 'SIGNALS', label: 'SIGNALS', icon: Copy          },
+  { id: 'TOKENS',  label: 'TOKENS',  icon: BarChart2     },
+  { id: 'BOARD',   label: 'BOARD',   icon: Trophy        },
+  { id: 'MARKET',  label: 'MARKET',  icon: Globe         },
+  { id: 'FLOWS',   label: 'FLOWS',   icon: AlertTriangle },
 ]
 
 const WalletIntelPanel = memo(({
@@ -941,6 +943,8 @@ const WalletIntelPanel = memo(({
           <TokensTab wallet={selectedWallet} tokens={selectedWalletTokens} />
         ) : activeTab === 'BOARD' ? (
           <BoardTab leaderboard={leaderboard} />
+        ) : activeTab === 'FLOWS' ? (
+          <CrossFlowPanel />
         ) : (
           <MarketTab />
         )}
