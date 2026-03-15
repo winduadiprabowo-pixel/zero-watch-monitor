@@ -11,7 +11,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { DEFAULT_WHALE_WALLETS } from '@/data/defaultWallets'
 
-export type Chain = 'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL'
+export type Chain = 'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL' | 'BTC'
 
 export interface WatchedWallet {
   id:      string
