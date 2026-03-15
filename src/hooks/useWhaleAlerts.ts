@@ -80,7 +80,8 @@ export interface WhaleAlertsState {
 
 export function useWhaleAlerts(
   walletIntelMap: Record<string, WalletIntelligence>,
-  walletLabels:   Record<string, string>   // id → label
+  walletLabels:   Record<string, string>,   // id → label
+  onTgAlert?:     (msg: string) => void
 ): WhaleAlertsState {
   const [permission, setPermission] = useState<NotifPermission>(() => {
     if (typeof Notification === 'undefined') return 'unsupported'
@@ -121,6 +122,15 @@ export function useWhaleAlerts(
         const body   = `${dir} ${fmtUsd(move.valueUsd)} · ${label}`
 
         sendNotification(title, body, `whale-${move.hash}`)
+        // Forward to Telegram if configured
+        if (onTgAlert) {
+          const dir = move.type === 'IN' ? '📥' : '📤'
+          onTgAlert(
+            `${dir} <b>Big Move — ${label}</b>\n\n` +
+            `${fmtUsd(move.valueUsd)} ${move.type === 'IN' ? 'received' : 'sent'}\n` +
+            `<i>ZERØ WATCH · @ZerobuildLab</i>`
+          )
+        }
         addSeenHash(move.hash)
         cooldownMap.current[walletId] = now
 
