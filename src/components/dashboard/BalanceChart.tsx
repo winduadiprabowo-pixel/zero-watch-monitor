@@ -30,7 +30,7 @@ const fmtDate = (ts: number) => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-const BalanceChart = memo(({ points, loading, height = 56, color = 'rgba(0,255,148,1)' }: BalanceChartProps) => {
+const BalanceChart = memo(({ points, loading, height = 56, color = 'rgba(230,161,71,1)' }: BalanceChartProps) => {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
   const { path, dots, minV, maxV, pctChange, trend } = useMemo(() => {
