@@ -16,7 +16,6 @@ import React, { memo, useMemo, useCallback } from 'react'
 import { Search, X } from 'lucide-react'
 import { Wallet, WalletTag, filterTags } from '@/data/mockData'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
-import { useCallback as _ucb } from 'react'
 
 interface WalletSidebarProps {
   wallets:          Wallet[]
@@ -267,7 +266,7 @@ const WalletSidebar = memo(({
   const storeWallets = useWalletStore(selectWallets)
   const updateNotes  = useWalletStore(s => s.updateNotes)
   const notesMap     = Object.fromEntries(storeWallets.map(w => [w.id, w.notes ?? '']))
-  const handleNotesChange = _ucb((id: string, notes: string) => {
+  const handleNotesChange = useCallback((id: string, notes: string) => {
     updateNotes(id, notes)
   }, [updateNotes])
   const colorMap = useMemo(() => {
