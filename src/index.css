@@ -78,13 +78,13 @@
     --z-negative-dim:  rgba(239, 68, 68, 0.65);
     --z-amber:         rgba(251, 191, 36, 1);
     --z-amber-dim:     rgba(251, 191, 36, 0.65);
-    --z-scanline:      rgba(0, 0, 0, 0.025);
-    --z-noise-op:      0.028;
+    --z-scanline:      rgba(0, 0, 0, 0.018);
+    --z-noise-op:      0.022;
 
     /* mesh gradient orbs */
-    --z-mesh-1: radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0, 255, 148, 0.045) 0%, transparent 60%);
-    --z-mesh-2: radial-gradient(ellipse 50% 35% at 85% 75%, rgba(99, 102, 241, 0.04) 0%, transparent 55%);
-    --z-mesh-3: radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0, 255, 148, 0.02) 0%, transparent 50%);
+    --z-mesh-1: radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0, 255, 148, 0.04) 0%, transparent 60%);
+    --z-mesh-2: radial-gradient(ellipse 50% 35% at 85% 75%, rgba(99, 102, 241, 0.035) 0%, transparent 55%);
+    --z-mesh-3: radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0, 255, 148, 0.018) 0%, transparent 50%);
   }
 }
 
@@ -101,11 +101,11 @@
   }
 
   /* Scrollbar — ultra subtle */
-  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar { width: 2px; height: 2px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 99px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 148, 0.2); }
-  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.07); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 148, 0.18); }
+  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.07) transparent; }
 }
 
 @layer utilities {
@@ -181,9 +181,7 @@
   }
 
   /* ── Mesh background ────────────────────────────── */
-  .mesh-bg {
-    position: relative;
-  }
+  .mesh-bg { position: relative; }
   .mesh-bg::before {
     content: '';
     position: fixed;
@@ -198,9 +196,7 @@
   .mesh-bg > * { position: relative; z-index: 1; }
 
   /* ── Grid overlay ───────────────────────────────── */
-  .grid-overlay {
-    position: relative;
-  }
+  .grid-overlay { position: relative; }
   .grid-overlay::before {
     content: '';
     position: fixed;
@@ -208,14 +204,14 @@
     pointer-events: none;
     z-index: 1;
     background-image:
-      linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
-    background-size: 40px 40px;
+      linear-gradient(rgba(255,255,255,0.010) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.010) 1px, transparent 1px);
+    background-size: 48px 48px;
     mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
     -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
   }
 
-  /* ── Scanline ───────────────────────────────────── */
+  /* ── Scanline — subtle, not distracting ─────────── */
   .scanline-overlay { position: relative; }
   .scanline-overlay::before {
     content: '';
@@ -241,16 +237,7 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ── Pulse dot ──────────────────────────────────── */
-  .pulse-dot { @apply relative; }
-  .pulse-dot::after {
-    content: '';
-    @apply absolute w-2 h-2 rounded-full;
-    background: var(--z-neon);
-    box-shadow: var(--z-neon-glow-sm);
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
+  /* ── Pulse glow animation ───────────────────────── */
   @keyframes pulse-glow {
     0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(0, 255, 148, 0.55); }
     50%       { opacity: 0.35; box-shadow: 0 0 2px rgba(0, 255, 148, 0.15); }
@@ -258,21 +245,30 @@
 
   /* ── Animations ─────────────────────────────────── */
   .animate-fade-up {
-    animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(12px); }
+    from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
   .animate-fade-in {
-    animation: fade-in 0.3s ease-out both;
+    animation: fade-in 0.25s ease-out both;
   }
 
   @keyframes fade-in {
     from { opacity: 0; }
     to   { opacity: 1; }
+  }
+
+  /* ── Slide up for mobile sheets ─────────────────── */
+  @keyframes slide-up {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .animate-slide-up {
+    animation: slide-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .delay-1 { animation-delay: 0.04s; }
@@ -285,9 +281,7 @@
   .delay-8 { animation-delay: 0.32s; }
 
   /* ── Neon border gradient ───────────────────────── */
-  .neon-border {
-    position: relative;
-  }
+  .neon-border { position: relative; }
   .neon-border::after {
     content: '';
     position: absolute;
@@ -306,19 +300,17 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
     font-size: 9px;
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     border: 1px solid currentColor;
   }
 
   /* ── Glow line ──────────────────────────────────── */
-  .glow-line-top {
-    position: relative;
-  }
+  .glow-line-top { position: relative; }
   .glow-line-top::before {
     content: '';
     position: absolute;
@@ -328,4 +320,31 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--z-neon-20), transparent);
   }
+
+  /* ── Card shimmer loading ───────────────────────── */
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+  }
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0.04) 25%,
+      rgba(255,255,255,0.07) 50%,
+      rgba(255,255,255,0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  /* ── Truncate utilities ─────────────────────────── */
+  .truncate-wallet {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+  }
+
+  /* ── Hover group utilities ──────────────────────── */
+  .group:hover .group-hover\:opacity-100 { opacity: 1; }
 }
