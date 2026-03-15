@@ -58,7 +58,7 @@ const Tooltip = memo(({ content, children, position = 'top', delay = 300 }: Tool
               padding:       '8px 12px',
               borderRadius:  '10px',
               background:    'rgba(10,10,20,0.97)',
-              border:        '1px solid rgba(0,255,148,0.20)',
+              border:        '1px solid rgba(230,161,71,0.20)',
               color:         'rgba(255,255,255,0.80)',
               boxShadow:     '0 8px 24px rgba(0,0,0,0.5)',
               whiteSpace:    'normal',
