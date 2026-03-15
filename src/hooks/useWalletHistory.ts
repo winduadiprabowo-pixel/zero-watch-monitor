@@ -7,7 +7,7 @@
  * rgba() only ✓  AbortController ✓  mountedRef ✓
  */
 
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useRef, useEffect, useCallback } from 'react'
 
 const HISTORY_WORKER = 'https://zero-watch-history.winduadiprabowo.workers.dev'
