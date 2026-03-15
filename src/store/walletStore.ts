@@ -1,8 +1,9 @@
 /**
- * ZERØ WATCH — walletStore v15
+ * ZERØ WATCH — walletStore v16
  * ==============================
- * v15: Auto-seed DEFAULT_WHALE_WALLETS kalau wallets kosong.
- * User buka app → langsung ada 5 whale real. Zero empty state.
+ * v16: TRX + BNB chain support.
+ *      Fix address casing — TRX/SOL/BTC NOT lowercased (case-sensitive).
+ *      EVM (ETH/ARB/BASE/OP/BNB) still lowercased for consistency.
  *
  * rgba() only ✓  persist ✓  AbortController-safe ✓
  */
@@ -11,7 +12,17 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { DEFAULT_WHALE_WALLETS } from '@/data/defaultWallets'
 
-export type Chain = 'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL' | 'BTC'
+export type Chain = 'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL' | 'BTC' | 'TRX' | 'BNB'
+
+// EVM chains that should be lowercased
+const EVM_CHAINS: Chain[] = ['ETH', 'ARB', 'BASE', 'OP', 'BNB']
+
+/** Normalise address — EVM lowercase, others preserve original casing */
+export function normaliseAddress(address: string, chain: Chain): string {
+  return EVM_CHAINS.includes(chain)
+    ? address.toLowerCase().trim()
+    : address.trim()
+}
 
 export interface WatchedWallet {
   id:      string
@@ -45,8 +56,17 @@ export interface WalletStore {
   seedDefaultWallets: () => void
 }
 
-const nanoid   = (len = 8) => Math.random().toString(36).slice(2, 2 + len)
-const COLORS   = ['rgba(230,161,71,1)','rgba(0,194,255,1)','rgba(255,107,107,1)','rgba(255,217,61,1)','rgba(199,125,255,1)','rgba(255,159,67,1)','rgba(72,219,251,1)','rgba(255,107,129,1)']
+const nanoid    = (len = 8) => Math.random().toString(36).slice(2, 2 + len)
+const COLORS    = [
+  'rgba(230,161,71,1)',
+  'rgba(0,194,255,1)',
+  'rgba(255,107,107,1)',
+  'rgba(255,217,61,1)',
+  'rgba(199,125,255,1)',
+  'rgba(255,159,67,1)',
+  'rgba(72,219,251,1)',
+  'rgba(255,107,129,1)',
+]
 const pickColor = (used: string[]) => COLORS.find(c => !used.includes(c)) ?? COLORS[0]
 
 export const useWalletStore = create<WalletStore>()(
@@ -64,6 +84,7 @@ export const useWalletStore = create<WalletStore>()(
         return wallets.length < FREE_LIMIT
       },
 
+      // NEVER use bare isPro — always isProActive()
       isProActive: () => {
         const { plan, proExpiresAt } = get()
         if (plan !== 'pro') return false
@@ -73,7 +94,7 @@ export const useWalletStore = create<WalletStore>()(
       addWallet: (wallet) => {
         const { wallets, canAddWallet } = get()
         if (!canAddWallet()) return { ok: false, reason: 'limit' }
-        const addr = wallet.address.toLowerCase().trim()
+        const addr = normaliseAddress(wallet.address, wallet.chain)
         if (wallets.some(w => w.address === addr && w.chain === wallet.chain))
           return { ok: false, reason: 'duplicate' }
         set(s => ({
@@ -108,16 +129,15 @@ export const useWalletStore = create<WalletStore>()(
       resetToPlanFree: () => set({ plan: 'free', proExpiresAt: null }),
 
       // Seed default whale wallets — only once, bypass FREE_LIMIT
-      // Works regardless of plan — seeded wallets don't count toward limit
       seedDefaultWallets: () => {
         const { _seeded } = get()
         if (_seeded) return
 
         const seeded: WatchedWallet[] = DEFAULT_WHALE_WALLETS.map((dw, i) => ({
           id:      nanoid(),
-          address: dw.address.toLowerCase(),
+          address: normaliseAddress(dw.address, dw.chain as Chain),
           label:   dw.label,
-          chain:   dw.chain,
+          chain:   dw.chain as Chain,
           tag:     dw.tag,
           addedAt: Date.now() - i * 1000,
           color:   dw.color,
@@ -128,18 +148,18 @@ export const useWalletStore = create<WalletStore>()(
     }),
     {
       name:       'zero-watch-wallets',
-      version:    2,
+      version:    3,
       partialize: s => ({
         wallets:      s.wallets,
         plan:         s.plan,
         proExpiresAt: s.proExpiresAt,
         _seeded:      s._seeded,
       }),
-      // Migrate from v1 — hapus _seeded field lama kalau tidak ada
       migrate: (persisted: unknown, version: number) => {
-        if (version === 1) {
+        if (version < 2) {
           return { ...(persisted as object), _seeded: false }
         }
+        // v2→v3: no data change, just Chain type expanded
         return persisted as WalletStore
       },
     }
