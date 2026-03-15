@@ -1,303 +1,442 @@
 /**
- * ZERØ WATCH — Solana API Service v1
- * =====================================
- * Public Solana RPC (Helius free endpoint) + Solscan fallback.
- * No API key needed — uses public cluster endpoint.
- * AbortController ✓  mountedRef pattern compatible ✓
- *
- * NOTE: Solana is non-EVM — separate address format (base58, 32-44 chars).
- * We keep it isolated from EVM logic in api.ts.
+ * ZERØ WATCH — API Service v11
+ * ==============================
+ * v11 changes:
+ * - Token spam filter: skip token tanpa harga CoinGecko atau USD < $1
+ * - CoinGecko free tier untuk token USD pricing (no key needed)
+ * - DEMO_WALLETS constant: 5 active whale wallets siap pakai
+ * - Total portfolio USD = ETH + token values (bukan ETH-only)
  */
 
-const SOL_RPC    = 'https://api.mainnet-beta.solana.com'
-const PROXY = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
-const SOL_PRICE_URL = `${PROXY}/coingecko/price?ids=solana&vs_currencies=usd`
+const PROXY = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+
+if (!PROXY && import.meta.env.PROD) {
+  console.error('[ZERØ] VITE_PROXY_URL not set — API calls will fail in production');
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export interface SolTokenHolding {
-  symbol:          string
-  name:            string
-  balance:         string
-  usdValue:        number
-  mintAddress:     string
+export type Chain = 'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL';
+export type TxType = 'SWAP' | 'TRANSFER' | 'DEPOSIT' | 'BORROW' | 'UNKNOWN';
+export type WalletTag =
+  | 'CEX Whale'
+  | 'DeFi Insider'
+  | 'Smart Money'
+  | 'DAO Treasury'
+  | 'MEV Bot'
+  | 'Custom';
+
+export interface TokenHolding {
+  symbol: string;
+  name: string;
+  balance: string;
+  usdValue: number;
+  contractAddress: string;
 }
 
-export interface SolWalletBalance {
-  address:    string
-  solBalance: string
-  usdValue:   number
-  tokens:     SolTokenHolding[]
+export interface WalletBalance {
+  address: string;
+  ethBalance: string;
+  usdValue: number;
+  tokens: TokenHolding[];
 }
 
-export interface SolTransaction {
-  signature:   string
-  blockTime:   number
-  type:        'TRANSFER' | 'SWAP' | 'UNKNOWN'
-  valueSOL:    number
-  from:        string
-  to:          string
-  err:         boolean
+export interface Transaction {
+  hash: string;
+  from: string;
+  to: string;
+  value: string;
+  timeStamp: string;
+  isError: string;
+  functionName: string;
+  gasUsed: string;
+  type: TxType;
 }
 
-export interface SolWalletData {
-  address:      string
-  balance:      SolWalletBalance
-  transactions: SolTransaction[]
-  lastUpdated:  number
+export interface WalletData {
+  address: string;
+  balance: WalletBalance;
+  transactions: Transaction[];
+  lastUpdated: number;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Demo Wallets ──────────────────────────────────────────────────────────────
 
-export function isValidSolAddress(addr: string): boolean {
-  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr.trim())
+export const DEMO_WALLETS: Array<{
+  address: string;
+  label: string;
+  chain: Chain;
+  tag: WalletTag;
+  description: string;
+}> = [
+  {
+    address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+    label: 'Vitalik.eth',
+    chain: 'ETH',
+    tag: 'Smart Money',
+    description: 'Ethereum founder',
+  },
+  {
+    address: '0xBE0eB53F46CD790Cd13851d5EFf43D12404d33E8',
+    label: 'Binance Cold',
+    chain: 'ETH',
+    tag: 'CEX Whale',
+    description: 'Largest exchange cold wallet',
+  },
+  {
+    address: '0x28C6c06298d514Db089934071355E5743bf21d60',
+    label: 'Binance Hot',
+    chain: 'ETH',
+    tag: 'CEX Whale',
+    description: 'Binance daily operations',
+  },
+  {
+    address: '0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503',
+    label: 'Binance Deployer',
+    chain: 'ETH',
+    tag: 'DeFi Insider',
+    description: 'Active DeFi deployer',
+  },
+  {
+    address: '0x9696f59E4d72E237BE84ffd425DCaD154Bf96976',
+    label: 'Bitfinex Whale',
+    chain: 'ETH',
+    tag: 'CEX Whale',
+    description: 'Bitfinex large movements',
+  },
+];
+
+// ── Chain config ──────────────────────────────────────────────────────────────
+
+const CHAIN_ID: Record<Chain, number> = {
+  ETH:  1,
+  ARB:  42161,
+  BASE: 8453,
+  OP:   10,
+};
+
+// ── Legit ERC-20 contracts ────────────────────────────────────────────────────
+
+const LEGIT_TOKEN_CONTRACTS = new Set([
+  '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+  '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
+  '0x4fabb145d64652a948d72533023f6e7a623c7c53', // BUSD
+  '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
+  '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', // WETH
+  '0x514910771af9ca656af840dff83e8264ecf986ca', // LINK
+  '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984', // UNI
+  '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9', // AAVE
+  '0xd533a949740bb3306d119cc777fa900ba034cd52', // CRV
+  '0xc00e94cb662c3520282e6f5717214004a7f26888', // COMP
+  '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2', // MKR
+  '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e', // YFI
+  '0x6810e776880c02933d47db1b9fc05908e5386b96', // GNO
+  '0xba100000625a3754423978a60c9317c58a424e3d', // BAL
+  '0x6b3595068778dd592e39a122f4f5a5cf09c90fe2', // SUSHI
+  '0x111111111117dc0aa78b770fa6a738034120c302', // 1INCH
+  '0x0d8775f648430679a709e98d2b0cb6250d2887ef', // BAT
+  '0x4d224452801aced8b2f0aebe155379bb5d594381', // APE
+  '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce', // SHIB
+  '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0', // MATIC/POL
+  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84', // stETH
+  '0xae78736cd615f374d3085123a210448e74fc6393', // rETH
+  '0xbe9895146f7af43049ca1c1ae358b0541ea49704', // cbETH
+  '0xd33526068d116ce69f19a9ee46f0bd304f21a51f', // RPL
+  '0xc18360217d8f7ab5e7c516566761ea12ce7f9d72', // ENS
+  '0x3432b6a60d23ca0dfca7761b7ab56459d9c964d0', // FXS
+  '0xbb0e17ef65f82ab018d8edd776e8dd940327b28b', // AXS
+  '0x0f5d2fb29fb7d3cfee444a200298f468908cc942', // MANA
+  '0x3506424f91fd33084466f402d5d97f05f8e3b4af', // CHZ
+  '0xf629cbd94d3791c9250152bd8dfbdf380e2a3b9c', // ENJ
+  '0x4a220e6096b25eadb88358cb44068a3248254675', // QNT
+  '0x2b591e99afe9f32eaa6214f7b7629768c40eeb39', // HEX
+]);
+
+// ── CoinGecko price fetcher (via proxy) ───────────────────────────────────────
+
+const _priceCache = new Map<string, { usd: number; ts: number }>();
+const PRICE_TTL = 5 * 60_000;
+
+async function fetchTokenPrices(
+  addrs: string[],
+  signal?: AbortSignal
+): Promise<Record<string, number>> {
+  if (addrs.length === 0) return {};
+
+  const now = Date.now();
+  const result: Record<string, number> = {};
+  const needFetch: string[] = [];
+
+  for (const addr of addrs) {
+    const cached = _priceCache.get(addr);
+    if (cached && now - cached.ts < PRICE_TTL) {
+      result[addr] = cached.usd;
+    } else {
+      needFetch.push(addr);
+    }
+  }
+
+  if (needFetch.length > 0) {
+    try {
+      const ids = needFetch.slice(0, 30).join(',');
+      const url = `${PROXY}/coingecko/token_price/ethereum?contract_addresses=${ids}&vs_currencies=usd`;
+      const res = await fetch(url, { signal });
+      if (res.ok) {
+        const data = await res.json() as Record<string, { usd?: number }>;
+        for (const [addr, info] of Object.entries(data)) {
+          const price = info.usd ?? 0;
+          const key = addr.toLowerCase();
+          result[key] = price;
+          _priceCache.set(key, { usd: price, ts: now });
+        }
+      }
+    } catch {
+      // CoinGecko gagal — lanjut tanpa price
+    }
+  }
+
+  return result;
 }
 
-async function rpcPost<T>(
+// ── Internal helpers ──────────────────────────────────────────────────────────
+
+async function etherscanGet<T>(
+  params: Record<string, string | number>,
+  signal?: AbortSignal
+): Promise<T> {
+  const qs = new URLSearchParams(
+    Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)]))
+  ).toString();
+  const url = `${PROXY}/etherscan?${qs}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Etherscan proxy ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
+async function alchemyPost<T>(
+  chain: Chain,
   method: string,
   params: unknown[],
   signal?: AbortSignal
-): Promise<T | null> {
-  try {
-    const res = await fetch(SOL_RPC, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-      signal,
-    })
-    if (!res.ok) return null
-    const json = await res.json() as { result?: T; error?: unknown }
-    if (json.error) return null
-    return json.result ?? null
-  } catch (e) {
-    if ((e as Error)?.name === 'AbortError') throw e
-    return null
-  }
+): Promise<T> {
+  const url = `${PROXY}/alchemy/${chain}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`Alchemy proxy ${res.status}`);
+  return res.json() as Promise<T>;
 }
 
-// ── SOL Price ─────────────────────────────────────────────────────────────────
+// ── ETH Price ─────────────────────────────────────────────────────────────────
 
-let _cachedSolPrice: number | null = null
-let _solPriceCacheTime = 0
+let _cachedEthPrice: number | null = null;
+let _ethPriceCacheTime = 0;
 
-export async function getSolPrice(signal?: AbortSignal): Promise<number> {
-  const now = Date.now()
-  if (_cachedSolPrice && now - _solPriceCacheTime < 60_000) return _cachedSolPrice
+export async function getEthPrice(signal?: AbortSignal): Promise<number> {
+  const now = Date.now();
+  if (_cachedEthPrice && now - _ethPriceCacheTime < 60_000) return _cachedEthPrice;
+
+  // Guard: TanStack Query sometimes passes QueryFunctionContext instead of AbortSignal
+  const safeSignal = signal instanceof AbortSignal ? signal : undefined;
+
   try {
-    const res  = await fetch(SOL_PRICE_URL, { signal })
-    if (!res.ok) return _cachedSolPrice ?? 150
-    const data = await res.json() as { solana?: { usd?: number } }
-    const price = data.solana?.usd ?? 0
-    if (price > 0) {
-      _cachedSolPrice    = price
-      _solPriceCacheTime = now
+    const data = await etherscanGet<{ status: string; result: { ethusd: string } }>(
+      { chainid: 1, module: 'stats', action: 'ethprice' },
+      safeSignal
+    );
+    if (data.status === '1') {
+      _cachedEthPrice = parseFloat(data.result.ethusd);
+      _ethPriceCacheTime = now;
+      return _cachedEthPrice;
     }
-    return _cachedSolPrice ?? 150
-  } catch {
-    return _cachedSolPrice ?? 150
+  } catch (e) {
+    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] ETH price failed', e);
   }
+
+  return _cachedEthPrice ?? 1968;
 }
 
-// ── SOL Balance ───────────────────────────────────────────────────────────────
+// ── Wallet Balance ────────────────────────────────────────────────────────────
 
-export async function getSolBalance(
+export async function getWalletBalance(
   address: string,
+  chain: Chain = 'ETH',
   signal?: AbortSignal
 ): Promise<string> {
-  const result = await rpcPost<{ value: number }>(
-    'getBalance',
-    [address, { commitment: 'confirmed' }],
-    signal
-  )
-  if (result === null) return '0'
-  const sol = (result as unknown as number) / 1e9
-  return sol.toFixed(4)
+  try {
+    const data = await etherscanGet<{ status: string; result: string }>(
+      { chainid: CHAIN_ID[chain], module: 'account', action: 'balance', address, tag: 'latest' },
+      signal
+    );
+    if (data.status === '1') {
+      return (Number(BigInt(data.result)) / 1e18).toFixed(4);
+    }
+  } catch (e) {
+    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] Balance failed', e);
+  }
+  return '0';
 }
 
-// ── SPL Token Accounts ────────────────────────────────────────────────────────
+// ── Token Holdings v2 ─────────────────────────────────────────────────────────
 
-interface TokenAccountResult {
-  account: {
-    data: {
-      parsed: {
-        info: {
-          mint:        string
-          tokenAmount: { uiAmountString: string; decimals: number }
-        }
+export async function getTokenHoldings(
+  address: string,
+  signal?: AbortSignal
+): Promise<TokenHolding[]> {
+  try {
+    const data = await alchemyPost<{
+      result?: { tokenBalances: { contractAddress: string; tokenBalance: string }[] };
+    }>('ETH', 'alchemy_getTokenBalances', [address], signal);
+
+    const ZERO_BAL = '0x' + '0'.repeat(64);
+    const nonZero = (data.result?.tokenBalances ?? []).filter(
+      (t) => t.tokenBalance !== ZERO_BAL
+    );
+
+    const rawTokens: Array<{
+      addr: string;
+      symbol: string;
+      name: string;
+      balance: number;
+    }> = [];
+
+    for (const token of nonZero.slice(0, 25)) {
+      try {
+        const meta = await alchemyPost<{
+          result?: { symbol: string | null; name: string | null; decimals: number | null };
+        }>('ETH', 'alchemy_getTokenMetadata', [token.contractAddress], signal);
+
+        const decimals = meta.result?.decimals ?? 18;
+        const balance = parseInt(token.tokenBalance, 16) / Math.pow(10, decimals);
+        if (balance < 0.000001) continue;
+
+        rawTokens.push({
+          addr: token.contractAddress.toLowerCase(),
+          symbol: meta.result?.symbol ?? '???',
+          name: meta.result?.name ?? 'Unknown',
+          balance,
+        });
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') throw e;
       }
     }
-  }
-}
 
-const KNOWN_SPL: Record<string, { symbol: string; name: string; geckoId: string }> = {
-  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': { symbol: 'USDC',   name: 'USD Coin',      geckoId: 'usd-coin' },
-  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': { symbol: 'USDT',   name: 'Tether',         geckoId: 'tether' },
-  'So11111111111111111111111111111111111111112':    { symbol: 'wSOL',   name: 'Wrapped SOL',    geckoId: 'solana' },
-  'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So': { symbol: 'mSOL',   name: 'Marinade SOL',   geckoId: 'msol' },
-  'JitoSOLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL': { symbol: 'jitoSOL', name: 'Jito SOL',   geckoId: 'jito-staked-sol' },
-  'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263': { symbol: 'BONK',   name: 'Bonk',           geckoId: 'bonk' },
-  'WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk':   { symbol: 'WEN',    name: 'WEN',            geckoId: 'wen-4' },
-  'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm': { symbol: 'WIF',    name: 'dogwifhat',      geckoId: 'dogwifcoin' },
-  'A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM':  { symbol: 'USDCet', name: 'USDC (Portal)',  geckoId: 'usd-coin' },
-}
+    const prices = await fetchTokenPrices(rawTokens.map(t => t.addr), signal);
+    const holdings: TokenHolding[] = [];
 
-export async function getSolTokens(
-  address: string,
-  solPrice: number,
-  signal?: AbortSignal
-): Promise<SolTokenHolding[]> {
-  const result = await rpcPost<{ value: TokenAccountResult[] }>(
-    'getTokenAccountsByOwner',
-    [
-      address,
-      { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
-      { encoding: 'jsonParsed' },
-    ],
-    signal
-  )
+    for (const token of rawTokens) {
+      const price = prices[token.addr] ?? 0;
+      const usdValue = token.balance * price;
+      const isLegit = LEGIT_TOKEN_CONTRACTS.has(token.addr);
 
-  if (!result?.value) return []
+      if (!isLegit && (price === 0 || usdValue < 1)) continue;
 
-  const holdings: SolTokenHolding[] = []
-  for (const acct of result.value.slice(0, 20)) {
-    const info   = acct.account.data.parsed.info
-    const mint   = info.mint
-    const bal    = parseFloat(info.tokenAmount.uiAmountString) || 0
-    if (bal <= 0) continue
+      const balFmt = token.balance >= 1_000_000
+        ? `${(token.balance / 1_000_000).toFixed(2)}M`
+        : token.balance >= 1_000
+          ? `${(token.balance / 1_000).toFixed(1)}K`
+          : token.balance.toFixed(4);
 
-    const known = KNOWN_SPL[mint]
-    if (!known) continue
-
-    let usdValue = 0
-    if (known.symbol === 'USDC' || known.symbol === 'USDT' || known.symbol === 'USDCet') {
-      usdValue = bal
-    } else if (known.symbol === 'wSOL' || known.symbol === 'mSOL' || known.symbol === 'jitoSOL') {
-      usdValue = bal * solPrice
+      holdings.push({
+        symbol: token.symbol,
+        name: token.name,
+        balance: balFmt,
+        usdValue,
+        contractAddress: token.addr,
+      });
     }
 
-    holdings.push({
-      symbol:      known.symbol,
-      name:        known.name,
-      balance:     bal >= 1_000_000 ? `${(bal / 1_000_000).toFixed(2)}M`
-                 : bal >= 1_000     ? `${(bal / 1_000).toFixed(1)}K`
-                 : bal.toFixed(4),
-      usdValue,
-      mintAddress: mint,
-    })
-  }
+    return holdings.sort((a, b) => b.usdValue - a.usdValue);
 
-  return holdings.sort((a, b) => b.usdValue - a.usdValue)
+  } catch (e) {
+    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] Token holdings failed', e);
+    return [];
+  }
 }
 
 // ── Transactions ──────────────────────────────────────────────────────────────
 
-interface SignatureInfo {
-  signature: string
-  blockTime: number | null
-  err:       unknown
+function classifyTx(tx: { functionName?: string; input?: string; value: string }): TxType {
+  const fn = (tx.functionName ?? '').toLowerCase();
+  const input = (tx.input ?? '').toLowerCase();
+  if (fn.includes('swap') || input.startsWith('0x38ed1739') || input.startsWith('0x7ff36ab5'))
+    return 'SWAP';
+  if (fn.includes('deposit') || fn.includes('supply') || fn.includes('mint'))
+    return 'DEPOSIT';
+  if (fn.includes('borrow') || fn.includes('flashloan')) return 'BORROW';
+  if (tx.value !== '0') return 'TRANSFER';
+  return 'UNKNOWN';
 }
 
-interface ParsedTx {
-  blockTime: number | null
-  meta:      { err: unknown; preBalances: number[]; postBalances: number[] } | null
-  transaction: {
-    message: {
-      accountKeys: Array<{ pubkey: string }>
-      instructions: Array<{ program?: string; programId?: string }>
-    }
-  }
-}
-
-export async function getSolTransactions(
+export async function getTransactions(
   address: string,
-  limit = 20,
+  chain: Chain = 'ETH',
+  limit = 25,
   signal?: AbortSignal
-): Promise<SolTransaction[]> {
-  const sigs = await rpcPost<SignatureInfo[]>(
-    'getSignaturesForAddress',
-    [address, { limit, commitment: 'confirmed' }],
-    signal
-  )
-  if (!sigs || sigs.length === 0) return []
+): Promise<Transaction[]> {
+  try {
+    const data = await etherscanGet<{
+      status: string;
+      result: {
+        hash: string; from: string; to: string; value: string;
+        timeStamp: string; isError: string; functionName: string;
+        input: string; gasUsed: string;
+      }[] | string;
+    }>(
+      {
+        chainid: CHAIN_ID[chain],
+        module: 'account', action: 'txlist',
+        address, startblock: 0, endblock: 99999999,
+        page: 1, offset: limit, sort: 'desc',
+      },
+      signal
+    );
 
-  const txSigs = sigs.slice(0, 10).map(s => s.signature)
-  const parsed = await rpcPost<(ParsedTx | null)[]>(
-    'getMultipleParsedTransactions' as string,
-    [txSigs, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }],
-    signal
-  )
-
-  if (!parsed) {
-    return sigs.slice(0, limit).map(sig => ({
-      signature: sig.signature,
-      blockTime: sig.blockTime ?? Math.floor(Date.now() / 1000),
-      type:      'UNKNOWN' as const,
-      valueSOL:  0,
-      from:      address,
-      to:        '',
-      err:       sig.err != null,
-    }))
+    if (data.status === '1' && Array.isArray(data.result)) {
+      return data.result.map((tx) => ({
+        hash: tx.hash, from: tx.from, to: tx.to,
+        value: (Number(tx.value) / 1e18).toFixed(4),
+        timeStamp: tx.timeStamp, isError: tx.isError,
+        functionName: tx.functionName, gasUsed: tx.gasUsed,
+        type: classifyTx(tx),
+      }));
+    }
+  } catch (e) {
+    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] TX fetch failed', e);
   }
-
-  const results: SolTransaction[] = []
-  for (let i = 0; i < txSigs.length; i++) {
-    const tx  = (parsed as unknown as (ParsedTx | null)[])[i]
-    const sig = sigs[i]
-    if (!tx) continue
-
-    const accts     = tx.transaction.message.accountKeys.map(k => k.pubkey)
-    const preBals   = tx.meta?.preBalances  ?? []
-    const postBals  = tx.meta?.postBalances ?? []
-    const addrIdx   = accts.indexOf(address)
-    const balDelta  = addrIdx >= 0
-      ? Math.abs((postBals[addrIdx] ?? 0) - (preBals[addrIdx] ?? 0)) / 1e9
-      : 0
-
-    const instrs = tx.transaction.message.instructions
-    const hasSwap = instrs.some(ix =>
-      (ix.program ?? ix.programId ?? '').toLowerCase().includes('swap') ||
-      (ix.programId ?? '') === 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB'
-    )
-
-    results.push({
-      signature: sig.signature,
-      blockTime: tx.blockTime ?? sig.blockTime ?? Math.floor(Date.now() / 1000),
-      type:      hasSwap ? 'SWAP' : balDelta > 0 ? 'TRANSFER' : 'UNKNOWN',
-      valueSOL:  balDelta,
-      from:      accts[0] ?? address,
-      to:        accts[1] ?? '',
-      err:       tx.meta?.err != null,
-    })
-  }
-
-  return results
+  return [];
 }
 
 // ── Main fetch ────────────────────────────────────────────────────────────────
 
-export async function fetchSolWalletData(
+export async function fetchWalletData(
   address: string,
+  chain: Chain = 'ETH',
   signal?: AbortSignal
-): Promise<SolWalletData> {
-  const [solPrice, solBalance, transactions] = await Promise.all([
-    getSolPrice(signal),
-    getSolBalance(address, signal),
-    getSolTransactions(address, 20, signal),
-  ])
+): Promise<WalletData> {
+  const [ethBalance, tokens, transactions, ethPrice] = await Promise.all([
+    getWalletBalance(address, chain, signal),
+    getTokenHoldings(address, signal),
+    getTransactions(address, chain, 25, signal),
+    getEthPrice(signal),
+  ]);
 
-  const tokens   = await getSolTokens(address, solPrice, signal)
-  const solUsd   = parseFloat(solBalance) * solPrice
-  const tokenUsd = tokens.reduce((s, t) => s + t.usdValue, 0)
+  const ethUsd = parseFloat(ethBalance) * ethPrice;
+  const tokenUsd = tokens.reduce((sum, t) => sum + t.usdValue, 0);
 
   return {
     address,
     balance: {
       address,
-      solBalance,
-      usdValue: solUsd + tokenUsd,
+      ethBalance,
+      usdValue: ethUsd + tokenUsd,
       tokens,
     },
     transactions,
     lastUpdated: Date.now(),
-  }
+  };
 }
