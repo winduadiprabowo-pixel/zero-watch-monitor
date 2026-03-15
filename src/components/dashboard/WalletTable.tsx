@@ -207,7 +207,7 @@ const WalletCard = memo(({ wallet, intel, isSelected, onSelect, index }: WalletC
           {wallet.txNew > 0 && (
             <span
               className="font-mono font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 animate-pulse"
-              style={{ fontSize: '8px', background: 'rgba(0,255,148,0.10)', color: 'rgba(0,255,148,1)', border: '1px solid rgba(0,255,148,0.22)' }}
+              style={{ fontSize: '8px', background: 'rgba(230,161,71,0.10)', color: 'rgba(230,161,71,1)', border: '1px solid rgba(230,161,71,0.22)' }}
             >
               {wallet.txNew}
             </span>
@@ -269,7 +269,7 @@ const WalletCard = memo(({ wallet, intel, isSelected, onSelect, index }: WalletC
             <button
               onClick={handleCopy}
               className="flex items-center gap-1 transition-colors"
-              style={{ color: copied ? 'rgba(0,255,148,0.8)' : 'rgba(255,255,255,0.2)' }}
+              style={{ color: copied ? 'rgba(230,161,71,0.8)' : 'rgba(255,255,255,0.2)' }}
             >
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
             </button>
@@ -279,7 +279,7 @@ const WalletCard = memo(({ wallet, intel, isSelected, onSelect, index }: WalletC
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
               style={{ color: 'rgba(255,255,255,0.18)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,148,0.7)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.7)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.18)' }}
             >
               <ExternalLink className="w-3 h-3" />
