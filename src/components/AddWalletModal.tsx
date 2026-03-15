@@ -16,14 +16,26 @@ import { Plus, AlertCircle, Zap, Eye, Shield } from 'lucide-react'
 import { DEMO_WALLETS } from '@/services/api'
 import { isValidSolAddress } from '@/services/solanaApi'
 
-const CHAINS: Chain[] = ['ETH', 'BASE', 'ARB', 'OP', 'SOL']
+const CHAINS: Chain[] = ['ETH', 'BASE', 'ARB', 'OP', 'SOL', 'BTC']
 
 const CHAIN_COLORS: Record<Chain, { bg: string; border: string; text: string; activeBg: string; activeBorder: string; activeText: string }> = {
-  ETH:  { bg: 'rgba(59,130,246,0.06)', border: 'rgba(59,130,246,0.15)', text: 'rgba(147,197,253,0.6)',  activeBg: 'rgba(59,130,246,0.15)', activeBorder: 'rgba(147,197,253,0.4)',  activeText: 'rgba(147,197,253,1)' },
-  BASE: { bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.15)', text: 'rgba(165,180,252,0.6)',  activeBg: 'rgba(99,102,241,0.15)', activeBorder: 'rgba(165,180,252,0.4)',  activeText: 'rgba(165,180,252,1)' },
-  ARB:  { bg: 'rgba(14,165,233,0.06)', border: 'rgba(14,165,233,0.15)', text: 'rgba(125,211,252,0.6)',  activeBg: 'rgba(14,165,233,0.15)', activeBorder: 'rgba(125,211,252,0.4)',  activeText: 'rgba(125,211,252,1)' },
-  OP:   { bg: 'rgba(239,68,68,0.06)',  border: 'rgba(239,68,68,0.15)',  text: 'rgba(252,165,165,0.6)',  activeBg: 'rgba(239,68,68,0.15)',  activeBorder: 'rgba(252,165,165,0.4)',  activeText: 'rgba(252,165,165,1)' },
-  SOL:  { bg: 'rgba(153,69,255,0.06)', border: 'rgba(153,69,255,0.15)', text: 'rgba(200,150,255,0.6)',  activeBg: 'rgba(153,69,255,0.15)', activeBorder: 'rgba(200,150,255,0.4)',  activeText: 'rgba(200,150,255,1)' },
+  ETH:  { bg: 'rgba(59,130,246,0.06)',  border: 'rgba(59,130,246,0.15)',  text: 'rgba(147,197,253,0.6)',  activeBg: 'rgba(59,130,246,0.15)',  activeBorder: 'rgba(147,197,253,0.4)',  activeText: 'rgba(147,197,253,1)' },
+  BASE: { bg: 'rgba(99,102,241,0.06)',  border: 'rgba(99,102,241,0.15)',  text: 'rgba(165,180,252,0.6)',  activeBg: 'rgba(99,102,241,0.15)',  activeBorder: 'rgba(165,180,252,0.4)',  activeText: 'rgba(165,180,252,1)' },
+  ARB:  { bg: 'rgba(14,165,233,0.06)',  border: 'rgba(14,165,233,0.15)',  text: 'rgba(125,211,252,0.6)',  activeBg: 'rgba(14,165,233,0.15)',  activeBorder: 'rgba(125,211,252,0.4)',  activeText: 'rgba(125,211,252,1)' },
+  OP:   { bg: 'rgba(239,68,68,0.06)',   border: 'rgba(239,68,68,0.15)',   text: 'rgba(252,165,165,0.6)',  activeBg: 'rgba(239,68,68,0.15)',   activeBorder: 'rgba(252,165,165,0.4)',  activeText: 'rgba(252,165,165,1)' },
+  SOL:  { bg: 'rgba(153,69,255,0.06)',  border: 'rgba(153,69,255,0.15)',  text: 'rgba(200,150,255,0.6)',  activeBg: 'rgba(153,69,255,0.15)',  activeBorder: 'rgba(200,150,255,0.4)',  activeText: 'rgba(200,150,255,1)' },
+  BTC:  { bg: 'rgba(247,147,26,0.06)',  border: 'rgba(247,147,26,0.15)',  text: 'rgba(251,191,36,0.6)',   activeBg: 'rgba(247,147,26,0.15)',  activeBorder: 'rgba(251,191,36,0.5)',   activeText: 'rgba(251,191,36,1)'  },
+}
+
+// BTC address validation — P2PKH (1...), P2SH (3...), Bech32 (bc1...)
+const isValidBtcAddress = (a: string): boolean => {
+  // P2PKH: starts with 1, 26-34 chars, base58
+  if (/^1[a-km-zA-HJ-NP-Z1-9]{25,33}$/.test(a)) return true
+  // P2SH: starts with 3, 26-34 chars, base58
+  if (/^3[a-km-zA-HJ-NP-Z1-9]{25,33}$/.test(a)) return true
+  // Bech32 Native SegWit: bc1q... (P2WPKH = 42 chars) or bc1p... (Taproot = 62 chars)
+  if (/^bc1[ac-hj-np-z02-9]{6,87}$/.test(a.toLowerCase())) return true
+  return false
 }
 
 // WHY WATCH hints — edukasi langsung di modal
@@ -52,19 +64,24 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
   const canAdd     = useWalletStore(selectCanAdd)
   const freeSlots  = useWalletStore(selectFreeSlots)
 
-  const valid = (a: string) =>
-    chain === 'SOL'
-      ? isValidSolAddress(a.trim())
-      : /^0x[0-9a-fA-F]{40}$/.test(a.trim())
+  const valid = (a: string) => {
+    const t = a.trim()
+    if (chain === 'SOL') return isValidSolAddress(t)
+    if (chain === 'BTC') return isValidBtcAddress(t)
+    return /^0x[0-9a-fA-F]{40}$/.test(t)
+  }
 
-  const placeholder = chain === 'SOL'
-    ? 'Solana address (base58…)'
-    : '0x… EVM address'
+  const placeholder =
+    chain === 'SOL' ? 'Solana address (base58…)' :
+    chain === 'BTC' ? 'Bitcoin address (1…, 3…, or bc1…)' :
+    '0x… EVM address'
 
   const handleSubmit = useCallback(() => {
     setErr('')
     if (!valid(address)) return setErr(
-      chain === 'SOL' ? 'Invalid Solana address (base58, 32-44 chars)' : 'Invalid EVM address (0x…)'
+      chain === 'SOL' ? 'Invalid Solana address (base58, 32-44 chars)' :
+      chain === 'BTC' ? 'Invalid Bitcoin address (P2PKH: 1…, P2SH: 3…, Bech32: bc1…)' :
+      'Invalid EVM address (0x…)'
     )
     const res = addWallet({ address: address.trim(), label: label.trim() || address.slice(0, 8), chain, color: '' })
     if (!res.ok) {
