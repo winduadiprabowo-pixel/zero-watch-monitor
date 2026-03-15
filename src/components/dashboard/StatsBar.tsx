@@ -30,21 +30,21 @@ const LiveBadge = memo(({ syncing }: { syncing: boolean }) => (
   <div
     className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
     style={{
-      background:    syncing ? 'rgba(251,191,36,0.10)' : 'rgba(0,255,148,0.08)',
-      border:        syncing ? '1px solid rgba(251,191,36,0.25)' : '1px solid rgba(0,255,148,0.22)',
+      background:    syncing ? 'rgba(251,191,36,0.10)' : 'rgba(230,161,71,0.08)',
+      border:        syncing ? '1px solid rgba(251,191,36,0.25)' : '1px solid rgba(230,161,71,0.22)',
     }}
   >
     <span
       className="w-1.5 h-1.5 rounded-full flex-shrink-0"
       style={{
-        background: syncing ? 'rgba(251,191,36,1)' : 'rgba(0,255,148,1)',
-        boxShadow:  syncing ? '0 0 5px rgba(251,191,36,0.8)' : '0 0 5px rgba(0,255,148,0.8)',
+        background: syncing ? 'rgba(251,191,36,1)' : 'rgba(230,161,71,1)',
+        boxShadow:  syncing ? '0 0 5px rgba(251,191,36,0.8)' : '0 0 5px rgba(230,161,71,0.8)',
         animation:  'pulse-glow 1.8s ease-in-out infinite',
       }}
     />
     <span
       className="font-mono font-bold tracking-widest"
-      style={{ fontSize: '8px', color: syncing ? 'rgba(251,191,36,0.9)' : 'rgba(0,255,148,0.9)' }}
+      style={{ fontSize: '8px', color: syncing ? 'rgba(251,191,36,0.9)' : 'rgba(230,161,71,0.9)' }}
     >
       {syncing ? 'SYNC' : 'LIVE'}
     </span>
@@ -144,8 +144,8 @@ const StatsBar = memo(({ mobile }: StatsBarProps) => {
           value={fmtUsd(stats.totalUsd)}
           sub={`${stats.walletCount} wallets tracked`}
           icon={<TrendingUp className="w-3.5 h-3.5" />}
-          color="rgba(0,255,148,1)"
-          glow="rgba(0,255,148,0.4)"
+          color="rgba(230,161,71,1)"
+          glow="rgba(230,161,71,0.4)"
           loading={stats.loading}
           delay={0}
         />
@@ -175,7 +175,7 @@ const StatsBar = memo(({ mobile }: StatsBarProps) => {
         {/* Ambient orb */}
         <div
           className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,255,148,0.08) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(230,161,71,0.08) 0%, transparent 70%)' }}
         />
 
         <div className="flex items-start justify-between mb-2 relative">
@@ -233,8 +233,8 @@ const StatsBar = memo(({ mobile }: StatsBarProps) => {
         value={`${stats.activeCount}/${stats.walletCount}`}
         sub={stats.activeCount > 0 ? '🔥 moving' : 'all dormant'}
         icon={<Activity className="w-3.5 h-3.5" />}
-        color={stats.activeCount > 0 ? 'rgba(0,255,148,1)' : 'rgba(255,255,255,0.4)'}
-        glow={stats.activeCount > 0 ? 'rgba(0,255,148,0.4)' : undefined}
+        color={stats.activeCount > 0 ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.4)'}
+        glow={stats.activeCount > 0 ? 'rgba(230,161,71,0.4)' : undefined}
         loading={stats.loading}
         delay={0.10}
       />
