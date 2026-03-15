@@ -29,8 +29,9 @@ import type { WalletIntelligence, LeaderboardEntry, WhaleStatus } from '@/servic
 import MarketTab from './MarketTab'
 import CrossFlowPanel from './CrossFlowPanel'
 import IntelAlertFeed from './IntelAlertFeed'
+import PatternPanel from './PatternPanel'
 
-type Tab = 'INTEL' | 'SIGNALS' | 'TOKENS' | 'BOARD' | 'MARKET' | 'FLOWS' | 'ARKHAM'
+type Tab = 'INTEL' | 'SIGNALS' | 'TOKENS' | 'BOARD' | 'MARKET' | 'FLOWS' | 'ARKHAM' | 'PATTERN'
 
 interface WalletIntelPanelProps {
   events:               ActivityEvent[]
@@ -805,6 +806,7 @@ const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
   { id: 'MARKET',  label: 'MARKET',  icon: Globe         },
   { id: 'FLOWS',   label: 'FLOWS',   icon: AlertTriangle },
   { id: 'ARKHAM',  label: 'ARKHAM',  icon: Flame         },
+  { id: 'PATTERN', label: 'PATTERN', icon: GitMerge      },
 ]
 
 const WalletIntelPanel = memo(({
@@ -950,6 +952,10 @@ const WalletIntelPanel = memo(({
         ) : activeTab === 'ARKHAM' ? (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <IntelAlertFeed />
+          </div>
+        ) : activeTab === 'PATTERN' ? (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <PatternPanel />
           </div>
         ) : (
           <MarketTab />
