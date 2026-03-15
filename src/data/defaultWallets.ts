@@ -4,6 +4,7 @@
  * Curated list — verified dari Etherscan labels
  * Focus: alpha wallets yang beneran market moving
  * Hapus: Vitalik (donate bukan alpha), smart contracts, bridges
+ * v4 fix: BTC wallets masuk ke dalam array (orphan bug fixed)
  */
 
 export interface DefaultWallet {
@@ -297,7 +298,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     color:       '#F7931A',
     description: 'Binance Solana hot wallet. SOL inflow/outflow signal.',
   },
-]
+
   // ── ₿ Bitcoin Legends ─────────────────────────────────────────────────────
 
   {
@@ -341,4 +342,3 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     description: 'Bitfinex cold wallet. ~168K BTC. Watch for large outflows.',
   },
 ]
-
