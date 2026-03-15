@@ -25,7 +25,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Wintermute',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#00FF94',
+    color:       'rgba(230,161,71,1)',
     description: 'Biggest crypto market maker. 152K+ txs. When they move, market follows.',
   },
   {
@@ -33,7 +33,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Wintermute 2',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#00DD80',
+    color:       'rgba(0,221,128,1)',
     description: 'Wintermute secondary ops. 1M+ transactions — HFT scale.',
   },
   {
@@ -41,7 +41,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Jump Trading',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#00C2FF',
+    color:       'rgba(0,194,255,1)',
     description: 'Top institutional crypto HFT firm. $137M+ across 8 chains.',
   },
   {
@@ -49,7 +49,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Jump Trading 2',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#00AAFF',
+    color:       'rgba(0,170,255,1)',
     description: 'Jump Trading secondary wallet. 300K+ txs.',
   },
   {
@@ -57,7 +57,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'DWF Labs',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#F472B6',
+    color:       'rgba(244,114,182,1)',
     description: 'DWF Labs market maker. Invest + pump small caps. Watch for accumulation.',
   },
   {
@@ -65,7 +65,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'DWF Labs 2',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#EC4899',
+    color:       'rgba(236,72,153,1)',
     description: 'DWF Labs secondary wallet. 60+ exchange liquidity provider.',
   },
 
@@ -76,7 +76,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Justin Sun',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#EF4444',
+    color:       'rgba(239,68,68,1)',
     description: 'TRON founder. $12.5B net worth. Notorious market mover — gerak = news.',
   },
   {
@@ -84,7 +84,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Justin Sun 4',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#DC2626',
+    color:       'rgba(220,38,38,1)',
     description: 'Justin Sun whale wallet. $719M across 8 chains. HTX exchange owner.',
   },
 
@@ -95,7 +95,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Abraxas Capital',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#C77DFF',
+    color:       'rgba(199,125,255,1)',
     description: 'DeFi insider. Historically early on new protocols. Copy-trade signal.',
   },
 
@@ -106,7 +106,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Binance Cold',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#FFD93D',
+    color:       'rgba(255,217,61,1)',
     description: 'Binance cold storage $4B+. Large inflow = sell pressure. Bearish signal.',
   },
   {
@@ -114,7 +114,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Binance Hot',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#FF9F43',
+    color:       'rgba(255,159,67,1)',
     description: 'Binance daily ops. Large outflows = accumulation signal. Bullish.',
   },
   {
@@ -122,7 +122,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Binance 8',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#FFBB43',
+    color:       'rgba(255,187,67,1)',
     description: 'Binance custodian wallet. Institutional barometer.',
   },
   {
@@ -130,7 +130,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Binance 7',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#FFA500',
+    color:       'rgba(255,165,0,1)',
     description: 'Binance major hot wallet. High daily volume.',
   },
   {
@@ -138,7 +138,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Binance 4',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#F59E0B',
+    color:       'rgba(245,158,11,1)',
     description: 'Binance major deposit wallet. High daily flow.',
   },
 
@@ -149,7 +149,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Coinbase Prime',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#3B82F6',
+    color:       'rgba(59,130,246,1)',
     description: 'Coinbase institutional custody. BlackRock ETF inflows go HERE. Watch closely.',
   },
   {
@@ -157,7 +157,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Coinbase Hot',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#60A5FA',
+    color:       'rgba(96,165,250,1)',
     description: 'Coinbase main hot wallet. US retail + institutional flow indicator.',
   },
   {
@@ -165,7 +165,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Coinbase 2',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#4F9EF8',
+    color:       'rgba(79,158,248,1)',
     description: 'Coinbase secondary. Heavy ERC-20 activity.',
   },
   {
@@ -173,7 +173,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Coinbase Cold',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#2563EB',
+    color:       'rgba(37,99,235,1)',
     description: 'Coinbase cold storage. Institutional USD on/off ramp signal.',
   },
 
@@ -184,7 +184,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Kraken',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#8B5CF6',
+    color:       'rgba(139,92,246,1)',
     description: 'Kraken exchange wallet. European institutional flow barometer.',
   },
   {
@@ -192,7 +192,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Kraken 2',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#7C3AED',
+    color:       'rgba(124,58,237,1)',
     description: 'Kraken secondary hot wallet.',
   },
 
@@ -203,7 +203,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'OKX',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#1F2937',
+    color:       'rgba(31,41,55,1)',
     description: 'OKX exchange hot wallet. Asian + institutional flow.',
   },
   {
@@ -211,7 +211,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Bybit',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#F7A600',
+    color:       'rgba(247,166,0,1)',
     description: 'Bybit exchange wallet. Derivatives flow indicator.',
   },
   {
@@ -219,7 +219,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Bybit 2',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#E8950F',
+    color:       'rgba(232,149,15,1)',
     description: 'Bybit secondary wallet. Perpetual futures flow.',
   },
 
@@ -230,7 +230,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Gate.io',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#EC4899',
+    color:       'rgba(236,72,153,1)',
     description: 'Gate.io hot wallet. Asian retail crypto sentiment.',
   },
   {
@@ -238,7 +238,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Crypto.com',
     chain:       'ETH',
     tag:         'CEX Whale',
-    color:       '#003087',
+    color:       'rgba(0,48,135,1)',
     description: 'Crypto.com exchange wallet. Retail flow indicator.',
   },
 
@@ -249,7 +249,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Tether Treasury',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#26A17B',
+    color:       'rgba(38,161,123,1)',
     description: 'Tether USDT issuer. Minting large amounts = bullish market signal.',
   },
   {
@@ -257,7 +257,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Circle USDC',
     chain:       'ETH',
     tag:         'Smart Money',
-    color:       '#2775CA',
+    color:       'rgba(39,117,202,1)',
     description: 'Circle USDC issuer. Large minting = institutional buying pressure.',
   },
 
@@ -268,7 +268,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'MEV Bot Alpha',
     chain:       'ETH',
     tag:         'MEV Bot',
-    color:       '#F97316',
+    color:       'rgba(249,115,22,1)',
     description: 'Top MEV bot. 1M+ txs. Profitable opportunities = market inefficiency signal.',
   },
   {
@@ -276,7 +276,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'MEV Bot Beta',
     chain:       'ETH',
     tag:         'MEV Bot',
-    color:       '#FB923C',
+    color:       'rgba(251,146,60,1)',
     description: 'High frequency MEV. Tracks sandwich attacks + arb opportunities.',
   },
 
@@ -287,7 +287,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Solana Foundation',
     chain:       'SOL',
     tag:         'DAO Treasury',
-    color:       '#9945FF',
+    color:       'rgba(153,69,255,1)',
     description: 'Solana Foundation treasury. Ecosystem grants + validator ops.',
   },
   {
@@ -295,7 +295,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Binance SOL',
     chain:       'SOL',
     tag:         'CEX Whale',
-    color:       '#F7931A',
+    color:       'rgba(247,147,26,1)',
     description: 'Binance Solana hot wallet. SOL inflow/outflow signal.',
   },
 
@@ -306,7 +306,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Satoshi Genesis',
     chain:       'BTC',
     tag:         'Smart Money',
-    color:       '#F7931A',
+    color:       'rgba(247,147,26,1)',
     description: 'Genesis block — first ever Bitcoin. ~1M BTC untouched. $65B+. The OG.',
   },
   {
@@ -314,7 +314,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'MicroStrategy',
     chain:       'BTC',
     tag:         'Smart Money',
-    color:       '#FF6B35',
+    color:       'rgba(255,107,53,1)',
     description: 'Michael Saylor thesis. 214,246 BTC ($14B+). Accumulating since 2020.',
   },
   {
@@ -322,7 +322,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Mt.Gox Trustee',
     chain:       'BTC',
     tag:         'CEX Whale',
-    color:       '#EF4444',
+    color:       'rgba(239,68,68,1)',
     description: 'Mt.Gox bankruptcy trustee. 142K BTC repayment ongoing. Outflows = SELL PRESSURE.',
   },
   {
@@ -330,7 +330,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Binance BTC Cold',
     chain:       'BTC',
     tag:         'CEX Whale',
-    color:       '#FBBF24',
+    color:       'rgba(251,191,36,1)',
     description: 'Binance Bitcoin cold wallet. $7B+ BTC. CEX inflow barometer.',
   },
   {
@@ -338,7 +338,7 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     label:       'Bitfinex BTC',
     chain:       'BTC',
     tag:         'CEX Whale',
-    color:       '#8B5CF6',
+    color:       'rgba(139,92,246,1)',
     description: 'Bitfinex cold wallet. ~168K BTC. Watch for large outflows.',
   },
 ]
