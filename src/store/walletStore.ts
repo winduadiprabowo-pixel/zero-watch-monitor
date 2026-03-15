@@ -21,6 +21,7 @@ export interface WatchedWallet {
   addedAt: number
   color:   string
   tag?:    string  // wallet category tag
+  notes?:  string  // user annotation
 }
 
 export type Plan = 'free' | 'pro'
@@ -37,6 +38,7 @@ export interface WalletStore {
   addWallet:    (w: Omit<WatchedWallet, 'id' | 'addedAt'>) => { ok: boolean; reason?: 'limit' | 'duplicate' }
   removeWallet: (id: string) => void
   updateLabel:  (id: string, label: string) => void
+  updateNotes:  (id: string, notes: string) => void
   reorderWallets: (from: number, to: number) => void
   activatePro:  (expiresAt: number | null) => void
   resetToPlanFree: () => void
@@ -88,6 +90,10 @@ export const useWalletStore = create<WalletStore>()(
 
       updateLabel: (id, label) => set(s => ({
         wallets: s.wallets.map(w => w.id === id ? { ...w, label } : w)
+      })),
+
+      updateNotes: (id, notes) => set(s => ({
+        wallets: s.wallets.map(w => w.id === id ? { ...w, notes } : w)
       })),
 
       reorderWallets: (from, to) => set(s => {
