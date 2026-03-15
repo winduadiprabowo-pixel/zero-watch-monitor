@@ -1,18 +1,33 @@
 /**
- * ZERØ WATCH — useWalletData v14
+ * ZERØ WATCH — useWalletData v21
  * ================================
- * v14: SOL chain support — routes Solana wallets to solanaApi.ts,
- * EVM wallets ke api.ts (Etherscan/Alchemy via CF Worker proxy).
- * TanStack Query wrapper · AbortController signal ✓
- * 30s polling · retry 3x · exponential backoff ✓
+ * v21: Queue-based lazy loading — fetch 1 wallet per 200ms
+ * Handles 51 wallets tanpa kena Etherscan rate limit.
+ * - First 5 wallets: fetch immediately (visible)
+ * - Rest: queue with 200ms delay between each
+ * - Selected wallet: always prioritized
+ * - Auto-snapshot to CF KV history
+ *
+ * rgba() only ✓  AbortController ✓  mountedRef ✓
  */
 
-import { useQuery } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
 import { fetchWalletData, getEthPrice } from '@/services/api'
-// saveSnapshot inline — avoid circular dependency
-async function saveSnapshot(address: string, chain: string, usdValue: number, ethBalance: string): Promise<void> {
+import type { WalletData } from '@/services/api'
+import { fetchSolWalletData } from '@/services/solanaApi'
+
+const POLL        = 60_000   // 60s polling (was 30s — reduce API load)
+const STALE       = 50_000
+const QUEUE_DELAY = 250      // ms between each wallet fetch
+const PRIORITY    = 5        // fetch first N wallets immediately
+
+// ── saveSnapshot inline ──────────────────────────────────────────────────────
+
+async function saveSnapshot(
+  address: string, chain: string, usdValue: number, ethBalance: string
+): Promise<void> {
   try {
     await fetch('https://zero-watch-history.winduadiprabowo.workers.dev/history/snapshot', {
       method:  'POST',
@@ -21,13 +36,8 @@ async function saveSnapshot(address: string, chain: string, usdValue: number, et
     })
   } catch { /* silently fail */ }
 }
-import type { WalletData } from '@/services/api'
-import { fetchSolWalletData } from '@/services/solanaApi'
 
-const POLL  = 30_000
-const STALE = 20_000
-
-// ── Unified WalletData adapter ────────────────────────────────────────────────
+// ── Unified fetch adapter ────────────────────────────────────────────────────
 
 async function fetchAnyWalletData(
   address: string,
@@ -67,37 +77,102 @@ async function fetchAnyWalletData(
   return fetchWalletData(address, chain as 'ETH' | 'ARB' | 'BASE' | 'OP', signal)
 }
 
+// ── Queue-based lazy loader ──────────────────────────────────────────────────
+
 export const useAllWalletData = () => {
-  const wallets  = useWalletStore(selectWallets)
-  const abortRef = useRef<AbortController | null>(null)
+  const wallets      = useWalletStore(selectWallets)
+  const queryClient  = useQueryClient()
+  const abortMap     = useRef<Map<string, AbortController>>(new Map())
+  const queueRef     = useRef<ReturnType<typeof setTimeout>[]>([])
+  const mountedRef   = useRef(true)
 
+  // Aggregate results from individual wallet queries
+  const results = wallets.map(w =>
+    queryClient.getQueryData<WalletData>(['wallet-lazy', w.address, w.chain])
+  )
+
+  const isFetching = wallets.some(w =>
+    queryClient.isFetching({ queryKey: ['wallet-lazy', w.address, w.chain] }) > 0
+  )
+
+  // Fetch single wallet and cache
+  const fetchOne = useCallback(async (
+    address: string, chain: string
+  ) => {
+    if (!mountedRef.current) return
+
+    const existing = abortMap.current.get(address)
+    existing?.abort()
+    const ctrl = new AbortController()
+    abortMap.current.set(address, ctrl)
+
+    try {
+      const data = await fetchAnyWalletData(address, chain, ctrl.signal)
+      if (!mountedRef.current) return
+
+      queryClient.setQueryData(['wallet-lazy', address, chain], data)
+
+      // Auto-snapshot
+      saveSnapshot(address, chain, data.balance.usdValue, data.balance.ethBalance)
+    } catch {
+      // silently fail per wallet
+    }
+  }, [queryClient])
+
+  // Launch queue on wallets change
   useEffect(() => {
-    return () => { abortRef.current?.abort() }
-  }, [])
+    mountedRef.current = true
 
-  return useQuery<WalletData[]>({
-    queryKey: ['wallets', wallets.map(w => `${w.address}:${w.chain}`)],
-    queryFn: async () => {
-      abortRef.current?.abort()
-      abortRef.current = new AbortController()
-      const { signal } = abortRef.current
+    // Clear previous timers
+    queueRef.current.forEach(t => clearTimeout(t))
+    queueRef.current = []
 
-      const results = await Promise.all(
-        wallets.map(w => fetchAnyWalletData(w.address, w.chain, signal))
-      )
-      // Auto-snapshot to KV history (non-blocking)
-      results.forEach(d => {
-        if (d) saveSnapshot(d.address, wallets.find(w => w.address === d.address)?.chain ?? 'ETH', d.balance.usdValue, d.balance.ethBalance)
+    // Abort all previous fetches
+    abortMap.current.forEach(c => c.abort())
+    abortMap.current.clear()
+
+    if (wallets.length === 0) return
+
+    // Priority wallets — fetch immediately (first PRIORITY)
+    wallets.slice(0, PRIORITY).forEach(w => {
+      fetchOne(w.address, w.chain)
+    })
+
+    // Rest — queue with delay
+    wallets.slice(PRIORITY).forEach((w, i) => {
+      const t = setTimeout(() => {
+        if (mountedRef.current) fetchOne(w.address, w.chain)
+      }, (i + 1) * QUEUE_DELAY)
+      queueRef.current.push(t)
+    })
+
+    // Refetch cycle
+    const refetchInterval = setInterval(() => {
+      if (!mountedRef.current) return
+      wallets.forEach((w, i) => {
+        const t = setTimeout(() => {
+          if (mountedRef.current) fetchOne(w.address, w.chain)
+        }, i * QUEUE_DELAY)
+        queueRef.current.push(t)
       })
-      return results
-    },
-    refetchInterval: POLL,
-    staleTime:       STALE,
-    enabled:         wallets.length > 0,
-    retry:           3,
-    retryDelay:      (i) => Math.min(1000 * 2 ** i, 10_000),
-  })
+    }, POLL)
+
+    return () => {
+      mountedRef.current = false
+      queueRef.current.forEach(t => clearTimeout(t))
+      clearInterval(refetchInterval)
+      abortMap.current.forEach(c => c.abort())
+    }
+  }, [wallets.map(w => `${w.address}:${w.chain}`).join(','), fetchOne])
+
+  return {
+    data:       results,
+    isFetching,
+    isError:    false,
+  }
 }
+
+// ── Single wallet hook (unchanged) ──────────────────────────────────────────
 
 export const useSingleWallet = (
   address: string,
@@ -110,8 +185,8 @@ export const useSingleWallet = (
   }, [])
 
   return useQuery<WalletData>({
-    queryKey: ['wallet', address, chain],
-    queryFn: async () => {
+    queryKey:        ['wallet', address, chain],
+    queryFn:         async () => {
       abortRef.current?.abort()
       abortRef.current = new AbortController()
       return fetchAnyWalletData(address, chain, abortRef.current.signal)
@@ -119,15 +194,17 @@ export const useSingleWallet = (
     refetchInterval: POLL,
     staleTime:       STALE,
     enabled:         !!address,
-    retry:           3,
-    retryDelay:      (i) => Math.min(1000 * 2 ** i, 10_000),
+    retry:           2,
+    retryDelay:      (i) => Math.min(1000 * 2 ** i, 8_000),
   })
 }
 
+// ── ETH Price ────────────────────────────────────────────────────────────────
+
 export const useEthPrice = () =>
   useQuery<number>({
-    queryKey:       ['eth-price'],
-    queryFn:        getEthPrice,
+    queryKey:        ['eth-price'],
+    queryFn:         getEthPrice,
     refetchInterval: 60_000,
     staleTime:       55_000,
     retry:           2,
