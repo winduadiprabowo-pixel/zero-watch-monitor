@@ -47,22 +47,22 @@ const WhaleAlertToggle = memo(({ alerts, compact }: Props) => {
         background:    isDenied
           ? 'rgba(239,68,68,0.05)'
           : enabled
-          ? 'rgba(0,255,148,0.08)'
+          ? 'rgba(230,161,71,0.08)'
           : 'rgba(255,255,255,0.04)',
         border:        isDenied
           ? '1px solid rgba(239,68,68,0.20)'
           : enabled
-          ? '1px solid rgba(0,255,148,0.35)'
+          ? '1px solid rgba(230,161,71,0.35)'
           : '1px solid rgba(255,255,255,0.09)',
         color:         isDenied
           ? 'rgba(252,129,129,0.65)'
           : enabled
-          ? 'rgba(0,255,148,1)'
+          ? 'rgba(230,161,71,1)'
           : 'rgba(255,255,255,0.35)',
         fontSize:      '10px',
         opacity:       isDenied ? 0.6 : 1,
         cursor:        isDenied ? 'not-allowed' : 'pointer',
-        boxShadow:     enabled ? '0 0 12px rgba(0,255,148,0.12)' : 'none',
+        boxShadow:     enabled ? '0 0 12px rgba(230,161,71,0.12)' : 'none',
         letterSpacing: '0.04em',
       }}
     >
@@ -71,8 +71,8 @@ const WhaleAlertToggle = memo(({ alerts, compact }: Props) => {
         <span
           className="w-1.5 h-1.5 rounded-full flex-shrink-0"
           style={{
-            background: 'rgba(0,255,148,1)',
-            boxShadow:  '0 0 5px rgba(0,255,148,0.8)',
+            background: 'rgba(230,161,71,1)',
+            boxShadow:  '0 0 5px rgba(230,161,71,0.8)',
             animation:  'pulse 1.8s ease-in-out infinite',
           }}
         />
