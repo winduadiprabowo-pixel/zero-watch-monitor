@@ -46,7 +46,7 @@ export interface WalletStore {
 }
 
 const nanoid   = (len = 8) => Math.random().toString(36).slice(2, 2 + len)
-const COLORS   = ['#00FF94','#00C2FF','#FF6B6B','#FFD93D','#C77DFF','#FF9F43','#48DBFB','#FF6B81']
+const COLORS   = ['rgba(230,161,71,1)','rgba(0,194,255,1)','rgba(255,107,107,1)','rgba(255,217,61,1)','rgba(199,125,255,1)','rgba(255,159,67,1)','rgba(72,219,251,1)','rgba(255,107,129,1)']
 const pickColor = (used: string[]) => COLORS.find(c => !used.includes(c)) ?? COLORS[0]
 
 export const useWalletStore = create<WalletStore>()(
