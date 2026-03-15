@@ -1,5 +1,5 @@
 /**
- * ZERØ WATCH — WalletIntelPanel v20
+ * ZERØ WATCH — WalletIntelPanel v21
  * ===================================
  * v20: Tooltip injected ke conviction label, status badges, smartScore
  * REDESIGN v17 — premium intelligence panel:
@@ -12,7 +12,7 @@
  * rgba() only ✓  React.memo + displayName ✓
  */
 
-import React, { memo, useState, useRef, useEffect, useCallback } from 'react'
+import React, { memo, useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import Tooltip, { TOOLTIPS } from '@/components/Tooltip'
 import BalanceChart from '@/components/dashboard/BalanceChart'
 import ConvictionBreakdown from '@/components/dashboard/ConvictionBreakdown'
@@ -27,11 +27,13 @@ import type { Wallet, ActivityEvent, ActionType } from '@/data/mockData'
 import type { TokenHolding } from '@/services/api'
 import type { WalletIntelligence, LeaderboardEntry, WhaleStatus } from '@/services/whaleAnalytics'
 import MarketTab from './MarketTab'
+import { usePatternRecognition } from '@/hooks/usePatternRecognition'
+import type { PatternEvent, PatternSeverity } from '@/hooks/usePatternRecognition'
 import CrossFlowPanel from './CrossFlowPanel'
 import IntelAlertFeed from './IntelAlertFeed'
 import PatternPanel from './PatternPanel'
 
-type Tab = 'INTEL' | 'SIGNALS' | 'TOKENS' | 'BOARD' | 'MARKET' | 'FLOWS' | 'ARKHAM' | 'PATTERN'
+type Tab = 'INTEL' | 'SIGNALS' | 'TOKENS' | 'BOARD' | 'MARKET' | 'FLOWS' | 'ARKHAM' | 'PATTERN' | 'RADAR'
 
 interface WalletIntelPanelProps {
   events:               ActivityEvent[]
@@ -796,6 +798,220 @@ const BoardTab = memo(({ leaderboard }: { leaderboard: import('@/services/whaleA
 })
 BoardTab.displayName = 'BoardTab'
 
+// ── RADAR Tab ─────────────────────────────────────────────────────────────────
+
+const SEVERITY_CFG: Record<PatternSeverity, { bg: string; border: string; text: string; badge: string }> = {
+  BLACK_SWAN: { bg: 'rgba(251,191,36,0.10)', border: 'rgba(251,191,36,0.35)', text: 'rgba(251,191,36,1)',    badge: 'rgba(251,191,36,0.20)' },
+  CRITICAL:   { bg: 'rgba(239,68,68,0.08)',  border: 'rgba(239,68,68,0.30)',  text: 'rgba(239,68,68,1)',     badge: 'rgba(239,68,68,0.18)'  },
+  WARNING:    { bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.20)', text: 'rgba(251,191,36,0.9)',  badge: 'rgba(251,191,36,0.14)' },
+  INFO:       { bg: 'rgba(255,255,255,0.03)',border: 'rgba(255,255,255,0.08)',text: 'rgba(255,255,255,0.5)', badge: 'rgba(255,255,255,0.08)' },
+}
+
+type RadarFilter = 'ALL' | 'CRITICAL' | 'WARNING'
+
+const RadarTab = memo(() => {
+  const { patterns, loading, error, lastScan, refetch } = usePatternRecognition()
+  const [filter, setFilter] = useState<RadarFilter>('ALL')
+
+  const filtered = useMemo(() => {
+    if (filter === 'ALL')      return patterns
+    if (filter === 'CRITICAL') return patterns.filter(p => p.severity === 'CRITICAL' || p.severity === 'BLACK_SWAN')
+    return patterns.filter(p => p.severity === 'WARNING')
+  }, [patterns, filter])
+
+  const critCount = patterns.filter(p => p.severity === 'CRITICAL' || p.severity === 'BLACK_SWAN').length
+  const warnCount = patterns.filter(p => p.severity === 'WARNING').length
+
+  const tsAgoShort = (ms: number) => {
+    const s = Math.floor((Date.now() - ms) / 1000)
+    if (s < 60)   return `${s}s ago`
+    if (s < 3600) return `${Math.floor(s / 60)}m ago`
+    return `${Math.floor(s / 3600)}h ago`
+  }
+
+  const fmtM = (n: number) => {
+    if (n >= 1e9) return `$${(n / 1e9).toFixed(1)}B`
+    if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`
+    if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`
+    return `$${n.toFixed(0)}`
+  }
+
+  const filterBtns: Array<{ id: RadarFilter; activeCol: string; activeBorder: string }> = [
+    { id: 'ALL',      activeCol: 'rgba(230,161,71,0.9)',  activeBorder: 'rgba(230,161,71,0.2)'  },
+    { id: 'CRITICAL', activeCol: 'rgba(239,68,68,1)',     activeBorder: 'rgba(239,68,68,0.35)'  },
+    { id: 'WARNING',  activeCol: 'rgba(251,191,36,0.9)',  activeBorder: 'rgba(251,191,36,0.25)' },
+  ]
+
+  return (
+    <div className="p-4 space-y-4">
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <ScanLine className="w-3.5 h-3.5" style={{ color: 'rgba(230,161,71,0.7)' }} />
+            <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              RADAR — Anomaly Detection
+            </span>
+          </div>
+          {lastScan && (
+            <div className="font-mono text-[8px] mt-0.5" style={{ color: 'rgba(255,255,255,0.15)' }}>
+              Last scan: {tsAgoShort(lastScan)}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={refetch}
+          className="font-mono text-[8px] px-2 py-1 rounded-lg transition-all active:scale-95"
+          style={{ background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.2)', color: 'rgba(230,161,71,0.7)' }}
+        >
+          SCAN
+        </button>
+      </div>
+
+      {/* Filter row */}
+      <div className="flex gap-2">
+        {filterBtns.map(({ id, activeCol, activeBorder }) => (
+          <button
+            key={id}
+            onClick={() => setFilter(id)}
+            className="flex-1 py-1.5 rounded-lg text-[9px] font-mono font-medium transition-all"
+            style={{
+              background: filter === id ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+              border:     `1px solid ${filter === id ? activeBorder : 'rgba(255,255,255,0.07)'}`,
+              color:      filter === id ? activeCol : 'rgba(255,255,255,0.3)',
+            }}
+          >
+            {id}
+            {id === 'CRITICAL' && critCount > 0 && ` (${critCount})`}
+            {id === 'WARNING'  && warnCount > 0 && ` (${warnCount})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-8 space-y-2">
+          <div className="font-mono text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            Scanning whale activity...
+          </div>
+          <div className="font-mono text-[9px]" style={{ color: 'rgba(255,255,255,0.12)' }}>
+            Wintermute · Jump · DWF · Justin Sun · FTX Estate
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && !loading && (
+        <div
+          className="rounded-xl p-3 font-mono text-[10px]"
+          style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', color: 'rgba(239,68,68,0.7)' }}
+        >
+          {error}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && !error && filtered.length === 0 && (
+        <div className="text-center py-10 space-y-2">
+          <ScanLine className="w-8 h-8 mx-auto" style={{ color: 'rgba(255,255,255,0.07)' }} />
+          <div className="font-mono text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            No anomalies detected
+          </div>
+          <div className="font-mono text-[9px]" style={{ color: 'rgba(255,255,255,0.1)' }}>
+            Monitoring 3+ MM, Justin Sun, FTX Estate<br />Auto-refresh every 60s
+          </div>
+        </div>
+      )}
+
+      {/* Anomaly cards */}
+      {!loading && filtered.map((p, i) => {
+        const cfg = SEVERITY_CFG[p.severity]
+        return (
+          <div
+            key={p.id}
+            className="rounded-2xl p-4 space-y-2.5 animate-fade-up"
+            style={{
+              background:     cfg.bg,
+              border:         `1px solid ${cfg.border}`,
+              animationDelay: `${i * 0.06}s`,
+            }}
+          >
+            {/* Title */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span style={{ fontSize: '14px' }}>{p.emoji}</span>
+                <span className="font-mono font-bold text-[10px] leading-tight" style={{ color: cfg.text }}>
+                  {p.title}
+                </span>
+              </div>
+              <span
+                className="font-mono text-[8px] px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{ background: cfg.badge, color: cfg.text, border: `1px solid ${cfg.border}` }}
+              >
+                {p.severity}
+              </span>
+            </div>
+
+            {/* Value */}
+            {p.totalUsd > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold text-[13px]" style={{ color: 'rgba(255,255,255,0.88)' }}>
+                  {fmtM(p.totalUsd)}
+                </span>
+                {p.multiplier && p.multiplier > 1 && (
+                  <span
+                    className="font-mono text-[9px] px-1.5 py-0.5 rounded"
+                    style={{ background: 'rgba(239,68,68,0.12)', color: 'rgba(239,68,68,0.9)', border: '1px solid rgba(239,68,68,0.2)' }}
+                  >
+                    {p.multiplier.toFixed(1)}× avg
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Description */}
+            <div className="font-mono text-[9px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              {p.description}
+            </div>
+
+            {/* Historical ref */}
+            {p.historicalRef && (
+              <div
+                className="font-mono text-[9px] px-2 py-1.5 rounded-lg leading-relaxed"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }}
+              >
+                📚 {p.historicalRef}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-1">
+              <span
+                className="font-mono text-[9px] px-1.5 py-0.5 rounded"
+                style={{ background: 'rgba(52,211,153,0.08)', color: 'rgba(52,211,153,0.8)', border: '1px solid rgba(52,211,153,0.15)' }}
+              >
+                {p.confidence}% confidence
+              </span>
+              <span className="font-mono text-[9px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                {tsAgoShort(p.lastSeen)}
+              </span>
+            </div>
+          </div>
+        )
+      })}
+
+      {!loading && filtered.length > 0 && (
+        <div className="font-mono text-center text-[9px] pt-2" style={{ color: 'rgba(255,255,255,0.12)' }}>
+          {filtered.length} anomal{filtered.length === 1 ? 'y' : 'ies'} · auto-refresh 60s · ZERØ WATCH
+        </div>
+      )}
+    </div>
+  )
+})
+RadarTab.displayName = 'RadarTab'
+
+
 // ── Main Panel ─────────────────────────────────────────────────────────────────
 
 const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
@@ -807,6 +1023,7 @@ const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
   { id: 'FLOWS',   label: 'FLOWS',   icon: AlertTriangle },
   { id: 'ARKHAM',  label: 'ARKHAM',  icon: Flame         },
   { id: 'PATTERN', label: 'PATTERN', icon: GitMerge      },
+  { id: 'RADAR',   label: 'RADAR',   icon: ScanLine     },
 ]
 
 const WalletIntelPanel = memo(({
@@ -956,6 +1173,10 @@ const WalletIntelPanel = memo(({
         ) : activeTab === 'PATTERN' ? (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <PatternPanel />
+          </div>
+        ) : activeTab === 'RADAR' ? (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <RadarTab />
           </div>
         ) : (
           <MarketTab />
