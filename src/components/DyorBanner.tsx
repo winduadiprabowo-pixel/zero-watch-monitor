@@ -46,7 +46,7 @@ const DyorBanner = memo(() => {
         backdropFilter: 'blur(12px)',
       }}
     >
-      <Shield style={{ width: '12px', height: '12px', color: 'rgba(0,255,148,0.5)', flexShrink: 0 }} />
+      <Shield style={{ width: '12px', height: '12px', color: 'rgba(230,161,71,0.5)', flexShrink: 0 }} />
 
       <span style={{ flex: 1, fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.28)', lineHeight: 1.5, overflow: 'hidden' }}>
         <span style={{ color: 'rgba(251,191,36,0.9)', fontWeight: 600 }}>DYOR</span>
@@ -55,15 +55,15 @@ const DyorBanner = memo(() => {
           : <> — Not financial advice · Public blockchain data ·{' '}
               Powered by{' '}
               <a href="https://etherscan.io" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'rgba(0,255,148,0.55)', textDecoration: 'none' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,148,0.9)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,148,0.55)' }}
+                style={{ color: 'rgba(230,161,71,0.55)', textDecoration: 'none' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.9)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.55)' }}
               >Etherscan</a>
               {' '}+{' '}
               <a href="https://www.alchemy.com" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'rgba(0,255,148,0.55)', textDecoration: 'none' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,148,0.9)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,148,0.55)' }}
+                style={{ color: 'rgba(230,161,71,0.55)', textDecoration: 'none' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.9)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.55)' }}
               >Alchemy</a>
               {' '}· Never connect wallet · High risk
             </>
