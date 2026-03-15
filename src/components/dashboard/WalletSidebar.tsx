@@ -16,6 +16,7 @@ import React, { memo, useMemo, useCallback } from 'react'
 import { Search, X } from 'lucide-react'
 import { Wallet, WalletTag, filterTags } from '@/data/mockData'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
+import { useCallback as _ucb } from 'react'
 
 interface WalletSidebarProps {
   wallets:          Wallet[]
@@ -83,13 +84,15 @@ Spark.displayName = 'Spark'
 
 // ── Single wallet card ────────────────────────────────────────────────────────
 const WalletCard = memo(({
-  wallet, isSelected, dot, onSelect, index
+  wallet, isSelected, dot, onSelect, index, notes, onNotesChange
 }: {
-  wallet:     Wallet
-  isSelected: boolean
-  dot:        string
-  onSelect:   (id: string) => void
-  index:      number
+  wallet:        Wallet
+  isSelected:    boolean
+  dot:           string
+  onSelect:      (id: string) => void
+  index:         number
+  notes?:        string
+  onNotesChange: (id: string, notes: string) => void
 }) => {
   const tag   = tagCfg[wallet.tag]  ?? { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.4)', border: 'rgba(255,255,255,0.1)' }
   const chain = chainCfg[wallet.chain] ?? { text: 'rgba(255,255,255,0.4)', bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)' }
@@ -223,6 +226,33 @@ const WalletCard = memo(({
           <Spark data={wallet.sparkData} positive={positive} />
         </div>
       </div>
+
+      {/* Notes row — only show when selected */}
+      {isSelected && (
+        <div className="mt-2 pl-4" onClick={e => e.stopPropagation()}>
+          <textarea
+            placeholder="Add notes… (insider, fund, thesis)"
+            value={notes ?? ''}
+            onChange={e => onNotesChange(wallet.id, e.target.value)}
+            rows={2}
+            style={{
+              width:       '100%',
+              background:  'rgba(255,255,255,0.03)',
+              border:      '1px solid rgba(255,255,255,0.08)',
+              borderRadius:'8px',
+              color:       'rgba(255,255,255,0.65)',
+              fontSize:    '9px',
+              fontFamily:  "'IBM Plex Mono', monospace",
+              padding:     '6px 8px',
+              outline:     'none',
+              resize:      'none',
+              lineHeight:  1.5,
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0,255,148,0.25)' }}
+            onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
+          />
+        </div>
+      )}
     </button>
   )
 })
@@ -235,6 +265,11 @@ const WalletSidebar = memo(({
   onSelectWallet, onFilterChange, onSearchChange, mobile,
 }: WalletSidebarProps) => {
   const storeWallets = useWalletStore(selectWallets)
+  const updateNotes  = useWalletStore(s => s.updateNotes)
+  const notesMap     = Object.fromEntries(storeWallets.map(w => [w.id, w.notes ?? '']))
+  const handleNotesChange = _ucb((id: string, notes: string) => {
+    updateNotes(id, notes)
+  }, [updateNotes])
   const colorMap = useMemo(() => {
     const m: Record<string, string> = {}
     storeWallets.forEach(w => { m[w.id] = w.color })
