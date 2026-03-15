@@ -18,10 +18,10 @@ import { fetchWalletData, getEthPrice } from '@/services/api'
 import type { WalletData } from '@/services/api'
 import { fetchSolWalletData } from '@/services/solanaApi'
 
-const POLL        = 60_000   // 60s polling (was 30s — reduce API load)
+const POLL        = 60_000
 const STALE       = 50_000
-const QUEUE_DELAY = 250      // ms between each wallet fetch
-const PRIORITY    = 5        // fetch first N wallets immediately
+const QUEUE_DELAY = 250
+const PRIORITY    = 5
 
 // ── saveSnapshot inline ──────────────────────────────────────────────────────
 
@@ -86,7 +86,6 @@ export const useAllWalletData = () => {
   const queueRef     = useRef<ReturnType<typeof setTimeout>[]>([])
   const mountedRef   = useRef(true)
 
-  // Aggregate results from individual wallet queries
   const results = wallets.map(w =>
     queryClient.getQueryData<WalletData>(['wallet-lazy', w.address, w.chain])
   )
@@ -95,7 +94,6 @@ export const useAllWalletData = () => {
     queryClient.isFetching({ queryKey: ['wallet-lazy', w.address, w.chain] }) > 0
   )
 
-  // Fetch single wallet and cache
   const fetchOne = useCallback(async (
     address: string, chain: string
   ) => {
@@ -109,36 +107,28 @@ export const useAllWalletData = () => {
     try {
       const data = await fetchAnyWalletData(address, chain, ctrl.signal)
       if (!mountedRef.current) return
-
       queryClient.setQueryData(['wallet-lazy', address, chain], data)
-
-      // Auto-snapshot
       saveSnapshot(address, chain, data.balance.usdValue, data.balance.ethBalance)
     } catch {
       // silently fail per wallet
     }
   }, [queryClient])
 
-  // Launch queue on wallets change
   useEffect(() => {
     mountedRef.current = true
 
-    // Clear previous timers
     queueRef.current.forEach(t => clearTimeout(t))
     queueRef.current = []
 
-    // Abort all previous fetches
     abortMap.current.forEach(c => c.abort())
     abortMap.current.clear()
 
     if (wallets.length === 0) return
 
-    // Priority wallets — fetch immediately (first PRIORITY)
     wallets.slice(0, PRIORITY).forEach(w => {
       fetchOne(w.address, w.chain)
     })
 
-    // Rest — queue with delay
     wallets.slice(PRIORITY).forEach((w, i) => {
       const t = setTimeout(() => {
         if (mountedRef.current) fetchOne(w.address, w.chain)
@@ -146,7 +136,6 @@ export const useAllWalletData = () => {
       queueRef.current.push(t)
     })
 
-    // Refetch cycle
     const refetchInterval = setInterval(() => {
       if (!mountedRef.current) return
       wallets.forEach((w, i) => {
@@ -172,7 +161,7 @@ export const useAllWalletData = () => {
   }
 }
 
-// ── Single wallet hook (unchanged) ──────────────────────────────────────────
+// ── Single wallet hook ───────────────────────────────────────────────────────
 
 export const useSingleWallet = (
   address: string,
@@ -204,7 +193,7 @@ export const useSingleWallet = (
 export const useEthPrice = () =>
   useQuery<number>({
     queryKey:        ['eth-price'],
-    queryFn:         getEthPrice,
+    queryFn:         () => getEthPrice(),
     refetchInterval: 60_000,
     staleTime:       55_000,
     retry:           2,
