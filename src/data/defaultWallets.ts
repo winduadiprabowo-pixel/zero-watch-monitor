@@ -9,7 +9,7 @@
 export interface DefaultWallet {
   address:     string
   label:       string
-  chain:       'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL'
+  chain:       'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL' | 'BTC'
   tag:         string
   color:       string
   description: string
@@ -298,3 +298,47 @@ export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
     description: 'Binance Solana hot wallet. SOL inflow/outflow signal.',
   },
 ]
+  // ── ₿ Bitcoin Legends ─────────────────────────────────────────────────────
+
+  {
+    address:     '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+    label:       'Satoshi Genesis',
+    chain:       'BTC',
+    tag:         'Smart Money',
+    color:       '#F7931A',
+    description: 'Genesis block — first ever Bitcoin. ~1M BTC untouched. $65B+. The OG.',
+  },
+  {
+    address:     'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    label:       'MicroStrategy',
+    chain:       'BTC',
+    tag:         'Smart Money',
+    color:       '#FF6B35',
+    description: 'Michael Saylor thesis. 214,246 BTC ($14B+). Accumulating since 2020.',
+  },
+  {
+    address:     '1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF',
+    label:       'Mt.Gox Trustee',
+    chain:       'BTC',
+    tag:         'CEX Whale',
+    color:       '#EF4444',
+    description: 'Mt.Gox bankruptcy trustee. 142K BTC repayment ongoing. Outflows = SELL PRESSURE.',
+  },
+  {
+    address:     '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo',
+    label:       'Binance BTC Cold',
+    chain:       'BTC',
+    tag:         'CEX Whale',
+    color:       '#FBBF24',
+    description: 'Binance Bitcoin cold wallet. $7B+ BTC. CEX inflow barometer.',
+  },
+  {
+    address:     '3D2oetdNuZUqQHPJmcMDDHYoqkyNVsFk9r',
+    label:       'Bitfinex BTC',
+    chain:       'BTC',
+    tag:         'CEX Whale',
+    color:       '#8B5CF6',
+    description: 'Bitfinex cold wallet. ~168K BTC. Watch for large outflows.',
+  },
+]
+
