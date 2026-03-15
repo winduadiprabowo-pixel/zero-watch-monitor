@@ -20,7 +20,7 @@ import { useWalletHistory } from '@/hooks/useWalletHistory'
 import {
   Brain, Copy, BarChart2, Trophy,
   Zap, Clock, Activity, ArrowUpRight, AlertTriangle,
-  ArrowDownLeft, Flame, GitMerge, AlertTriangle,
+  ArrowDownLeft, Flame, GitMerge,
   Globe, ExternalLink, LucideIcon,
 } from 'lucide-react'
 import type { Wallet, ActivityEvent, ActionType } from '@/data/mockData'
@@ -108,7 +108,7 @@ const STATUS_CFG: Record<WhaleStatus, {
 
 const actionColors: Record<ActionType, { bg: string; text: string }> = {
   SWAP:     { bg: 'rgba(59,130,246,0.15)',  text: 'rgba(147,197,253,1)' },
-  DEPOSIT:  { bg: 'rgba(0,255,148,0.12)',   text: 'rgba(0,255,148,0.9)' },
+  DEPOSIT:  { bg: 'rgba(230,161,71,0.12)',   text: 'rgba(230,161,71,0.9)' },
   TRANSFER: { bg: 'rgba(251,191,36,0.12)',  text: 'rgba(251,191,36,1)'  },
   BORROW:   { bg: 'rgba(167,139,250,0.12)', text: 'rgba(167,139,250,1)' },
   UNKNOWN:  { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.35)' },
@@ -429,7 +429,7 @@ const IntelTab = memo(({ intel, wallet, clusters }: {
             <span className="font-mono text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{r.label}</span>
             <span
               className="font-mono text-[11px] font-semibold"
-              style={{ color: r.accent ? 'rgba(0,255,148,0.9)' : 'rgba(255,255,255,0.85)' }}
+              style={{ color: r.accent ? 'rgba(230,161,71,0.9)' : 'rgba(255,255,255,0.85)' }}
             >
               {r.value}
             </span>
@@ -620,7 +620,7 @@ const TokensTab = memo(({ wallet, tokens }: { wallet: Wallet | null; tokens: Tok
         {totalUsd > 0 && (
           <div className="text-right">
             <div className="font-mono text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Total</div>
-            <div className="font-mono font-bold text-[14px]" style={{ color: 'rgba(0,255,148,0.9)' }}>
+            <div className="font-mono font-bold text-[14px]" style={{ color: 'rgba(230,161,71,0.9)' }}>
               {fmtUsd(totalUsd)}
             </div>
           </div>
@@ -645,10 +645,10 @@ const TokensTab = memo(({ wallet, tokens }: { wallet: Wallet | null; tokens: Tok
                   <div
                     className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 font-mono font-bold"
                     style={{
-                      background: 'rgba(0,255,148,0.08)',
-                      border:     '1px solid rgba(0,255,148,0.15)',
+                      background: 'rgba(230,161,71,0.08)',
+                      border:     '1px solid rgba(230,161,71,0.15)',
                       fontSize:   '8px',
-                      color:      'rgba(0,255,148,0.8)',
+                      color:      'rgba(230,161,71,0.8)',
                     }}
                   >
                     {t.symbol.slice(0, 3)}
@@ -667,7 +667,7 @@ const TokensTab = memo(({ wallet, tokens }: { wallet: Wallet | null; tokens: Tok
                     {t.balance}
                   </div>
                   {t.usdValue > 0 && (
-                    <div className="font-mono text-[10px]" style={{ color: 'rgba(0,255,148,0.65)' }}>
+                    <div className="font-mono text-[10px]" style={{ color: 'rgba(230,161,71,0.65)' }}>
                       {fmtUsd(t.usdValue)}
                     </div>
                   )}
@@ -677,7 +677,7 @@ const TokensTab = memo(({ wallet, tokens }: { wallet: Wallet | null; tokens: Tok
                 <div className="rounded-full overflow-hidden" style={{ height: '3px', background: 'rgba(255,255,255,0.06)' }}>
                   <div
                     className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${usdPct}%`, background: 'rgba(0,255,148,0.4)' }}
+                    style={{ width: `${usdPct}%`, background: 'rgba(230,161,71,0.4)' }}
                   />
                 </div>
               )}
@@ -760,7 +760,7 @@ const BoardTab = memo(({ leaderboard }: { leaderboard: import('@/services/whaleA
                     </span>
                   </div>
                   <Tooltip content={TOOLTIPS.smartScore} position="left">
-                    <span className="font-mono font-bold tabular-nums cursor-help" style={{ fontSize: '14px', color: 'rgba(0,255,148,0.9)', borderBottom: '1px dashed rgba(0,255,148,0.3)' }}>
+                    <span className="font-mono font-bold tabular-nums cursor-help" style={{ fontSize: '14px', color: 'rgba(230,161,71,0.9)', borderBottom: '1px dashed rgba(230,161,71,0.3)' }}>
                       {e.smartScore}
                     </span>
                   </Tooltip>
@@ -779,7 +779,7 @@ const BoardTab = memo(({ leaderboard }: { leaderboard: import('@/services/whaleA
                   className="h-full rounded-full transition-all duration-700"
                   style={{
                     width:           `${e.smartScore}%`,
-                    background:      'rgba(0,255,148,0.45)',
+                    background:      'rgba(230,161,71,0.45)',
                     transitionDelay: `${i * 0.08}s`,
                   }}
                 />
@@ -892,8 +892,8 @@ const WalletIntelPanel = memo(({
             onClick={handleTab(tab.id)}
             className="flex-1 flex items-center justify-center gap-1.5 py-3 relative min-w-0 transition-colors"
             style={{
-              color:      activeTab === tab.id ? 'rgba(0,255,148,1)' : 'rgba(255,255,255,0.28)',
-              background: activeTab === tab.id ? 'rgba(0,255,148,0.05)' : 'transparent',
+              color:      activeTab === tab.id ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.28)',
+              background: activeTab === tab.id ? 'rgba(230,161,71,0.05)' : 'transparent',
               fontSize:   '9px',
               fontFamily: 'IBM Plex Mono, monospace',
               fontWeight: activeTab === tab.id ? 600 : 400,
@@ -904,7 +904,7 @@ const WalletIntelPanel = memo(({
             <span className="truncate">{tab.label}</span>
             {/* Indicator dots */}
             {tab.id === 'SIGNALS' && hasSignals  && (
-              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0,255,148,1)' }} />
+              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(230,161,71,1)' }} />
             )}
             {tab.id === 'INTEL'   && hasBigMoves && (
               <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(251,191,36,1)' }} />
@@ -916,7 +916,7 @@ const WalletIntelPanel = memo(({
             {activeTab === tab.id && (
               <span
                 className="absolute bottom-0 left-2 right-2 h-px"
-                style={{ background: 'rgba(0,255,148,0.7)' }}
+                style={{ background: 'rgba(230,161,71,0.7)' }}
               />
             )}
           </button>
