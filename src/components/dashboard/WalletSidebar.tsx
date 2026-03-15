@@ -378,6 +378,8 @@ const WalletSidebar = memo(({
             dot={colorMap[w.id] ?? '#00FF94'}
             onSelect={onSelectWallet}
             index={i}
+            notes={notesMap[w.id]}
+            onNotesChange={handleNotesChange}
           />
         ))}
       </div>
