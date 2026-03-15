@@ -17,6 +17,7 @@ import { useWalletStore, selectWallets } from '@/store/walletStore'
 import { fetchWalletData, getEthPrice } from '@/services/api'
 import type { WalletData } from '@/services/api'
 import { fetchSolWalletData } from '@/services/solanaApi'
+import { fetchBtcWalletData } from '@/services/bitcoinApi'
 
 const POLL        = 60_000   // 60s polling (was 30s — reduce API load)
 const STALE       = 50_000
@@ -52,6 +53,31 @@ async function fetchAnyWalletData(
   chain:   string,
   signal:  AbortSignal
 ): Promise<WalletData> {
+  if (chain === 'BTC') {
+    const btc = await fetchBtcWalletData(address, signal)
+    return {
+      address:      btc.address,
+      balance: {
+        address:    btc.address,
+        ethBalance: btc.balance.btcBalance,
+        usdValue:   btc.balance.usdValue,
+        tokens:     [],
+      },
+      transactions: btc.transactions.map(tx => ({
+        hash:         tx.txid,
+        from:         tx.type === 'OUT' ? address : 'external',
+        to:           tx.type === 'IN'  ? address : 'external',
+        value:        tx.valueBtc.toFixed(8),
+        timeStamp:    String(Math.floor(tx.blockTime / 1000)),
+        isError:      '0',
+        functionName: tx.type,
+        gasUsed:      String(tx.fee),
+        type:         'TRANSFER' as const,
+      })),
+      lastUpdated: btc.lastUpdated,
+    }
+  }
+
   if (chain === 'SOL') {
     const sol = await fetchSolWalletData(address, signal)
     return {
