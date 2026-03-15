@@ -1,11 +1,13 @@
 /**
- * ZERØ WATCH — MobileBottomNav v14
+ * ZERØ WATCH — MobileBottomNav v17
  * ==================================
- * 2026 redesign:
- * - Pill container: semua tab dalam rounded container
- * - Active state = background card sendiri (bukan underline)
- * - Active terasa "ditekan masuk" bukan "digarisbawahi"
- * - Intel tab pulse dot when inactive
+ * REDESIGN TOTAL:
+ * - Safe area inset bottom proper (iPhone notch support)
+ * - Active state lebih kontras & jelas
+ * - Haptic-like active scale animation
+ * - Pulse dot Intel tab
+ * - Touch target minimal 44px (Apple HIG)
+ *
  * rgba() only ✓  React.memo + displayName ✓
  */
 
@@ -17,15 +19,21 @@ type MobileTab = 'wallets' | 'intel' | 'stats'
 interface MobileBottomNavProps {
   activeTab:   MobileTab
   onTabChange: (tab: MobileTab) => void
+  hasAlert?:   boolean  // pulse dot on Intel
 }
 
-const TABS: { id: MobileTab; label: string; icon: typeof Wallet; hasDot?: boolean }[] = [
-  { id: 'wallets', label: 'Wallets', icon: Wallet              },
-  { id: 'intel',   label: 'Intel',   icon: Brain,   hasDot: true },
-  { id: 'stats',   label: 'Stats',   icon: BarChart3            },
+const TABS: {
+  id:     MobileTab
+  label:  string
+  Icon:   typeof Wallet
+  hasDot: boolean
+}[] = [
+  { id: 'wallets', label: 'Wallets', Icon: Wallet,  hasDot: false },
+  { id: 'intel',   label: 'Intel',   Icon: Brain,   hasDot: true  },
+  { id: 'stats',   label: 'Stats',   Icon: BarChart3, hasDot: false },
 ]
 
-const MobileBottomNav = memo(({ activeTab, onTabChange }: MobileBottomNavProps) => {
+const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: MobileBottomNavProps) => {
   const handleTab = useCallback(
     (id: MobileTab) => () => onTabChange(id),
     [onTabChange]
@@ -33,69 +41,109 @@ const MobileBottomNav = memo(({ activeTab, onTabChange }: MobileBottomNavProps) 
 
   return (
     <nav
-      className="flex-shrink-0"
       style={{
-        background:     'rgba(4,4,10,0.96)',
-        borderTop:      '1px solid rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(20px)',
-        padding:        '8px 12px 10px',
+        background:          'rgba(4,4,10,0.97)',
+        borderTop:           '1px solid rgba(255,255,255,0.07)',
+        backdropFilter:      'blur(24px)',
+        WebkitBackdropFilter:'blur(24px)',
+        paddingLeft:         '12px',
+        paddingRight:        '12px',
+        paddingTop:          '8px',
+        paddingBottom:       'max(10px, env(safe-area-inset-bottom, 10px))',
       }}
     >
-      {/* ── Pill container ── */}
+      {/* Pill container */}
       <div
-        className="flex rounded-2xl p-1 gap-1"
         style={{
-          background: 'rgba(255,255,255,0.04)',
-          border:     '1px solid rgba(255,255,255,0.06)',
+          display:       'flex',
+          borderRadius:  '18px',
+          padding:       '4px',
+          gap:           '4px',
+          background:    'rgba(255,255,255,0.04)',
+          border:        '1px solid rgba(255,255,255,0.07)',
         }}
       >
         {TABS.map(tab => {
           const isActive = activeTab === tab.id
+          const showDot  = tab.hasDot && hasAlert && !isActive
 
           return (
             <button
               key={tab.id}
               onClick={handleTab(tab.id)}
-              className="flex-1 flex flex-col items-center gap-1 py-2 relative transition-all active:scale-95"
               style={{
-                borderRadius: '14px',
-                background:   isActive ? 'rgba(0,255,148,0.10)' : 'transparent',
-                border:       isActive ? '1px solid rgba(0,255,148,0.22)' : '1px solid transparent',
-                boxShadow:    isActive ? '0 0 16px rgba(0,255,148,0.08) inset' : 'none',
-                color:        isActive ? 'rgba(0,255,148,1)' : 'rgba(255,255,255,0.28)',
-                transition:   'all 0.18s ease',
+                flex:           1,
+                display:        'flex',
+                flexDirection:  'column',
+                alignItems:     'center',
+                justifyContent: 'center',
+                gap:            '4px',
+                minHeight:      '44px',
+                paddingTop:     '8px',
+                paddingBottom:  '8px',
+                borderRadius:   '14px',
+                border:         `1px solid ${isActive ? 'rgba(0,255,148,0.25)' : 'transparent'}`,
+                background:     isActive
+                  ? 'linear-gradient(135deg, rgba(0,255,148,0.12) 0%, rgba(0,255,148,0.06) 100%)'
+                  : 'transparent',
+                boxShadow:      isActive ? '0 0 16px rgba(0,255,148,0.08) inset' : 'none',
+                color:          isActive ? 'rgba(0,255,148,1)' : 'rgba(255,255,255,0.30)',
+                transition:     'all 0.18s cubic-bezier(0.22,1,0.36,1)',
+                position:       'relative',
+                cursor:         'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                userSelect:     'none',
+              }}
+              onTouchStart={e => {
+                e.currentTarget.style.transform = 'scale(0.94)'
+              }}
+              onTouchEnd={e => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              onMouseDown={e => {
+                e.currentTarget.style.transform = 'scale(0.94)'
+              }}
+              onMouseUp={e => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'scale(1)'
               }}
             >
-              {/* Pulse dot on Intel when inactive */}
-              {tab.hasDot && !isActive && (
+              {/* Pulse dot */}
+              {showDot && (
                 <span
-                  className="absolute animate-pulse"
                   style={{
-                    top:          '5px',
-                    right:        'calc(50% - 14px)',
-                    width:        '5px',
-                    height:       '5px',
+                    position:     'absolute',
+                    top:          '6px',
+                    right:        'calc(50% - 16px)',
+                    width:        '6px',
+                    height:       '6px',
                     borderRadius: '50%',
-                    background:   'rgba(0,255,148,0.9)',
-                    boxShadow:    '0 0 4px rgba(0,255,148,0.7)',
+                    background:   'rgba(0,255,148,1)',
+                    boxShadow:    '0 0 6px rgba(0,255,148,0.8)',
+                    animation:    'pulse-glow 2s ease-in-out infinite',
                   }}
                 />
               )}
 
-              <tab.icon
-                className="w-4 h-4"
+              <tab.Icon
                 style={{
-                  filter: isActive ? 'drop-shadow(0 0 5px rgba(0,255,148,0.6))' : 'none',
+                  width:  '18px',
+                  height: '18px',
+                  filter: isActive ? 'drop-shadow(0 0 6px rgba(0,255,148,0.6))' : 'none',
+                  transition: 'filter 0.18s ease',
                 }}
               />
 
               <span
-                className="font-mono"
                 style={{
+                  fontFamily:    "'IBM Plex Mono', monospace",
                   fontSize:      '9px',
                   letterSpacing: '0.10em',
-                  textTransform: 'uppercase',
+                  textTransform: 'uppercase' as const,
                   fontWeight:    isActive ? 600 : 400,
+                  lineHeight:    1,
                 }}
               >
                 {tab.label}
