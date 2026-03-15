@@ -1,7 +1,8 @@
 /**
- * ZERØ WATCH — WalletIntelPanel v17
+ * ZERØ WATCH — WalletIntelPanel v20
  * ===================================
- * REDESIGN — premium intelligence panel:
+ * v20: Tooltip injected ke conviction label, status badges, smartScore
+ * REDESIGN v17 — premium intelligence panel:
  * - Conviction gauge BESAR & mencolok
  * - Whale status card dengan gradient background sesuai status
  * - Big moves: bold alert card, bukan list kecil
@@ -12,6 +13,7 @@
  */
 
 import React, { memo, useState, useRef, useEffect, useCallback } from 'react'
+import Tooltip, { TOOLTIPS } from '@/components/Tooltip'
 import {
   Brain, Copy, BarChart2, Trophy,
   Zap, Clock, Activity, ArrowUpRight,
@@ -115,9 +117,11 @@ const ConvictionGauge = memo(({ score, status }: { score: number; status: WhaleS
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[9px] tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          Conviction
-        </span>
+        <Tooltip content={TOOLTIPS.conviction} position="top">
+          <span className="font-mono text-[9px] tracking-widest uppercase cursor-help" style={{ color: 'rgba(255,255,255,0.3)', borderBottom: '1px dashed rgba(255,255,255,0.15)' }}>
+            Conviction
+          </span>
+        </Tooltip>
         <span
           className="font-mono font-bold tabular-nums"
           style={{ fontSize: '20px', color: isDormant ? 'rgba(255,255,255,0.25)' : cfg.text }}
@@ -213,12 +217,22 @@ const IntelTab = memo(({ intel, wallet, clusters }: {
                 animation:  whaleScore.status !== 'DORMANT' ? 'pulse-glow 2s ease-in-out infinite' : 'none',
               }}
             />
-            <span
-              className="font-mono font-bold"
-              style={{ fontSize: '10px', letterSpacing: '0.10em', color: cfg.text }}
+            <Tooltip
+              content={
+                whaleScore.status === 'ACCUMULATING' ? TOOLTIPS.accumulating :
+                whaleScore.status === 'DISTRIBUTING' ? TOOLTIPS.distributing :
+                whaleScore.status === 'HUNTING'      ? TOOLTIPS.hunting :
+                TOOLTIPS.dormant
+              }
+              position="bottom"
             >
-              {cfg.label}
-            </span>
+              <span
+                className="font-mono font-bold cursor-help"
+                style={{ fontSize: '10px', letterSpacing: '0.10em', color: cfg.text, borderBottom: `1px dashed ${cfg.text.replace(',1)', ',0.35)')}` }}
+              >
+                {cfg.label}
+              </span>
+            </Tooltip>
           </div>
 
           <Brain className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.2)' }} />
@@ -728,9 +742,11 @@ const BoardTab = memo(({ leaderboard }: { leaderboard: import('@/services/whaleA
                       {e.status.slice(0, 4)}
                     </span>
                   </div>
-                  <span className="font-mono font-bold tabular-nums" style={{ fontSize: '14px', color: 'rgba(0,255,148,0.9)' }}>
-                    {e.smartScore}
-                  </span>
+                  <Tooltip content={TOOLTIPS.smartScore} position="left">
+                    <span className="font-mono font-bold tabular-nums cursor-help" style={{ fontSize: '14px', color: 'rgba(0,255,148,0.9)', borderBottom: '1px dashed rgba(0,255,148,0.3)' }}>
+                      {e.smartScore}
+                    </span>
+                  </Tooltip>
                 </div>
               </div>
               <div className="flex items-center justify-between mb-2 pl-[26px]">
