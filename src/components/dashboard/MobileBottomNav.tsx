@@ -82,12 +82,12 @@ const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: Mobi
                 paddingTop:     '8px',
                 paddingBottom:  '8px',
                 borderRadius:   '14px',
-                border:         `1px solid ${isActive ? 'rgba(0,255,148,0.25)' : 'transparent'}`,
+                border:         `1px solid ${isActive ? 'rgba(230,161,71,0.25)' : 'transparent'}`,
                 background:     isActive
-                  ? 'linear-gradient(135deg, rgba(0,255,148,0.12) 0%, rgba(0,255,148,0.06) 100%)'
+                  ? 'linear-gradient(135deg, rgba(230,161,71,0.12) 0%, rgba(230,161,71,0.06) 100%)'
                   : 'transparent',
-                boxShadow:      isActive ? '0 0 16px rgba(0,255,148,0.08) inset' : 'none',
-                color:          isActive ? 'rgba(0,255,148,1)' : 'rgba(255,255,255,0.30)',
+                boxShadow:      isActive ? '0 0 16px rgba(230,161,71,0.08) inset' : 'none',
+                color:          isActive ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.30)',
                 transition:     'all 0.18s cubic-bezier(0.22,1,0.36,1)',
                 position:       'relative',
                 cursor:         'pointer',
@@ -120,8 +120,8 @@ const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: Mobi
                     width:        '6px',
                     height:       '6px',
                     borderRadius: '50%',
-                    background:   'rgba(0,255,148,1)',
-                    boxShadow:    '0 0 6px rgba(0,255,148,0.8)',
+                    background:   'rgba(230,161,71,1)',
+                    boxShadow:    '0 0 6px rgba(230,161,71,0.8)',
                     animation:    'pulse-glow 2s ease-in-out infinite',
                   }}
                 />
@@ -131,7 +131,7 @@ const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: Mobi
                 style={{
                   width:  '18px',
                   height: '18px',
-                  filter: isActive ? 'drop-shadow(0 0 6px rgba(0,255,148,0.6))' : 'none',
+                  filter: isActive ? 'drop-shadow(0 0 6px rgba(230,161,71,0.6))' : 'none',
                   transition: 'filter 0.18s ease',
                 }}
               />
