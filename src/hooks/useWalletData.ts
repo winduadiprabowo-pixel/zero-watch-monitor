@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
 import { fetchWalletData, getEthPrice } from '@/services/api'
+import { saveSnapshot } from '@/hooks/useWalletHistory'
 import type { WalletData } from '@/services/api'
 import { fetchSolWalletData } from '@/services/solanaApi'
 
@@ -72,9 +73,14 @@ export const useAllWalletData = () => {
       abortRef.current = new AbortController()
       const { signal } = abortRef.current
 
-      return Promise.all(
+      const results = await Promise.all(
         wallets.map(w => fetchAnyWalletData(w.address, w.chain, signal))
       )
+      // Auto-snapshot to KV history (non-blocking)
+      results.forEach(d => {
+        if (d) saveSnapshot(d.address, wallets.find(w => w.address === d.address)?.chain ?? 'ETH', d.balance.usdValue, d.balance.ethBalance)
+      })
+      return results
     },
     refetchInterval: POLL,
     staleTime:       STALE,
