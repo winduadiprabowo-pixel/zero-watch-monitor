@@ -1,13 +1,13 @@
 /**
- * ZERØ WATCH — Service Worker v21
+ * ZERØ WATCH — Service Worker v22
  * ================================
- * Cache: zero-watch-v31
+ * Cache: zero-watch-v32
  * - Static assets cached on install
  * - Network-first for API calls
  * - Cache-first for static assets
  */
 
-const CACHE_NAME = 'zero-watch-v31'
+const CACHE_NAME = 'zero-watch-v32'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
