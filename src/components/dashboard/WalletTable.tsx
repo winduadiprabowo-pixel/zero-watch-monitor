@@ -127,7 +127,7 @@ const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index, isLoading 
   const hasBig     = (intel?.bigMoves?.length ?? 0) > 0
   const bigVal     = intel?.bigMoves?.[0]?.valueUsd ?? 0
   const conviction = intel?.whaleScore?.conviction ?? 0
-  const chainColor = CHAIN_COLOR[wallet.chain] ?? 'rgba(255,255,255,0.4)'\
+  const chainColor = CHAIN_COLOR[wallet.chain] ?? 'rgba(255,255,255,0.4)'
 
   // Is balance zero/empty AND not loading?
   const isEmpty = !isLoading && (
