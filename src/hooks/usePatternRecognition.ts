@@ -25,7 +25,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { ENTITY_LABELS } from './useCrossWalletFlow'
+import { ENTITY_LABELS } from '@/data/entityLabels'
 
 const PROXY      = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 const REFRESH_MS = 180_000  // 3 menit — pattern scan lebih jarang
