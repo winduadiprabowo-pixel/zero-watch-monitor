@@ -1,7 +1,8 @@
 /**
- * ZERØ WATCH — Index v23
+ * ZERØ WATCH — Index v24
  * ========================
- * v17 FULL RESPONSIVE:
+ * v24: loadingIds → WalletTable shimmer on unfetched balances (not 0 ETH)
+ *      Pass loadingIds set = wallets without apiData yet
  * - Desktop: 3-panel split (sidebar 272px | main flex | intel 340px)
  * - Tablet (768-1024px): 2-panel (sidebar | main) + intel bottom sheet
  * - Mobile (<768px): tabs (wallets | intel | stats) + bottom nav
@@ -453,6 +454,15 @@ const Index = () => {
     return m
   }, [storeWallets])
 
+  // Wallets that haven't received data yet → show shimmer instead of "0 ETH"
+  const loadingIds = useMemo<Set<string>>(() => {
+    const s = new Set<string>()
+    storeWallets.forEach((w, i) => {
+      if (!apiDataArr?.[i]) s.add(w.id)
+    })
+    return s
+  }, [storeWallets, apiDataArr])
+
   const tgAlert      = useTelegramAlert()
   const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
   const { config: priceAlertCfg, setConfig: setPriceAlertCfg } = usePriceAlert(
@@ -595,6 +605,7 @@ const Index = () => {
               <WalletTable
                 wallets={filteredWallets} selectedWalletId={selectedWalletId}
                 onSelectWallet={handleSelectWallet} compact walletIntelMap={walletIntelMap}
+                loadingIds={loadingIds}
               />
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '8px' }}>
                 <ActivityFeed
@@ -654,6 +665,7 @@ const Index = () => {
             <WalletTable
               wallets={filteredWallets} selectedWalletId={selectedWalletId}
               onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
+              loadingIds={loadingIds}
             />
           </div>
         </div>
@@ -719,6 +731,7 @@ const Index = () => {
           <WalletTable
             wallets={filteredWallets} selectedWalletId={selectedWalletId}
             onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
+            loadingIds={loadingIds}
           />
         </div>
 
