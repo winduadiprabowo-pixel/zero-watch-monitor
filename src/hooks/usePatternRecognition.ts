@@ -436,6 +436,21 @@ export function usePatternRecognition() {
   // ── 6. Satoshi-era BTC dormant wallet detection ──────────────────────────
   // Separate scan — Blockstream API (free, no key)
 
+  // ── injectAnomaly MUST be declared before scanSatoshiBtc ────────────────
+  const injectAnomaly = useCallback((event: PatternEvent) => {
+    setPatterns(prev => {
+      if (prev.some(p => p.id === event.id)) return prev
+      return [event, ...prev].sort((a, b) => {
+        const order: Record<PatternSeverity, number> = {
+          BLACK_SWAN: 0, CRITICAL: 1, WARNING: 2, INFO: 3,
+        }
+        if (order[a.severity] !== order[b.severity])
+          return order[a.severity] - order[b.severity]
+        return b.lastSeen - a.lastSeen
+      })
+    })
+  }, [])
+
   const scanSatoshiBtc = useCallback(async () => {
     for (const wallet of SATOSHI_BTC_WALLETS) {
       try {
@@ -486,20 +501,6 @@ export function usePatternRecognition() {
     const btcInterval = setInterval(scanSatoshiBtc, 10 * 60_000)
     return () => clearInterval(btcInterval)
   }, [scanSatoshiBtc])
-  const injectAnomaly = useCallback((event: PatternEvent) => {
-    setPatterns(prev => {
-      if (prev.some(p => p.id === event.id)) return prev
-      return [event, ...prev].sort((a, b) => {
-        const order: Record<PatternSeverity, number> = {
-          BLACK_SWAN: 0, CRITICAL: 1, WARNING: 2, INFO: 3,
-        }
-        if (order[a.severity] !== order[b.severity])
-          return order[a.severity] - order[b.severity]
-        return b.lastSeen - a.lastSeen
-      })
-    })
-  }, [])
-
   const criticalPatterns  = useMemo(() => patterns.filter(p => p.severity === 'CRITICAL' || p.severity === 'BLACK_SWAN'), [patterns])
   const warningPatterns   = useMemo(() => patterns.filter(p => p.severity === 'WARNING'), [patterns])
   const blackSwanPatterns = useMemo(() => patterns.filter(p => p.severity === 'BLACK_SWAN'), [patterns])
