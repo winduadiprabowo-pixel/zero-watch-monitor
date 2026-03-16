@@ -404,18 +404,26 @@ const Index = () => {
     return isNaN(n) ? 0 : n
   }, [])
 
-  const filteredWallets = useMemo(() =>
-    allWallets
-      .filter(w => {
-        const matchFilter = activeFilter === 'ALL' || w.tag === activeFilter
-        const matchSearch = !searchQuery
-          || w.label.toLowerCase().includes(searchQuery.toLowerCase())
-          || w.address.toLowerCase().includes(searchQuery.toLowerCase())
-        return matchFilter && matchSearch
-      })
-      .sort((a, b) => parseBalanceNum(b.balance) - parseBalanceNum(a.balance)),
-    [allWallets, activeFilter, searchQuery, parseBalanceNum]
+  // Hitung berapa wallet yang udah loaded (non-zero atau punya lastMove)
+  const loadedCount = useMemo(
+    () => allWallets.filter(w => parseBalanceNum(w.balance) > 0 || w.lastMove !== '—').length,
+    [allWallets, parseBalanceNum]
   )
+  // Lock: hanya sort kalau udah 80%+ loaded — hindari loncat-loncat
+  const sortReady = loadedCount >= Math.floor(storeWallets.length * 0.8)
+
+  const filteredWallets = useMemo(() => {
+    const filtered = allWallets.filter(w => {
+      const matchFilter = activeFilter === 'ALL' || w.tag === activeFilter
+      const matchSearch = !searchQuery
+        || w.label.toLowerCase().includes(searchQuery.toLowerCase())
+        || w.address.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchFilter && matchSearch
+    })
+    // Kalau belum 80% loaded, jangan sort — biarkan urutan default
+    if (!sortReady) return filtered
+    return [...filtered].sort((a, b) => parseBalanceNum(b.balance) - parseBalanceNum(a.balance))
+  }, [allWallets, activeFilter, searchQuery, parseBalanceNum, sortReady])
 
   const walletIntelMap = useMemo<Record<string, WalletIntelligence>>(() => {
     const map: Record<string, WalletIntelligence> = {}
