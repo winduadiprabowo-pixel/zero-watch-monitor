@@ -33,6 +33,7 @@ export interface WatchedWallet {
   color:   string
   tag?:    string  // wallet category tag
   notes?:  string  // user annotation
+  entity?: string  // group key for entity-row table
 }
 
 export type Plan = 'free' | 'pro'
@@ -139,6 +140,7 @@ export const useWalletStore = create<WalletStore>()(
           label:   dw.label,
           chain:   dw.chain as Chain,
           tag:     dw.tag,
+          entity:  (dw as import('@/data/defaultWallets').DefaultWallet).entity,
           addedAt: Date.now() - i * 1000,
           color:   dw.color,
         }))
