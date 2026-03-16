@@ -393,15 +393,28 @@ const Index = () => {
     () => storeWallets.flatMap((w, i) => toUiEvents(w, apiDataArr?.[i])),
     [storeWallets, apiDataArr]
   )
+  // Parse balance string → number for sorting
+  const parseBalanceNum = useCallback((balance: string): number => {
+    if (!balance) return 0
+    const s = balance.replace(/[$,]/g, '')
+    if (s.includes('B')) return parseFloat(s) * 1_000_000_000
+    if (s.includes('M')) return parseFloat(s) * 1_000_000
+    if (s.includes('K')) return parseFloat(s) * 1_000
+    const n = parseFloat(s)
+    return isNaN(n) ? 0 : n
+  }, [])
+
   const filteredWallets = useMemo(() =>
-    allWallets.filter(w => {
-      const matchFilter = activeFilter === 'ALL' || w.tag === activeFilter
-      const matchSearch = !searchQuery
-        || w.label.toLowerCase().includes(searchQuery.toLowerCase())
-        || w.address.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchFilter && matchSearch
-    }),
-    [allWallets, activeFilter, searchQuery]
+    allWallets
+      .filter(w => {
+        const matchFilter = activeFilter === 'ALL' || w.tag === activeFilter
+        const matchSearch = !searchQuery
+          || w.label.toLowerCase().includes(searchQuery.toLowerCase())
+          || w.address.toLowerCase().includes(searchQuery.toLowerCase())
+        return matchFilter && matchSearch
+      })
+      .sort((a, b) => parseBalanceNum(b.balance) - parseBalanceNum(a.balance)),
+    [allWallets, activeFilter, searchQuery, parseBalanceNum]
   )
 
   const walletIntelMap = useMemo<Record<string, WalletIntelligence>>(() => {
