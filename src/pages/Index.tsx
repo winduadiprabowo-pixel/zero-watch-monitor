@@ -1,8 +1,9 @@
 /**
- * ZERØ WATCH — Index v24
+ * ZERØ WATCH — Index v25
  * ========================
- * v24: loadingIds → WalletTable shimmer on unfetched balances (not 0 ETH)
- *      Pass loadingIds set = wallets without apiData yet
+ * v25: WhaleTicker — live scrolling alert banner (top of dashboard)
+ *      Entity-aware activity sort — most active first, pinned BLACK SWAN
+ *      loadingIds shimmer fix carried from v24
  * - Desktop: 3-panel split (sidebar 272px | main flex | intel 340px)
  * - Tablet (768-1024px): 2-panel (sidebar | main) + intel bottom sheet
  * - Mobile (<768px): tabs (wallets | intel | stats) + bottom nav
@@ -22,6 +23,7 @@ import WalletTable                 from '@/components/dashboard/WalletTable'
 import ActivityFeed                from '@/components/dashboard/ActivityFeed'
 import WalletIntelPanel            from '@/components/dashboard/WalletIntelPanel'
 import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
+import WhaleTicker                from '@/components/dashboard/WhaleTicker'
 import UnknownWhaleCard            from '@/components/dashboard/UnknownWhaleCard'
 import { AddWalletModal }          from '@/components/AddWalletModal'
 import { UpgradeModal }            from '@/components/UpgradeModal'
@@ -394,24 +396,11 @@ const Index = () => {
     () => storeWallets.flatMap((w, i) => toUiEvents(w, apiDataArr?.[i])),
     [storeWallets, apiDataArr]
   )
-  // Parse balance string → number for sorting
-  const parseBalanceNum = useCallback((balance: string): number => {
-    if (!balance) return 0
-    const s = balance.replace(/[$,]/g, '')
-    if (s.includes('B')) return parseFloat(s) * 1_000_000_000
-    if (s.includes('M')) return parseFloat(s) * 1_000_000
-    if (s.includes('K')) return parseFloat(s) * 1_000
-    const n = parseFloat(s)
-    return isNaN(n) ? 0 : n
-  }, [])
-
   // Hitung berapa wallet yang udah loaded (non-zero atau punya lastMove)
   const loadedCount = useMemo(
-    () => allWallets.filter(w => parseBalanceNum(w.balance) > 0 || w.lastMove !== '—').length,
-    [allWallets, parseBalanceNum]
+    () => allWallets.filter(w => w.lastMove !== '—').length,
+    [allWallets]
   )
-  // Lock: hanya sort kalau udah 80%+ loaded — hindari loncat-loncat
-  const sortReady = loadedCount >= Math.floor(storeWallets.length * 0.8)
 
   const filteredWallets = useMemo(() => {
     const filtered = allWallets.filter(w => {
@@ -421,10 +410,15 @@ const Index = () => {
         || w.address.toLowerCase().includes(searchQuery.toLowerCase())
       return matchFilter && matchSearch
     })
-    // Kalau belum 80% loaded, jangan sort — biarkan urutan default
-    if (!sortReady) return filtered
-    return [...filtered].sort((a, b) => parseBalanceNum(b.balance) - parseBalanceNum(a.balance))
-  }, [allWallets, activeFilter, searchQuery, parseBalanceNum, sortReady])
+    // Sort by activity score — most active + pinned first
+    return [...filtered].sort((a, b) => {
+      const idxA = storeWallets.findIndex(w => w.id === a.id)
+      const idxB = storeWallets.findIndex(w => w.id === b.id)
+      const scoreA = activityScore(storeWallets[idxA], apiDataArr?.[idxA])
+      const scoreB = activityScore(storeWallets[idxB], apiDataArr?.[idxB])
+      return scoreB - scoreA
+    })
+  }, [allWallets, activeFilter, searchQuery, storeWallets, apiDataArr, activityScore])
 
   const walletIntelMap = useMemo<Record<string, WalletIntelligence>>(() => {
     const map: Record<string, WalletIntelligence> = {}
@@ -462,6 +456,43 @@ const Index = () => {
     })
     return s
   }, [storeWallets, apiDataArr])
+
+  // Activity priority score — most active first, pinned BLACK SWAN always top
+  const activityScore = useCallback((w: ReturnType<typeof selectWallets>[number], apiData: typeof apiDataArr[number]) => {
+    const storeW = storeWallets.find(sw => sw.id === w.id)
+    // Pinned entities (Satoshi-Era, Mt.Gox, FTX Estate) always on top
+    if ((storeW as typeof storeW & { entity?: string })?.entity === 'Satoshi-Era') return 9999
+    if ((storeW as typeof storeW & { entity?: string })?.entity === 'Mt.Gox Trustee') return 9998
+    if ((storeW as typeof storeW & { entity?: string })?.entity === 'FTX Estate') return 9997
+
+    const txs   = apiData?.transactions ?? []
+    const intel = walletIntelMap[w.id]
+    const status = intel?.whaleScore?.status ?? 'DORMANT'
+
+    // Signal weight
+    const sigWeight: Record<string, number> = {
+      DISTRIBUTING: 500, ACCUMULATING: 400, HUNTING: 300, DORMANT: 0,
+    }
+    let score = sigWeight[status] ?? 0
+
+    // Recency bonus — most recent tx timestamp
+    const lastTs = txs[0] ? parseInt(txs[0].timeStamp) : 0
+    const ageSecs = Date.now() / 1000 - lastTs
+    if (ageSecs < 3600)       score += 200
+    else if (ageSecs < 21600) score += 100
+    else if (ageSecs < 86400) score += 50
+
+    // Value multiplier
+    const usd = apiData?.balance.usdValue ?? 0
+    if (usd >= 10_000_000) score += 150
+    else if (usd >= 1_000_000) score += 100
+    else if (usd >= 100_000)   score += 50
+
+    // Conviction bonus
+    score += (intel?.whaleScore?.conviction ?? 0) * 0.5
+
+    return score
+  }, [storeWallets, walletIntelMap])
 
   const tgAlert      = useTelegramAlert()
   const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
@@ -540,6 +571,7 @@ const Index = () => {
           onExport={handleExportClick} onUpgrade={() => setUpgradeOpen(true)}
           onAdd={() => setAddOpen(true)} alerts={whaleAlerts}
         />
+        <WhaleTicker />
 
         {/* Tab content */}
         <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
@@ -639,6 +671,7 @@ const Index = () => {
         className="scanline-overlay noise-bg mesh-bg grid-overlay"
         style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
       >
+        <WhaleTicker />
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
           {/* Left sidebar — compressed for tablet */}
           <div
@@ -702,6 +735,7 @@ const Index = () => {
       className="scanline-overlay noise-bg mesh-bg grid-overlay"
       style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
     >
+      <WhaleTicker />
       {/* Main 3-panel layout */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
 
