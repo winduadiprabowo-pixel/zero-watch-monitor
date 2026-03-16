@@ -1,5 +1,5 @@
 /**
- * ZERØ WATCH — WalletTable v24
+ * ZERØ WATCH — WalletTable v25
  * ==============================
  * FULL REDESIGN — dense Nansen/Arkham style table
  * - 1 row per wallet, ~44px height
@@ -22,6 +22,7 @@ interface WalletTableProps {
   selectedWalletId: string | null
   onSelectWallet:   (id: string) => void
   walletIntelMap:   Record<string, WalletIntelligence>
+  loadingIds?:      Set<string>   // wallets still fetching — show shimmer instead of 0
   compact?:         boolean
 }
 
@@ -117,19 +118,22 @@ interface RowProps {
   isSelected: boolean
   onSelect:   (id: string) => void
   index:      number
+  isLoading?: boolean   // still fetching — show shimmer on balance
 }
 
-const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index }: RowProps) => {
+const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index, isLoading }: RowProps) => {
   const sig        = (intel?.whaleScore?.status ?? 'DORMANT') as keyof typeof SIGNAL
   const cfg        = SIGNAL[sig] ?? SIGNAL.DORMANT
   const hasBig     = (intel?.bigMoves?.length ?? 0) > 0
   const bigVal     = intel?.bigMoves?.[0]?.valueUsd ?? 0
   const conviction = intel?.whaleScore?.conviction ?? 0
-  const chainColor = CHAIN_COLOR[wallet.chain] ?? 'rgba(255,255,255,0.4)'
+  const chainColor = CHAIN_COLOR[wallet.chain] ?? 'rgba(255,255,255,0.4)'\
 
-  // Is balance zero/empty?
-  const isEmpty = !wallet.balance || wallet.balance === '0' || wallet.balance === '$0'
+  // Is balance zero/empty AND not loading?
+  const isEmpty = !isLoading && (
+    !wallet.balance || wallet.balance === '0' || wallet.balance === '$0'
     || wallet.balance.startsWith('0 ') || wallet.balance === '~0 ETH'
+  )
 
   const handleClick = useCallback(() => onSelect(wallet.id), [wallet.id, onSelect])
 
@@ -237,15 +241,19 @@ const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index }: RowProps
 
       {/* Balance */}
       <div style={{ flex: '0 0 100px', flexShrink: 0, paddingRight: '8px' }}>
-        <span style={{
-          fontFamily: "'IBM Plex Mono',monospace",
-          fontSize:   '12px',
-          fontWeight: 600,
-          color:      isEmpty ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.92)',
-          whiteSpace: 'nowrap',
-        }}>
-          {wallet.balance}
-        </span>
+        {isLoading && isEmpty ? (
+          <div className="shimmer rounded" style={{ height: '12px', width: '60px' }} />
+        ) : (
+          <span style={{
+            fontFamily: "'IBM Plex Mono',monospace",
+            fontSize:   '12px',
+            fontWeight: 600,
+            color:      isEmpty ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.92)',
+            whiteSpace: 'nowrap',
+          }}>
+            {wallet.balance}
+          </span>
+        )}
       </div>
 
       {/* Signal badge */}
@@ -317,7 +325,7 @@ WalletRow.displayName = 'WalletRow'
 
 // ── Main WalletTable ──────────────────────────────────────────────────────────
 
-const WalletTable = memo(({ wallets, selectedWalletId, onSelectWallet, walletIntelMap, compact }: WalletTableProps) => {
+const WalletTable = memo(({ wallets, selectedWalletId, onSelectWallet, walletIntelMap, loadingIds, compact }: WalletTableProps) => {
   const loading = wallets.length === 0
 
   if (loading) {
@@ -413,6 +421,7 @@ const WalletTable = memo(({ wallets, selectedWalletId, onSelectWallet, walletInt
           isSelected={w.id === selectedWalletId}
           onSelect={onSelectWallet}
           index={i}
+          isLoading={loadingIds ? loadingIds.has(w.id) : false}
         />
       ))}
 
