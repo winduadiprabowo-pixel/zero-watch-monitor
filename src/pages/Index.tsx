@@ -21,7 +21,6 @@ import WalletTable                 from '@/components/dashboard/WalletTable'
 import ActivityFeed                from '@/components/dashboard/ActivityFeed'
 import WalletIntelPanel            from '@/components/dashboard/WalletIntelPanel'
 import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
-import { usePatternRecognition }   from '@/hooks/usePatternRecognition'
 import UnknownWhaleCard            from '@/components/dashboard/UnknownWhaleCard'
 import { AddWalletModal }          from '@/components/AddWalletModal'
 import { UpgradeModal }            from '@/components/UpgradeModal'
@@ -435,7 +434,6 @@ const Index = () => {
 
   const tgAlert      = useTelegramAlert()
   const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
-  const { criticalPatterns } = usePatternRecognition()
   const { config: priceAlertCfg, setConfig: setPriceAlertCfg } = usePriceAlert(
     ethPrice ?? null,
     (msg) => {
@@ -592,7 +590,7 @@ const Index = () => {
           activeTab={mobileTab}
           onTabChange={setMobileTab}
           hasAlert={whaleAlerts.alertCount > 0}
-          hasRadarAlert={criticalPatterns.length > 0}
+          hasRadarAlert={false}
         />
 
         <DyorBanner />
