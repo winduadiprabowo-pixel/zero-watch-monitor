@@ -20,7 +20,7 @@ import { useWalletHistory } from '@/hooks/useWalletHistory'
 import {
   Brain, Copy, BarChart2, Trophy,
   Zap, Clock, Activity, ArrowUpRight, AlertTriangle,
-  ArrowDownLeft, Flame, GitMerge,
+  ArrowDownLeft, Flame, GitMerge, ScanLine,
   Globe, ExternalLink, LucideIcon,
 } from 'lucide-react'
 import type { Wallet, ActivityEvent, ActionType } from '@/data/mockData'
