@@ -16,6 +16,7 @@ import type { WalletData } from '@/services/api'
 import { fetchSolWalletData } from '@/services/solanaApi'
 import { fetchBtcWalletData } from '@/services/bitcoinApi'
 import { fetchTronWalletData } from '@/services/tronApi'
+import { fetchBnbWalletData } from '@/services/bnbApi'
 
 const POLL        = 60_000
 const STALE       = 50_000
@@ -114,7 +115,7 @@ async function fetchAnyWalletData(
       address:      trx.address,
       balance: {
         address:    trx.address,
-        ethBalance: trx.balance.trxBalance,   // TRX balance (reusing ethBalance field)
+        ethBalance: trx.balance.trxBalance,
         usdValue:   trx.balance.usdValue,
         tokens:     [],
       },
@@ -130,6 +131,31 @@ async function fetchAnyWalletData(
         type:         'TRANSFER' as const,
       })),
       lastUpdated: trx.lastUpdated,
+    }
+  }
+
+  if (chain === 'BNB') {
+    const bnb = await fetchBnbWalletData(address, signal)
+    return {
+      address:      bnb.address,
+      balance: {
+        address:    bnb.address,
+        ethBalance: bnb.balance.bnbBalance,   // BNB balance (reusing ethBalance field)
+        usdValue:   bnb.balance.usdValue,
+        tokens:     [],
+      },
+      transactions: bnb.transactions.map(tx => ({
+        hash:         tx.hash,
+        from:         tx.from,
+        to:           tx.to,
+        value:        tx.valueBnb.toFixed(6),
+        timeStamp:    tx.timeStamp,
+        isError:      tx.isError,
+        functionName: tx.functionName,
+        gasUsed:      tx.gasUsed,
+        type:         tx.type,
+      })),
+      lastUpdated: bnb.lastUpdated,
     }
   }
 
