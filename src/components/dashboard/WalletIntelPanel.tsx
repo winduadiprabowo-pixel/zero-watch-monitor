@@ -42,6 +42,7 @@ interface WalletIntelPanelProps {
   selectedWalletIntel:  WalletIntelligence | null
   leaderboard:          LeaderboardEntry[]
   clusters:             Record<string, string[]>
+  defaultTab?:          Tab   // optional — force initial tab (e.g. 'RADAR' from mobile nav)
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -1029,8 +1030,9 @@ const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
 const WalletIntelPanel = memo(({
   events, selectedWallet, selectedWalletTokens,
   selectedWalletIntel, leaderboard, clusters,
+  defaultTab,
 }: WalletIntelPanelProps) => {
-  const [activeTab, setActiveTab] = useState<Tab>('INTEL')
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab ?? 'INTEL')
   const prevWalletId = useRef<string | null>(null)
 
   useEffect(() => {
