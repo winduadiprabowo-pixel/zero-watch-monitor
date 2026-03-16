@@ -9,15 +9,9 @@
  * We keep it isolated from EVM logic in api.ts.
  */
 
-// Public Solana RPC endpoints — fallback chain kalau satu 403
-const SOL_RPC_ENDPOINTS = [
-  'https://solana-mainnet.g.alchemy.com/v2/demo',
-  'https://rpc.ankr.com/solana',
-  'https://api.mainnet-beta.solana.com',
-]
-let _solRpcIndex = 0
-const SOL_RPC = () => SOL_RPC_ENDPOINTS[_solRpcIndex % SOL_RPC_ENDPOINTS.length]
+// Route semua Solana RPC lewat CF Worker proxy — hindari CORS + 403
 const PROXY = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const SOL_RPC_URL = () => PROXY ? `${PROXY}/solana` : 'https://api.mainnet-beta.solana.com'
 const SOL_PRICE_URL = `${PROXY}/coingecko/price?ids=solana&vs_currencies=usd`
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -65,28 +59,21 @@ async function rpcPost<T>(
   params: unknown[],
   signal?: AbortSignal
 ): Promise<T | null> {
-  for (let attempt = 0; attempt < SOL_RPC_ENDPOINTS.length; attempt++) {
-    try {
-      const res = await fetch(SOL_RPC(), {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-        signal,
-      })
-      if (res.status === 403 || res.status === 429) {
-        _solRpcIndex++
-        continue
-      }
-      if (!res.ok) return null
-      const json = await res.json() as { result?: T; error?: unknown }
-      if (json.error) return null
-      return json.result ?? null
-    } catch (e) {
-      if ((e as Error)?.name === 'AbortError') throw e
-      _solRpcIndex++
-    }
+  try {
+    const res = await fetch(SOL_RPC_URL(), {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      signal,
+    })
+    if (!res.ok) return null
+    const json = await res.json() as { result?: T; error?: unknown }
+    if (json.error) return null
+    return json.result ?? null
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') throw e
+    return null
   }
-  return null
 }
 
 // ── SOL Price ─────────────────────────────────────────────────────────────────
