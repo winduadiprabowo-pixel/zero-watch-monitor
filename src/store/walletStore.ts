@@ -1,9 +1,9 @@
 /**
- * ZERØ WATCH — walletStore v16
+ * ZERØ WATCH — walletStore v17
  * ==============================
- * v16: TRX + BNB chain support.
- *      Fix address casing — TRX/SOL/BTC NOT lowercased (case-sensitive).
- *      EVM (ETH/ARB/BASE/OP/BNB) still lowercased for consistency.
+ * v17: pinned field — Satoshi-Era / Mt.Gox / FTX Estate always top.
+ *      Bumped persist version 3→4 to force re-seed on existing users
+ *      (so pinned field gets picked up from defaultWallets).
  *
  * rgba() only ✓  persist ✓  AbortController-safe ✓
  */
@@ -31,9 +31,10 @@ export interface WatchedWallet {
   chain:   Chain
   addedAt: number
   color:   string
-  tag?:    string  // wallet category tag
-  notes?:  string  // user annotation
-  entity?: string  // group key for entity-row table
+  tag?:    string    // wallet category tag
+  notes?:  string   // user annotation
+  entity?: string   // group key for entity-row table
+  pinned?: boolean  // BLACK SWAN watch — always top (Satoshi-Era / Mt.Gox / FTX Estate)
 }
 
 export type Plan = 'free' | 'pro'
@@ -141,6 +142,7 @@ export const useWalletStore = create<WalletStore>()(
           chain:   dw.chain as Chain,
           tag:     dw.tag,
           entity:  (dw as import('@/data/defaultWallets').DefaultWallet).entity,
+          pinned:  (dw as import('@/data/defaultWallets').DefaultWallet).pinned ?? false,
           addedAt: Date.now() - i * 1000,
           color:   dw.color,
         }))
@@ -150,7 +152,7 @@ export const useWalletStore = create<WalletStore>()(
     }),
     {
       name:       'zero-watch-wallets',
-      version:    3,
+      version:    4,  // bumped 3→4: force re-seed to pick up pinned field
       partialize: s => ({
         wallets:      s.wallets,
         plan:         s.plan,
@@ -161,7 +163,10 @@ export const useWalletStore = create<WalletStore>()(
         if (version < 2) {
           return { ...(persisted as object), _seeded: false }
         }
-        // v2→v3: no data change, just Chain type expanded
+        if (version < 4) {
+          // v3→v4: force re-seed so pinned field gets picked up from defaultWallets
+          return { ...(persisted as object), _seeded: false }
+        }
         return persisted as WalletStore
       },
     }
