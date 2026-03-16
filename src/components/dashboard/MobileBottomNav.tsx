@@ -1,39 +1,40 @@
 /**
- * ZERØ WATCH — MobileBottomNav v17
+ * ZERØ WATCH — MobileBottomNav v18
  * ==================================
- * REDESIGN TOTAL:
- * - Safe area inset bottom proper (iPhone notch support)
- * - Active state lebih kontras & jelas
- * - Haptic-like active scale animation
- * - Pulse dot Intel tab
- * - Touch target minimal 44px (Apple HIG)
+ * v18: RADAR tab ke-4 — direct access ke anomaly detection
+ *      hasRadarAlert prop — red pulse dot kalau ada CRITICAL/BLACK_SWAN
  *
  * rgba() only ✓  React.memo + displayName ✓
  */
 
 import React, { memo, useCallback } from 'react'
-import { Wallet, Brain, BarChart3 } from 'lucide-react'
+import { Wallet, Brain, BarChart3, ScanLine } from 'lucide-react'
 
-type MobileTab = 'wallets' | 'intel' | 'stats'
+export type MobileTab = 'wallets' | 'intel' | 'stats' | 'radar'
 
 interface MobileBottomNavProps {
-  activeTab:   MobileTab
-  onTabChange: (tab: MobileTab) => void
-  hasAlert?:   boolean  // pulse dot on Intel
+  activeTab:       MobileTab
+  onTabChange:     (tab: MobileTab) => void
+  hasAlert?:       boolean   // pulse dot on Intel (whale alerts)
+  hasRadarAlert?:  boolean   // red pulse dot on RADAR (CRITICAL/BLACK_SWAN)
 }
 
 const TABS: {
   id:     MobileTab
   label:  string
   Icon:   typeof Wallet
-  hasDot: boolean
+  hasDot: 'alert' | 'radar' | false
 }[] = [
-  { id: 'wallets', label: 'Wallets', Icon: Wallet,  hasDot: false },
-  { id: 'intel',   label: 'Intel',   Icon: Brain,   hasDot: true  },
-  { id: 'stats',   label: 'Stats',   Icon: BarChart3, hasDot: false },
+  { id: 'wallets', label: 'Wallets', Icon: Wallet,   hasDot: false   },
+  { id: 'intel',   label: 'Intel',   Icon: Brain,    hasDot: 'alert' },
+  { id: 'stats',   label: 'Stats',   Icon: BarChart3, hasDot: false  },
+  { id: 'radar',   label: 'RADAR',   Icon: ScanLine, hasDot: 'radar' },
 ]
 
-const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: MobileBottomNavProps) => {
+const MobileBottomNav = memo(({
+  activeTab, onTabChange,
+  hasAlert = false, hasRadarAlert = false,
+}: MobileBottomNavProps) => {
   const handleTab = useCallback(
     (id: MobileTab) => () => onTabChange(id),
     [onTabChange]
@@ -42,30 +43,49 @@ const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: Mobi
   return (
     <nav
       style={{
-        background:          'rgba(4,4,10,0.97)',
-        borderTop:           '1px solid rgba(255,255,255,0.07)',
-        backdropFilter:      'blur(24px)',
-        WebkitBackdropFilter:'blur(24px)',
-        paddingLeft:         '12px',
-        paddingRight:        '12px',
-        paddingTop:          '8px',
-        paddingBottom:       'max(10px, env(safe-area-inset-bottom, 10px))',
+        background:           'rgba(4,4,10,0.97)',
+        borderTop:            '1px solid rgba(255,255,255,0.07)',
+        backdropFilter:       'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        paddingLeft:          '12px',
+        paddingRight:         '12px',
+        paddingTop:           '8px',
+        paddingBottom:        'max(10px, env(safe-area-inset-bottom, 10px))',
       }}
     >
       {/* Pill container */}
       <div
         style={{
-          display:       'flex',
-          borderRadius:  '18px',
-          padding:       '4px',
-          gap:           '4px',
-          background:    'rgba(255,255,255,0.04)',
-          border:        '1px solid rgba(255,255,255,0.07)',
+          display:      'flex',
+          borderRadius: '18px',
+          padding:      '4px',
+          gap:          '4px',
+          background:   'rgba(255,255,255,0.04)',
+          border:       '1px solid rgba(255,255,255,0.07)',
         }}
       >
         {TABS.map(tab => {
-          const isActive = activeTab === tab.id
-          const showDot  = tab.hasDot && hasAlert && !isActive
+          const isActive   = activeTab === tab.id
+          const showDot    = tab.hasDot === 'alert' && hasAlert && !isActive
+          const showRadar  = tab.hasDot === 'radar' && hasRadarAlert && !isActive
+
+          // RADAR tab gets red accent when active
+          const isRadar    = tab.id === 'radar'
+          const activeBg   = isRadar
+            ? 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.06) 100%)'
+            : 'linear-gradient(135deg, rgba(230,161,71,0.12) 0%, rgba(230,161,71,0.06) 100%)'
+          const activeBorder = isRadar
+            ? 'rgba(239,68,68,0.25)'
+            : 'rgba(230,161,71,0.25)'
+          const activeColor = isRadar
+            ? 'rgba(239,68,68,1)'
+            : 'rgba(230,161,71,1)'
+          const dotColor    = showRadar
+            ? 'rgba(239,68,68,1)'
+            : 'rgba(230,161,71,1)'
+          const dotShadow   = showRadar
+            ? '0 0 6px rgba(239,68,68,0.8)'
+            : '0 0 6px rgba(230,161,71,0.8)'
 
           return (
             <button
@@ -82,36 +102,24 @@ const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: Mobi
                 paddingTop:     '8px',
                 paddingBottom:  '8px',
                 borderRadius:   '14px',
-                border:         `1px solid ${isActive ? 'rgba(230,161,71,0.25)' : 'transparent'}`,
-                background:     isActive
-                  ? 'linear-gradient(135deg, rgba(230,161,71,0.12) 0%, rgba(230,161,71,0.06) 100%)'
-                  : 'transparent',
-                boxShadow:      isActive ? '0 0 16px rgba(230,161,71,0.08) inset' : 'none',
-                color:          isActive ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.30)',
+                border:         `1px solid ${isActive ? activeBorder : 'transparent'}`,
+                background:     isActive ? activeBg : 'transparent',
+                boxShadow:      'none',
+                color:          isActive ? activeColor : 'rgba(255,255,255,0.30)',
                 transition:     'all 0.18s cubic-bezier(0.22,1,0.36,1)',
                 position:       'relative',
                 cursor:         'pointer',
                 WebkitTapHighlightColor: 'transparent',
                 userSelect:     'none',
               }}
-              onTouchStart={e => {
-                e.currentTarget.style.transform = 'scale(0.94)'
-              }}
-              onTouchEnd={e => {
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-              onMouseDown={e => {
-                e.currentTarget.style.transform = 'scale(0.94)'
-              }}
-              onMouseUp={e => {
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
+              onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.94)' }}
+              onTouchEnd={e   => { e.currentTarget.style.transform = 'scale(1)' }}
+              onMouseDown={e  => { e.currentTarget.style.transform = 'scale(0.94)' }}
+              onMouseUp={e    => { e.currentTarget.style.transform = 'scale(1)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
             >
               {/* Pulse dot */}
-              {showDot && (
+              {(showDot || showRadar) && (
                 <span
                   style={{
                     position:     'absolute',
@@ -120,8 +128,8 @@ const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: Mobi
                     width:        '6px',
                     height:       '6px',
                     borderRadius: '50%',
-                    background:   'rgba(230,161,71,1)',
-                    boxShadow:    '0 0 6px rgba(230,161,71,0.8)',
+                    background:   dotColor,
+                    boxShadow:    dotShadow,
                     animation:    'pulse-glow 2s ease-in-out infinite',
                   }}
                 />
@@ -129,9 +137,11 @@ const MobileBottomNav = memo(({ activeTab, onTabChange, hasAlert = false }: Mobi
 
               <tab.Icon
                 style={{
-                  width:  '18px',
-                  height: '18px',
-                  filter: isActive ? 'drop-shadow(0 0 6px rgba(230,161,71,0.6))' : 'none',
+                  width:      '18px',
+                  height:     '18px',
+                  filter:     isActive
+                    ? `drop-shadow(0 0 6px ${isRadar ? 'rgba(239,68,68,0.6)' : 'rgba(230,161,71,0.6)'})`
+                    : 'none',
                   transition: 'filter 0.18s ease',
                 }}
               />
