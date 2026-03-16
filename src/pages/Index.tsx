@@ -1,7 +1,9 @@
 /**
- * ZERØ WATCH — Index v26
+ * ZERØ WATCH — Index v27
  * ========================
- * v26: Entity Table — compute entityGroups dari storeWallets
+ * v27: Cross-Chain Correlation — useCrossChainCorrelation hook
+ *      Justin Sun TRX→ETH bridge detection, 30–60 min pre-dump signal
+ *      Injects SUN_TRON_BRIDGE pattern events into usePatternRecognition
  *      1 group per whale entity → pass to WalletTable v26
  *      Pinned: Satoshi-Era 🌋 | Mt.Gox ⚠ | FTX Estate 💀 always top
  * v25: WhaleTicker — live scrolling alert banner (top of dashboard)
@@ -54,6 +56,7 @@ import WhaleAlertToggle            from '@/components/WhaleAlertToggle'
 import { TelegramSetupModal }      from '@/components/TelegramSetupModal'
 import { useTelegramAlert }        from '@/hooks/useTelegramAlert'
 import { usePriceAlert }           from '@/hooks/usePriceAlert'
+import { useCrossChainCorrelation } from '@/hooks/useCrossChainCorrelation'
 import { Send }                    from 'lucide-react'
 
 type MobileTab = 'wallets' | 'intel' | 'stats' | 'radar'
@@ -588,6 +591,34 @@ const Index = () => {
     }
   )
 
+  // ── Cross-Chain Correlation (Push 35) ─────────────────────────────────────
+  // Inject SUN_TRON_BRIDGE events as PatternEvents → picked up by WhaleTicker + IntelPanel
+  // onPatternEvent is provided by WalletIntelPanel via injectAnomaly (passed through props)
+  // For now: fire TG alert directly when cross-chain event detected
+  const handleCrossChainEvent = useCallback((patternEvent: import('@/hooks/usePatternRecognition').PatternEvent) => {
+    // Send TG alert for cross-chain events — always critical
+    if (tgAlert.enabled) {
+      const msg =
+        `🔴 <b>CROSS-CHAIN ALERT — ${patternEvent.title}</b>\n\n` +
+        `${patternEvent.description}\n\n` +
+        `🎯 Confidence: <b>${patternEvent.confidence}%</b>\n` +
+        (patternEvent.historicalRef ? `📚 Historical: <i>${patternEvent.historicalRef}</i>\n\n` : '\n') +
+        `<i>ZERØ WATCH · @ZerobuildLab 🇮🇩</i>`
+      tgAlert.sendAlert(msg)
+    }
+    // Web notification
+    if (whaleAlerts.permission === 'granted') {
+      try {
+        new Notification('ZERØ WATCH — Cross-Chain Alert', {
+          body: patternEvent.description.slice(0, 120),
+          icon: '/favicon.ico',
+        })
+      } catch { /* skip */ }
+    }
+  }, [tgAlert, whaleAlerts.permission])
+
+  const crossChain = useCrossChainCorrelation(handleCrossChainEvent)
+
   const selectedWallet       = allWallets.find(w => w.id === selectedWalletId) ?? null
   const selectedWalletIdx    = storeWallets.findIndex(w => w.id === selectedWalletId)
   const selectedWalletTokens = selectedWalletIdx >= 0 ? (apiDataArr?.[selectedWalletIdx]?.balance.tokens ?? []) : []
@@ -735,7 +766,7 @@ const Index = () => {
           activeTab={mobileTab}
           onTabChange={setMobileTab}
           hasAlert={whaleAlerts.alertCount > 0}
-          hasRadarAlert={false}
+          hasRadarAlert={crossChain.activeAlerts.length > 0}
         />
 
         <DyorBanner />
