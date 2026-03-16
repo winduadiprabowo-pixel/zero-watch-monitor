@@ -408,24 +408,7 @@ const Index = () => {
     [allWallets]
   )
 
-  const filteredWallets = useMemo(() => {
-    const filtered = allWallets.filter(w => {
-      const matchFilter = activeFilter === 'ALL' || w.tag === activeFilter
-      const matchSearch = !searchQuery
-        || w.label.toLowerCase().includes(searchQuery.toLowerCase())
-        || w.address.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchFilter && matchSearch
-    })
-    // Sort by activity score — most active + pinned first
-    return [...filtered].sort((a, b) => {
-      const idxA = storeWallets.findIndex(w => w.id === a.id)
-      const idxB = storeWallets.findIndex(w => w.id === b.id)
-      const scoreA = activityScore(storeWallets[idxA], apiDataArr?.[idxA])
-      const scoreB = activityScore(storeWallets[idxB], apiDataArr?.[idxB])
-      return scoreB - scoreA
-    })
-  }, [allWallets, activeFilter, searchQuery, storeWallets, apiDataArr, activityScore])
-
+  // walletIntelMap MUST come before activityScore and filteredWallets (TDZ fix)
   const walletIntelMap = useMemo<Record<string, WalletIntelligence>>(() => {
     const map: Record<string, WalletIntelligence> = {}
     storeWallets.forEach((w, i) => {
@@ -434,6 +417,47 @@ const Index = () => {
     })
     return map
   }, [storeWallets, apiDataArr, ETH_PRICE])
+
+  // activityScore MUST come before filteredWallets (TDZ fix)
+  const activityScore = useCallback((w: ReturnType<typeof selectWallets>[number], apiData: typeof apiDataArr[number]) => {
+    const storeW = storeWallets.find(sw => sw.id === w.id)
+    if ((storeW as typeof storeW & { entity?: string })?.entity === 'Satoshi-Era')    return 9999
+    if ((storeW as typeof storeW & { entity?: string })?.entity === 'Mt.Gox Trustee') return 9998
+    if ((storeW as typeof storeW & { entity?: string })?.entity === 'FTX Estate')     return 9997
+    const txs    = apiData?.transactions ?? []
+    const intel  = walletIntelMap[w.id]
+    const status = intel?.whaleScore?.status ?? 'DORMANT'
+    const sigWeight: Record<string, number> = { DISTRIBUTING: 500, ACCUMULATING: 400, HUNTING: 300, DORMANT: 0 }
+    let score = sigWeight[status] ?? 0
+    const lastTs  = txs[0] ? parseInt(txs[0].timeStamp) : 0
+    const ageSecs = Date.now() / 1000 - lastTs
+    if (ageSecs < 3600) score += 200
+    else if (ageSecs < 21600) score += 100
+    else if (ageSecs < 86400) score += 50
+    const usd = apiData?.balance.usdValue ?? 0
+    if (usd >= 10_000_000) score += 150
+    else if (usd >= 1_000_000) score += 100
+    else if (usd >= 100_000) score += 50
+    score += (intel?.whaleScore?.conviction ?? 0) * 0.5
+    return score
+  }, [storeWallets, walletIntelMap])
+
+  const filteredWallets = useMemo(() => {
+    const filtered = allWallets.filter(w => {
+      const matchFilter = activeFilter === 'ALL' || w.tag === activeFilter
+      const matchSearch = !searchQuery
+        || w.label.toLowerCase().includes(searchQuery.toLowerCase())
+        || w.address.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchFilter && matchSearch
+    })
+    return [...filtered].sort((a, b) => {
+      const idxA  = storeWallets.findIndex(w => w.id === a.id)
+      const idxB  = storeWallets.findIndex(w => w.id === b.id)
+      const scoreA = activityScore(storeWallets[idxA], apiDataArr?.[idxA])
+      const scoreB = activityScore(storeWallets[idxB], apiDataArr?.[idxB])
+      return scoreB - scoreA
+    })
+  }, [allWallets, activeFilter, searchQuery, storeWallets, apiDataArr, activityScore])
 
   const leaderboard = useMemo(
     () => buildLeaderboard(storeWallets, apiDataArr ?? [], ETH_PRICE),
@@ -541,42 +565,6 @@ const Index = () => {
     })
   }, [filteredWallets, storeWallets, apiDataArr, walletIntelMap])
 
-  // Activity priority score — most active first, pinned BLACK SWAN always top
-  const activityScore = useCallback((w: ReturnType<typeof selectWallets>[number], apiData: typeof apiDataArr[number]) => {
-    const storeW = storeWallets.find(sw => sw.id === w.id)
-    // Pinned entities (Satoshi-Era, Mt.Gox, FTX Estate) always on top
-    if ((storeW as typeof storeW & { entity?: string })?.entity === 'Satoshi-Era') return 9999
-    if ((storeW as typeof storeW & { entity?: string })?.entity === 'Mt.Gox Trustee') return 9998
-    if ((storeW as typeof storeW & { entity?: string })?.entity === 'FTX Estate') return 9997
-
-    const txs   = apiData?.transactions ?? []
-    const intel = walletIntelMap[w.id]
-    const status = intel?.whaleScore?.status ?? 'DORMANT'
-
-    // Signal weight
-    const sigWeight: Record<string, number> = {
-      DISTRIBUTING: 500, ACCUMULATING: 400, HUNTING: 300, DORMANT: 0,
-    }
-    let score = sigWeight[status] ?? 0
-
-    // Recency bonus — most recent tx timestamp
-    const lastTs = txs[0] ? parseInt(txs[0].timeStamp) : 0
-    const ageSecs = Date.now() / 1000 - lastTs
-    if (ageSecs < 3600)       score += 200
-    else if (ageSecs < 21600) score += 100
-    else if (ageSecs < 86400) score += 50
-
-    // Value multiplier
-    const usd = apiData?.balance.usdValue ?? 0
-    if (usd >= 10_000_000) score += 150
-    else if (usd >= 1_000_000) score += 100
-    else if (usd >= 100_000)   score += 50
-
-    // Conviction bonus
-    score += (intel?.whaleScore?.conviction ?? 0) * 0.5
-
-    return score
-  }, [storeWallets, walletIntelMap])
 
   const tgAlert      = useTelegramAlert()
   const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
