@@ -56,11 +56,12 @@ const FTX_ESTATE = new Set([
   '0x3507e4978e0eb83315d20df86ca0b976c0e40ccb', // Alameda Research
 ])
 
-// Satoshi-era dormant — tracked via BTC (detection via alert only, not ETH scan)
-const SATOSHI_ERA_LABELS = new Set([
-  'Satoshi (Hal Finney TX)',
-  'Satoshi-era (79K BTC)',
-])
+// Satoshi-era dormant BTC wallets — BLACK_SWAN if any tx in last 7 days
+const SATOSHI_BTC_WALLETS: Array<{ address: string; label: string }> = [
+  { address: '1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1', label: 'Satoshi (Hal Finney TX)' },
+  { address: '1FeexV6bAHb8ybZjqQMjJrcCrHGW9sb6uF', label: 'Satoshi-era (79K BTC)'  },
+]
+const SATOSHI_DORMANT_DAYS = 365 * 5   // 5+ years = confirmed dormant
 
 const CEX_ADDRESSES = new Set([
   '0xbe0eb53f46cd790cd13851d5eff43d12404d33e8',
@@ -432,7 +433,59 @@ export function usePatternRecognition() {
     }
   }, [scan])
 
-  // Inject external anomaly events (from useBaselineMetrics)
+  // ── 6. Satoshi-era BTC dormant wallet detection ──────────────────────────
+  // Separate scan — Blockstream API (free, no key)
+
+  const scanSatoshiBtc = useCallback(async () => {
+    for (const wallet of SATOSHI_BTC_WALLETS) {
+      try {
+        const res = await fetch(
+          `https://blockstream.info/api/address/${wallet.address}/txs`,
+          { signal: abortRef.current?.signal }
+        )
+        if (!res.ok) continue
+        const txs: Array<{ status: { block_time: number; confirmed: boolean } }> = await res.json()
+
+        if (txs.length === 0) continue
+
+        // Find most recent confirmed tx
+        const recent = txs.find(tx => tx.status?.confirmed)
+        if (!recent) continue
+
+        const blockTime  = recent.status.block_time * 1000
+        const ageMs      = Date.now() - blockTime
+        const ageDays    = ageMs / 86_400_000
+
+        // Was dormant (>5 years) and now has recent tx (last 7 days)?
+        // We check if there's any tx in the last 7 days from a historically dormant wallet
+        if (ageDays < 7) {
+          const id = `satoshi_btc_${wallet.address.slice(0, 12)}`
+          injectAnomaly({
+            id,
+            type:        'SATOSHI_ERA',
+            severity:    'BLACK_SWAN',
+            emoji:       '🌋',
+            title:       `Satoshi-Era Wallet Moved — ${wallet.label}`,
+            description: `${wallet.label} just moved BTC after years of dormancy. This is an extreme market event. All eyes on BTC price.`,
+            confidence:  99,
+            actors:      [wallet.label],
+            totalUsd:    0,
+            firstSeen:   blockTime,
+            lastSeen:    blockTime,
+            txHashes:    [],
+            historicalRef: 'Satoshi wallet movement = extreme market uncertainty (no historical precedent)',
+          })
+        }
+      } catch { /* silently skip — Blockstream may be unavailable */ }
+    }
+  }, [injectAnomaly])
+
+  useEffect(() => {
+    // Scan Satoshi BTC every 10 minutes (slower — less urgent, conserves requests)
+    scanSatoshiBtc()
+    const btcInterval = setInterval(scanSatoshiBtc, 10 * 60_000)
+    return () => clearInterval(btcInterval)
+  }, [scanSatoshiBtc])
   const injectAnomaly = useCallback((event: PatternEvent) => {
     setPatterns(prev => {
       if (prev.some(p => p.id === event.id)) return prev
