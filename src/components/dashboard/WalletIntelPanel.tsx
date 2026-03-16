@@ -16,7 +16,7 @@ import React, { memo, useState, useRef, useEffect, useCallback, useMemo } from '
 import Tooltip, { TOOLTIPS } from '@/components/Tooltip'
 import BalanceChart from '@/components/dashboard/BalanceChart'
 import ConvictionBreakdown from '@/components/dashboard/ConvictionBreakdown'
-import { useWalletHistory } from '@/hooks/useWalletHistory'
+import { useSmartHistory } from '@/hooks/useSmartHistory'
 import {
   Brain, Copy, BarChart2, Trophy,
   Zap, Clock, Activity, ArrowUpRight, AlertTriangle,
@@ -179,7 +179,7 @@ const IntelTab = memo(({ intel, wallet, clusters }: {
   intel: WalletIntelligence; wallet: Wallet; clusters: Record<string, string[]>
 }) => {
   const { whaleScore, bigMoves, gasSpentEth, walletAgeDays, txFrequency, avgTxValueEth, largestTxEth, totalVolume30dEth } = intel
-  const { data: historyPoints = [], isLoading: histLoading } = useWalletHistory(wallet.address, wallet.chain)
+  const { data: historyPoints = [], isLoading: histLoading } = useSmartHistory(wallet.address, wallet.chain)
   const cfg = STATUS_CFG[whaleScore.status]
   const clustermates = clusters[wallet.id] ?? []
 
