@@ -28,7 +28,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { ENTITY_LABELS } from './useCrossWalletFlow'
 
 const PROXY      = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
-const REFRESH_MS = 60_000
+const REFRESH_MS = 180_000  // 3 menit — pattern scan lebih jarang
 const WINDOW_MS  = 30 * 60 * 1000
 const MIN_USD    = 1_000_000
 
