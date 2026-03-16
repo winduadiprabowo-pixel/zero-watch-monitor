@@ -1,19 +1,19 @@
 /**
- * ZERØ WATCH — WalletTable v23
+ * ZERØ WATCH — WalletTable v24
  * ==============================
- * v23 BENTO REDESIGN:
- * - Masonry-style bento grid (2-col responsive)
- * - Each card: hover lift + neon signal glow
- * - Balance LARGE + gradient text
- * - Mini sparkline built into card
- * - Signal badge bold with glow
- * - P&L chip (24h change)
- * - Copy address on click
- * rgba() only ✓  IBM Plex Mono ✓  React.memo + displayName ✓
+ * FULL REDESIGN — dense Nansen/Arkham style table
+ * - 1 row per wallet, ~44px height
+ * - Columns: status | name | chain | balance | signal | conv | last move | big move
+ * - 44 wallets visible tanpa scroll banyak
+ * - Sorted by balance (handled by parent)
+ * - 0 balance rows dimmed — gak ganggu visual
+ * - Click row = select wallet for intel panel
+ *
+ * rgba() only ✓  React.memo + displayName ✓  useCallback ✓
  */
 
-import React, { memo, useMemo, useCallback, useState } from 'react'
-import { ArrowUpRight, ArrowDownLeft, Zap, ExternalLink, Copy, Check } from 'lucide-react'
+import React, { memo, useCallback, useState } from 'react'
+import { Zap, ExternalLink, Copy, Check } from 'lucide-react'
 import type { Wallet } from '@/data/mockData'
 import type { WalletIntelligence } from '@/services/whaleAnalytics'
 
@@ -25,92 +25,93 @@ interface WalletTableProps {
   compact?:         boolean
 }
 
+// ── Config ────────────────────────────────────────────────────────────────────
+
 const SIGNAL = {
-  ACCUMULATING: {
-    label: 'ACCUMULATING', short: 'ACCUM',
-    bg:    'rgba(52,211,153,0.10)',  border: 'rgba(52,211,153,0.32)',
-    text:  'rgba(52,211,153,1)',     dot:    'rgba(52,211,153,1)',
-    glow:  '0 0 20px rgba(52,211,153,0.18)', cardBg: 'rgba(52,211,153,0.04)',
-  },
-  DISTRIBUTING: {
-    label: 'DISTRIBUTING', short: 'DISTR',
-    bg:    'rgba(239,68,68,0.10)',   border: 'rgba(239,68,68,0.32)',
-    text:  'rgba(239,68,68,1)',      dot:    'rgba(239,68,68,1)',
-    glow:  '0 0 20px rgba(239,68,68,0.18)',  cardBg: 'rgba(239,68,68,0.03)',
-  },
-  HUNTING: {
-    label: 'HUNTING', short: 'HUNT',
-    bg:    'rgba(251,191,36,0.10)',  border: 'rgba(251,191,36,0.28)',
-    text:  'rgba(251,191,36,1)',     dot:    'rgba(251,191,36,1)',
-    glow:  '0 0 20px rgba(251,191,36,0.15)', cardBg: 'rgba(251,191,36,0.02)',
-  },
-  DORMANT: {
-    label: 'DORMANT', short: 'DORM',
-    bg:    'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.10)',
-    text:  'rgba(255,255,255,0.28)', dot:    'rgba(255,255,255,0.16)',
-    glow:  'none',                   cardBg: 'transparent',
-  },
+  ACCUMULATING: { short: 'ACCUM', color: 'rgba(52,211,153,1)',   bg: 'rgba(52,211,153,0.10)',  border: 'rgba(52,211,153,0.28)' },
+  DISTRIBUTING: { short: 'DISTR', color: 'rgba(239,68,68,1)',    bg: 'rgba(239,68,68,0.10)',   border: 'rgba(239,68,68,0.25)'  },
+  HUNTING:      { short: 'HUNT',  color: 'rgba(251,191,36,1)',   bg: 'rgba(251,191,36,0.10)',  border: 'rgba(251,191,36,0.22)' },
+  DORMANT:      { short: 'DORM',  color: 'rgba(255,255,255,0.22)', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.08)' },
 } as const
 
-const chainBadge: Record<string, { text: string; bg: string; border: string }> = {
-  ETH:  { text: 'rgba(147,197,253,1)', bg: 'rgba(59,130,246,0.10)',  border: 'rgba(59,130,246,0.25)' },
-  ARB:  { text: 'rgba(125,211,252,1)', bg: 'rgba(14,165,233,0.10)',  border: 'rgba(14,165,233,0.25)' },
-  BASE: { text: 'rgba(165,180,252,1)', bg: 'rgba(99,102,241,0.10)',  border: 'rgba(99,102,241,0.25)' },
-  OP:   { text: 'rgba(252,129,129,1)', bg: 'rgba(239,68,68,0.10)',   border: 'rgba(239,68,68,0.25)'  },
-  SOL:  { text: 'rgba(200,150,255,1)', bg: 'rgba(153,69,255,0.10)',  border: 'rgba(153,69,255,0.25)' },
+const CHAIN_COLOR: Record<string, string> = {
+  ETH:  'rgba(147,197,253,1)',
+  ARB:  'rgba(125,211,252,1)',
+  BASE: 'rgba(165,180,252,1)',
+  OP:   'rgba(252,129,129,1)',
+  SOL:  'rgba(167,139,250,1)',
+  BTC:  'rgba(251,191,36,1)',
+  TRX:  'rgba(239,68,68,0.85)',
+  BNB:  'rgba(252,211,77,1)',
 }
 
 const fmtVal = (v: number) => {
   if (v >= 1_000_000_000) return `$${(v / 1_000_000_000).toFixed(2)}B`
-  if (v >= 1_000_000)     return `$${(v / 1_000_000).toFixed(2)}M`
-  if (v >= 1_000)         return `$${(v / 1_000).toFixed(1)}K`
+  if (v >= 1_000_000)     return `$${(v / 1_000_000).toFixed(1)}M`
+  if (v >= 1_000)         return `$${(v / 1_000).toFixed(0)}K`
   return `$${v.toFixed(0)}`
 }
 
-// ── Mini Spark SVG ─────────────────────────────────────────────────────────────
-const MiniSpark = memo(({ data, positive }: { data: number[]; positive: boolean }) => {
-  if (!data || data.length < 2) return null
-  const W = 60; const H = 24; const PAD = 2
-  const max = Math.max(...data, 0.001)
-  const min = Math.min(...data)
-  const range = max - min || 1
-  const toX = (i: number) => PAD + (i / (data.length - 1)) * (W - PAD * 2)
-  const toY = (v: number) => H - PAD - ((v - min) / range) * (H - PAD * 2)
-  const d = data.map((v, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(v).toFixed(1)}`).join(' ')
-  const color = positive ? 'rgba(52,211,153,0.85)' : 'rgba(239,68,68,0.85)'
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: W, height: H, flexShrink: 0 }}>
-      <path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-})
-MiniSpark.displayName = 'MiniSpark'
+// ── Skeleton row ──────────────────────────────────────────────────────────────
 
-// ── Skeleton Card ──────────────────────────────────────────────────────────────
-const SkeletonCard = memo(({ delay = 0 }: { delay?: number }) => (
+const SkeletonRow = memo(({ i }: { i: number }) => (
   <div
-    className="rounded-2xl p-4 animate-float-up"
+    className="flex items-center gap-3 px-4"
     style={{
-      background:     'rgba(255,255,255,0.025)',
-      border:         '1px solid rgba(255,255,255,0.06)',
-      animationDelay: `${delay}s`,
+      height:         '44px',
+      borderBottom:   '1px solid rgba(255,255,255,0.04)',
+      animationDelay: `${i * 0.03}s`,
     }}
   >
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <div className="w-2.5 h-2.5 rounded-full shimmer" />
-        <div className="h-3.5 w-24 rounded shimmer" />
-      </div>
-      <div className="h-5 w-14 rounded-lg shimmer" />
-    </div>
-    <div className="h-7 w-28 rounded shimmer mb-2" />
+    <div className="w-2 h-2 rounded-full shimmer flex-shrink-0" />
+    <div className="h-3 w-28 rounded shimmer flex-1" />
+    <div className="h-3 w-16 rounded shimmer" />
     <div className="h-3 w-20 rounded shimmer" />
+    <div className="h-4 w-14 rounded-lg shimmer" />
   </div>
 ))
-SkeletonCard.displayName = 'SkeletonCard'
+SkeletonRow.displayName = 'SkeletonRow'
 
-// ── Wallet Bento Card ──────────────────────────────────────────────────────────
-interface WalletCardProps {
+// ── Copy button ───────────────────────────────────────────────────────────────
+
+const CopyBtn = memo(({ address }: { address: string }) => {
+  const [copied, setCopied] = useState(false)
+  const handle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(address).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1400)
+    })
+  }, [address])
+  return (
+    <button
+      onClick={handle}
+      style={{ color: copied ? 'rgba(230,161,71,0.7)' : 'rgba(255,255,255,0.18)', flexShrink: 0 }}
+    >
+      {copied ? <Check style={{ width: '11px', height: '11px' }} /> : <Copy style={{ width: '11px', height: '11px' }} />}
+    </button>
+  )
+})
+CopyBtn.displayName = 'CopyBtn'
+
+// ── Conviction mini bar ───────────────────────────────────────────────────────
+
+const ConvBar = memo(({ value, color }: { value: number; color: string }) => (
+  <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden', flexShrink: 0 }}>
+    <div style={{
+      height:     '100%',
+      width:      `${Math.max(2, value)}%`,
+      background: color,
+      borderRadius: '99px',
+      transition: 'width 0.5s ease',
+    }} />
+  </div>
+))
+ConvBar.displayName = 'ConvBar'
+
+// ── Wallet Row ─────────────────────────────────────────────────────────────────
+
+interface RowProps {
   wallet:     Wallet
   intel:      WalletIntelligence | null
   isSelected: boolean
@@ -118,212 +119,201 @@ interface WalletCardProps {
   index:      number
 }
 
-const WalletCard = memo(({ wallet, intel, isSelected, onSelect, index }: WalletCardProps) => {
-  const [copied, setCopied] = useState(false)
-  const sig    = (intel?.whaleScore?.status ?? 'DORMANT') as keyof typeof SIGNAL
-  const cfg    = SIGNAL[sig] ?? SIGNAL.DORMANT
-  const chain  = chainBadge[wallet.chain] ?? chainBadge.ETH
-  const hasBig = (intel?.bigMoves?.length ?? 0) > 0
-  const bigVal = intel?.bigMoves?.[0]?.valueUsd ?? 0
+const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index }: RowProps) => {
+  const sig        = (intel?.whaleScore?.status ?? 'DORMANT') as keyof typeof SIGNAL
+  const cfg        = SIGNAL[sig] ?? SIGNAL.DORMANT
+  const hasBig     = (intel?.bigMoves?.length ?? 0) > 0
+  const bigVal     = intel?.bigMoves?.[0]?.valueUsd ?? 0
   const conviction = intel?.whaleScore?.conviction ?? 0
+  const chainColor = CHAIN_COLOR[wallet.chain] ?? 'rgba(255,255,255,0.4)'
 
-  // P&L from sparkData
-  const sparkData = wallet.sparkData ?? []
-  const pnlPct = sparkData.length >= 2
-    ? ((sparkData[sparkData.length - 1] - sparkData[0]) / (sparkData[0] || 1)) * 100
-    : 0
-  const pnlPos = pnlPct >= 0
-
-  const handleCopy = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    navigator.clipboard.writeText(wallet.address).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1600)
-    })
-  }, [wallet.address])
+  // Is balance zero/empty?
+  const isEmpty = !wallet.balance || wallet.balance === '0' || wallet.balance === '$0'
+    || wallet.balance.startsWith('0 ') || wallet.balance === '~0 ETH'
 
   const handleClick = useCallback(() => onSelect(wallet.id), [wallet.id, onSelect])
 
   return (
     <div
       onClick={handleClick}
-      className="rounded-2xl p-4 cursor-pointer animate-float-up relative overflow-hidden"
+      className="flex items-center gap-0 cursor-pointer group"
       style={{
-        background:     isSelected
-          ? `linear-gradient(135deg, ${cfg.cardBg} 0%, rgba(255,255,255,0.02) 100%)`
-          : 'rgba(255,255,255,0.025)',
-        border:         isSelected
-          ? `1px solid ${cfg.border}`
-          : '1px solid rgba(255,255,255,0.07)',
-        boxShadow:      isSelected ? cfg.glow : 'none',
-        animationDelay: `${index * 0.04}s`,
-        transition:     'all 0.18s ease',
+        height:       '44px',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        background:   isSelected
+          ? 'rgba(230,161,71,0.06)'
+          : 'transparent',
+        borderLeft:   isSelected
+          ? '2px solid rgba(230,161,71,0.7)'
+          : '2px solid transparent',
+        opacity:      isEmpty && !isSelected ? 0.38 : 1,
+        transition:   'all 0.12s ease',
       }}
       onMouseEnter={e => {
-        if (!isSelected) {
-          const el = e.currentTarget as HTMLDivElement
-          el.style.background  = 'rgba(255,255,255,0.038)'
-          el.style.borderColor = 'rgba(255,255,255,0.11)'
-          el.style.transform   = 'translateY(-2px)'
-          el.style.boxShadow   = '0 8px 32px rgba(0,0,0,0.25)'
-        }
+        if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.025)'
       }}
       onMouseLeave={e => {
-        if (!isSelected) {
-          const el = e.currentTarget as HTMLDivElement
-          el.style.background  = 'rgba(255,255,255,0.025)'
-          el.style.borderColor = 'rgba(255,255,255,0.07)'
-          el.style.transform   = 'translateY(0)'
-          el.style.boxShadow   = 'none'
-        }
+        if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'transparent'
       }}
     >
-      {/* Ambient neon orb when selected */}
-      {isSelected && (
-        <div
-          className="absolute -top-6 -right-6 w-20 h-20 rounded-full pointer-events-none"
-          style={{ background: `radial-gradient(circle, ${cfg.text.replace(',1)', ',0.12)')} 0%, transparent 70%)` }}
-        />
-      )}
+      {/* Index # */}
+      <div style={{ width: '36px', textAlign: 'right', paddingRight: '10px', flexShrink: 0 }}>
+        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.16)' }}>
+          {index + 1}
+        </span>
+      </div>
 
-      {/* Top row: name + signal badge */}
-      <div className="flex items-start justify-between mb-3 relative">
-        <div className="flex items-center gap-2 min-w-0">
-          {/* Active dot */}
+      {/* Status dot */}
+      <div style={{ width: '16px', flexShrink: 0 }}>
+        <span
+          style={{
+            display:      'inline-block',
+            width:        '6px',
+            height:       '6px',
+            borderRadius: '50%',
+            background:   wallet.active ? cfg.color : 'rgba(255,255,255,0.10)',
+            boxShadow:    wallet.active && sig !== 'DORMANT' ? `0 0 6px ${cfg.color}` : 'none',
+          }}
+        />
+      </div>
+
+      {/* Name */}
+      <div style={{ flex: '0 0 160px', minWidth: 0, paddingRight: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <span
-            className="w-2 h-2 rounded-full flex-shrink-0"
             style={{
-              background: wallet.active ? cfg.dot : 'rgba(255,255,255,0.14)',
-              boxShadow:  wallet.active ? `0 0 8px ${cfg.text.replace(',1)', ',0.7)')}` : 'none',
-              animation:  wallet.active ? 'pulse-glow 2s ease-in-out infinite' : 'none',
+              fontFamily:   "'IBM Plex Mono',monospace",
+              fontSize:     '12px',
+              fontWeight:   isSelected ? 600 : 400,
+              color:        isSelected ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.85)',
+              whiteSpace:   'nowrap',
+              overflow:     'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth:     '140px',
             }}
-          />
-          <span
-            className="font-mono font-semibold truncate"
-            style={{ fontSize: '13px', color: isSelected ? cfg.text : 'rgba(255,255,255,0.90)', maxWidth: '130px' }}
           >
             {wallet.label}
           </span>
           {wallet.txNew > 0 && (
-            <span
-              className="font-mono font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 animate-pulse"
-              style={{ fontSize: '8px', background: 'rgba(230,161,71,0.10)', color: 'rgba(230,161,71,1)', border: '1px solid rgba(230,161,71,0.22)' }}
-            >
+            <span style={{
+              fontFamily: "'IBM Plex Mono',monospace",
+              fontSize:   '8px',
+              fontWeight: 700,
+              color:      'rgba(230,161,71,1)',
+              background: 'rgba(230,161,71,0.10)',
+              border:     '1px solid rgba(230,161,71,0.22)',
+              borderRadius: '99px',
+              padding:    '0 4px',
+              lineHeight: '14px',
+              flexShrink: 0,
+            }}>
               {wallet.txNew}
             </span>
           )}
         </div>
-
-        {/* Signal badge */}
-        <div
-          className="flex items-center gap-1.5 px-2 py-1 rounded-lg flex-shrink-0 ml-2"
-          style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
-          <span className="font-mono font-bold" style={{ fontSize: '8px', color: cfg.text, letterSpacing: '0.08em' }}>
-            {cfg.short}
-          </span>
-        </div>
-      </div>
-
-      {/* Balance + sparkline */}
-      <div className="flex items-end justify-between mb-3">
-        <div>
-          <div
-            className="font-display font-bold tabular-nums leading-none"
-            style={{ fontSize: '20px', color: 'rgba(255,255,255,0.92)' }}
-          >
-            {wallet.balance}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1">
-            {/* Chain badge */}
-            <span
-              className="font-mono px-1.5 py-0.5 rounded"
-              style={{ fontSize: '8px', fontWeight: 600, background: chain.bg, color: chain.text, border: `1px solid ${chain.border}` }}
-            >
-              {wallet.chain}
-            </span>
-            {/* P&L chip */}
-            {pnlPct !== 0 && (
-              <span
-                className="font-mono flex items-center gap-0.5"
-                style={{ fontSize: '9px', color: pnlPos ? 'rgba(52,211,153,0.9)' : 'rgba(239,68,68,0.9)' }}
-              >
-                {pnlPos ? <ArrowUpRight className="w-2.5 h-2.5" /> : <ArrowDownLeft className="w-2.5 h-2.5" />}
-                {pnlPos ? '+' : ''}{pnlPct.toFixed(1)}%
-              </span>
-            )}
-          </div>
-        </div>
-        <MiniSpark data={sparkData} positive={pnlPos} />
-      </div>
-
-      {/* Address + conviction bar */}
-      <div className="space-y-2">
-        {/* Address row */}
-        <div className="flex items-center justify-between">
-          <span className="font-mono" style={{ fontSize: '9px', color: 'rgba(255,255,255,0.22)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.20)' }}>
             {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
           </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 transition-colors"
-              style={{ color: copied ? 'rgba(230,161,71,0.8)' : 'rgba(255,255,255,0.2)' }}
-            >
-              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-            </button>
-            <a
-              href={`https://etherscan.io/address/${wallet.address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
-              style={{ color: 'rgba(255,255,255,0.18)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.7)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.18)' }}
-            >
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-
-        {/* Conviction bar */}
-        <div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width:      `${Math.max(2, conviction)}%`,
-                background: sig === 'DORMANT'
-                  ? 'rgba(255,255,255,0.12)'
-                  : `linear-gradient(90deg, ${cfg.text}, ${cfg.text.replace(',1)', ',0.5)')})`,
-                boxShadow:  sig !== 'DORMANT' ? `0 0 6px ${cfg.text.replace(',1)', ',0.4)')}` : 'none',
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-between mt-1">
-            <span className="font-mono" style={{ fontSize: '8px', color: 'rgba(255,255,255,0.18)' }}>conv</span>
-            <span className="font-mono font-bold" style={{ fontSize: '8px', color: cfg.text }}>{conviction}</span>
-          </div>
+          <CopyBtn address={wallet.address} />
         </div>
       </div>
 
-      {/* Big move banner */}
-      {hasBig && (
-        <div
-          className="mt-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
-          style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.20)' }}
+      {/* Chain */}
+      <div style={{ flex: '0 0 44px', flexShrink: 0 }}>
+        <span style={{
+          fontFamily:   "'IBM Plex Mono',monospace",
+          fontSize:     '9px',
+          fontWeight:   600,
+          color:        chainColor,
+          background:   chainColor.replace(/[\d.]+\)$/, '0.08)'),
+          border:       `1px solid ${chainColor.replace(/[\d.]+\)$/, '0.22)')}`,
+          borderRadius: '4px',
+          padding:      '1px 5px',
+        }}>
+          {wallet.chain}
+        </span>
+      </div>
+
+      {/* Balance */}
+      <div style={{ flex: '0 0 100px', flexShrink: 0, paddingRight: '8px' }}>
+        <span style={{
+          fontFamily: "'IBM Plex Mono',monospace",
+          fontSize:   '12px',
+          fontWeight: 600,
+          color:      isEmpty ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.92)',
+          whiteSpace: 'nowrap',
+        }}>
+          {wallet.balance}
+        </span>
+      </div>
+
+      {/* Signal badge */}
+      <div style={{ flex: '0 0 68px', flexShrink: 0 }}>
+        <span style={{
+          fontFamily:   "'IBM Plex Mono',monospace",
+          fontSize:     '8px',
+          fontWeight:   700,
+          letterSpacing:'0.06em',
+          color:        cfg.color,
+          background:   cfg.bg,
+          border:       `1px solid ${cfg.border}`,
+          borderRadius: '4px',
+          padding:      '2px 6px',
+        }}>
+          {cfg.short}
+        </span>
+      </div>
+
+      {/* Conviction bar + number */}
+      <div style={{ flex: '0 0 72px', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+        <ConvBar value={conviction} color={cfg.color} />
+        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.35)', width: '20px' }}>
+          {conviction}
+        </span>
+      </div>
+
+      {/* Last move */}
+      <div style={{ flex: '0 0 70px', flexShrink: 0 }}>
+        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.25)' }}>
+          {wallet.lastMove ?? '—'}
+        </span>
+      </div>
+
+      {/* Big move alert / etherscan link */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '14px', gap: '6px' }}>
+        {hasBig && (
+          <div style={{
+            display:    'flex',
+            alignItems: 'center',
+            gap:        '3px',
+            padding:    '2px 6px',
+            background: 'rgba(251,191,36,0.06)',
+            border:     '1px solid rgba(251,191,36,0.22)',
+            borderRadius: '4px',
+          }}>
+            <Zap style={{ width: '9px', height: '9px', color: 'rgba(251,191,36,1)', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700, color: 'rgba(251,191,36,1)', whiteSpace: 'nowrap' }}>
+              {fmtVal(bigVal)}
+            </span>
+          </div>
+        )}
+        <a
+          href={`https://etherscan.io/address/${wallet.address}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          style={{ color: 'rgba(255,255,255,0.14)', flexShrink: 0 }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.6)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.14)' }}
         >
-          <Zap className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(251,191,36,1)' }} />
-          <span className="font-mono font-bold" style={{ fontSize: '9px', color: 'rgba(251,191,36,1)' }}>
-            BIG MOVE — {fmtVal(bigVal)}
-          </span>
-        </div>
-      )}
+          <ExternalLink style={{ width: '11px', height: '11px' }} />
+        </a>
+      </div>
     </div>
   )
 })
-WalletCard.displayName = 'WalletCard'
+WalletRow.displayName = 'WalletRow'
 
 // ── Main WalletTable ──────────────────────────────────────────────────────────
 
@@ -332,22 +322,91 @@ const WalletTable = memo(({ wallets, selectedWalletId, onSelectWallet, walletInt
 
   if (loading) {
     return (
-      <div
-        className="grid gap-3 p-4"
-        style={{ gridTemplateColumns: compact ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))' }}
-      >
-        {[...Array(4)].map((_, i) => <SkeletonCard key={i} delay={i * 0.06} />)}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        {/* Header */}
+        <div
+          className="flex items-center gap-0 px-0"
+          style={{
+            height:       '32px',
+            borderBottom: '1px solid rgba(255,255,255,0.07)',
+            background:   'rgba(255,255,255,0.015)',
+          }}
+        >
+          {[36, 16, 160, 44, 100, 68, 72, 70].map((w, i) => (
+            <div key={i} style={{ flex: i === 7 ? 1 : `0 0 ${w}px`, paddingLeft: i === 0 ? '12px' : 0 }}>
+              <div className="h-2 w-12 rounded shimmer" />
+            </div>
+          ))}
+        </div>
+        {[...Array(8)].map((_, i) => <SkeletonRow key={i} i={i} />)}
       </div>
     )
   }
 
   return (
-    <div
-      className="grid gap-3 p-4"
-      style={{ gridTemplateColumns: compact ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))' }}
-    >
+    <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+
+      {/* Column headers */}
+      <div
+        className="flex items-center sticky top-0 z-10"
+        style={{
+          height:       '30px',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background:   'rgba(4,4,10,0.96)',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        {/* # */}
+        <div style={{ width: '36px', textAlign: 'right', paddingRight: '10px', flexShrink: 0 }} />
+        {/* dot */}
+        <div style={{ width: '16px', flexShrink: 0 }} />
+        {/* name */}
+        <div style={{ flex: '0 0 160px', paddingRight: '8px' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+            Wallet
+          </span>
+        </div>
+        {/* chain */}
+        <div style={{ flex: '0 0 44px' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+            Chain
+          </span>
+        </div>
+        {/* balance */}
+        <div style={{ flex: '0 0 100px', paddingRight: '8px' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+            Balance
+          </span>
+        </div>
+        {/* signal */}
+        <div style={{ flex: '0 0 68px' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+            Signal
+          </span>
+        </div>
+        {/* conviction */}
+        <div style={{ flex: '0 0 72px' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+            Conv
+          </span>
+        </div>
+        {/* last move */}
+        <div style={{ flex: '0 0 70px' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+            Last Move
+          </span>
+        </div>
+        {/* alert */}
+        <div style={{ flex: 1, paddingRight: '14px', textAlign: 'right' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
+            Alert
+          </span>
+        </div>
+      </div>
+
+      {/* Rows */}
       {wallets.map((w, i) => (
-        <WalletCard
+        <WalletRow
           key={w.id}
           wallet={w}
           intel={walletIntelMap[w.id] ?? null}
@@ -356,6 +415,13 @@ const WalletTable = memo(({ wallets, selectedWalletId, onSelectWallet, walletInt
           index={i}
         />
       ))}
+
+      {/* Footer count */}
+      <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.16)' }}>
+          {wallets.length} wallets · sorted by balance
+        </span>
+      </div>
     </div>
   )
 })
