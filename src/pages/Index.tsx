@@ -21,6 +21,7 @@ import WalletTable                 from '@/components/dashboard/WalletTable'
 import ActivityFeed                from '@/components/dashboard/ActivityFeed'
 import WalletIntelPanel            from '@/components/dashboard/WalletIntelPanel'
 import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
+import { usePatternRecognition }   from '@/hooks/usePatternRecognition'
 import UnknownWhaleCard            from '@/components/dashboard/UnknownWhaleCard'
 import { AddWalletModal }          from '@/components/AddWalletModal'
 import { UpgradeModal }            from '@/components/UpgradeModal'
@@ -50,7 +51,7 @@ import { useTelegramAlert }        from '@/hooks/useTelegramAlert'
 import { usePriceAlert }           from '@/hooks/usePriceAlert'
 import { Send }                    from 'lucide-react'
 
-type MobileTab = 'wallets' | 'intel' | 'stats'
+type MobileTab = 'wallets' | 'intel' | 'stats' | 'radar'
 
 // ── UI data mappers ──────────────────────────────────────────────────────────
 
@@ -434,6 +435,7 @@ const Index = () => {
 
   const tgAlert      = useTelegramAlert()
   const whaleAlerts  = useWhaleAlerts(walletIntelMap, walletLabels, tgAlert.sendAlert)
+  const { criticalPatterns } = usePatternRecognition()
   const { config: priceAlertCfg, setConfig: setPriceAlertCfg } = usePriceAlert(
     ethPrice ?? null,
     (msg) => {
@@ -535,6 +537,17 @@ const Index = () => {
             </div>
           )}
 
+          {mobileTab === 'radar' && (
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} className="animate-fade-up">
+              <WalletIntelPanel
+                events={filteredEvents} selectedWallet={selectedWallet}
+                selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
+                leaderboard={leaderboard} clusters={clusters}
+                defaultTab="RADAR"
+              />
+            </div>
+          )}
+
           {mobileTab === 'stats' && (
             <div
               style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
@@ -579,6 +592,7 @@ const Index = () => {
           activeTab={mobileTab}
           onTabChange={setMobileTab}
           hasAlert={whaleAlerts.alertCount > 0}
+          hasRadarAlert={criticalPatterns.length > 0}
         />
 
         <DyorBanner />
