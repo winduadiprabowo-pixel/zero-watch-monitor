@@ -18,9 +18,9 @@ import { fetchBtcWalletData } from '@/services/bitcoinApi'
 import { fetchTronWalletData } from '@/services/tronApi'
 import { fetchBnbWalletData } from '@/services/bnbApi'
 
-const POLL        = 60_000
-const STALE       = 50_000
-const QUEUE_DELAY = 250
+const POLL        = 120_000  // 120s — reduce CF Worker requests 50%
+const STALE       = 110_000
+const QUEUE_DELAY = 300      // slightly slower queue — less burst
 const PRIORITY    = 5
 
 // ── saveSnapshot — throttled 1x/hour per wallet ──────────────────────────────
