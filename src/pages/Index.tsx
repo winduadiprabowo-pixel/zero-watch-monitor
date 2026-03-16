@@ -1,6 +1,9 @@
 /**
- * ZERØ WATCH — Index v25
+ * ZERØ WATCH — Index v26
  * ========================
+ * v26: Entity Table — compute entityGroups dari storeWallets
+ *      1 group per whale entity → pass to WalletTable v26
+ *      Pinned: Satoshi-Era 🌋 | Mt.Gox ⚠ | FTX Estate 💀 always top
  * v25: WhaleTicker — live scrolling alert banner (top of dashboard)
  *      Entity-aware activity sort — most active first, pinned BLACK SWAN
  *      loadingIds shimmer fix carried from v24
@@ -19,7 +22,7 @@ import React, { memo }             from 'react'
 import Logo                        from '@/components/dashboard/Logo'
 import WalletSidebar               from '@/components/dashboard/WalletSidebar'
 import StatsBar                    from '@/components/dashboard/StatsBar'
-import WalletTable                 from '@/components/dashboard/WalletTable'
+import WalletTable, { EntityGroup } from '@/components/dashboard/WalletTable'
 import ActivityFeed                from '@/components/dashboard/ActivityFeed'
 import WalletIntelPanel            from '@/components/dashboard/WalletIntelPanel'
 import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
@@ -457,6 +460,84 @@ const Index = () => {
     return s
   }, [storeWallets, apiDataArr])
 
+  // ── Entity Groups (Push 32) ────────────────────────────────────────────────
+  // Group filteredWallets by entity field from storeWallets
+  const entityGroups = useMemo<EntityGroup[]>(() => {
+    type GroupAcc = {
+      wallets:  typeof filteredWallets
+      pinned:   boolean
+    }
+    const map: Record<string, GroupAcc> = {}
+
+    filteredWallets.forEach(w => {
+      const sw     = storeWallets.find(s => s.id === w.id)
+      const entity = (sw as typeof sw & { entity?: string })?.entity ?? w.label
+      const pin    = (sw as typeof sw & { pinned?: boolean })?.pinned ?? false
+
+      if (!map[entity]) map[entity] = { wallets: [], pinned: false }
+      map[entity].wallets.push(w)
+      if (pin) map[entity].pinned = true
+    })
+
+    const SIGNAL_PRI: Record<string, number> = {
+      DISTRIBUTING: 4, ACCUMULATING: 3, HUNTING: 2, DORMANT: 1,
+    }
+    const MOVE_PRI = (s: string) => {
+      if (s.endsWith('s ago')) return 1
+      if (s.endsWith('m ago')) return 2
+      if (s.endsWith('h ago')) return 3
+      if (s.endsWith('d ago')) return 4
+      return 5
+    }
+    const PINNED_ORDER: Record<string, number> = {
+      'Satoshi-Era': 0, 'Mt.Gox Trustee': 1, 'FTX Estate': 2,
+    }
+
+    const groups: EntityGroup[] = Object.entries(map).map(([entity, { wallets: gw, pinned }]) => {
+      // Total USD
+      const totalUsd = gw.reduce((sum, w) => {
+        const idx = storeWallets.findIndex(s => s.id === w.id)
+        return sum + (apiDataArr?.[idx]?.balance.usdValue ?? 0)
+      }, 0)
+
+      // Unique chains
+      const chains = [...new Set(gw.map(w => w.chain))]
+
+      // Active chains — wallets with txNew > 0 in last hour
+      const activeChains = [...new Set(
+        gw.filter(w => w.txNew > 0).map(w => w.chain)
+      )]
+
+      // Top signal
+      type Sig = 'ACCUMULATING' | 'DISTRIBUTING' | 'HUNTING' | 'DORMANT'
+      const topSignal = gw.reduce<Sig>((best, w) => {
+        const sig = (walletIntelMap[w.id]?.whaleScore?.status ?? 'DORMANT') as Sig
+        return (SIGNAL_PRI[sig] ?? 1) > (SIGNAL_PRI[best] ?? 1) ? sig : best
+      }, 'DORMANT')
+
+      // Max conviction
+      const conviction = Math.max(0, ...gw.map(w => walletIntelMap[w.id]?.whaleScore?.conviction ?? 0))
+
+      // Most recent lastMove
+      const lastMove = gw.reduce((best, w) =>
+        MOVE_PRI(w.lastMove ?? '—') < MOVE_PRI(best) ? (w.lastMove ?? '—') : best,
+        '—'
+      )
+
+      return { entity, wallets: gw, totalUsd, chains, activeChains, topSignal, conviction, lastMove, pinned }
+    })
+
+    // Sort: pinned first (Satoshi > MtGox > FTX), then by totalUsd desc
+    return groups.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1
+      if (!a.pinned && b.pinned) return 1
+      if (a.pinned && b.pinned) {
+        return (PINNED_ORDER[a.entity] ?? 99) - (PINNED_ORDER[b.entity] ?? 99)
+      }
+      return b.totalUsd - a.totalUsd
+    })
+  }, [filteredWallets, storeWallets, apiDataArr, walletIntelMap])
+
   // Activity priority score — most active first, pinned BLACK SWAN always top
   const activityScore = useCallback((w: ReturnType<typeof selectWallets>[number], apiData: typeof apiDataArr[number]) => {
     const storeW = storeWallets.find(sw => sw.id === w.id)
@@ -637,7 +718,7 @@ const Index = () => {
               <WalletTable
                 wallets={filteredWallets} selectedWalletId={selectedWalletId}
                 onSelectWallet={handleSelectWallet} compact walletIntelMap={walletIntelMap}
-                loadingIds={loadingIds}
+                loadingIds={loadingIds} entityGroups={entityGroups}
               />
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '8px' }}>
                 <ActivityFeed
@@ -698,7 +779,7 @@ const Index = () => {
             <WalletTable
               wallets={filteredWallets} selectedWalletId={selectedWalletId}
               onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
-              loadingIds={loadingIds}
+              loadingIds={loadingIds} entityGroups={entityGroups}
             />
           </div>
         </div>
@@ -765,7 +846,7 @@ const Index = () => {
           <WalletTable
             wallets={filteredWallets} selectedWalletId={selectedWalletId}
             onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
-            loadingIds={loadingIds}
+            loadingIds={loadingIds} entityGroups={entityGroups}
           />
         </div>
 
