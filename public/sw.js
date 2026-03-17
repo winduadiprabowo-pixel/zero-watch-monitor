@@ -1,13 +1,13 @@
 /**
  * ZERØ WATCH — Service Worker v29
  * ================================
- * Cache: zero-watch-v46
+ * Cache: zero-watch-v47
  * v28: Web Push notification handler
  *      - push event → show notification background (tab tertutup pun muncul)
  *      - notificationclick → focus/open app
  */
 
-const CACHE_NAME = 'zero-watch-v46'
+const CACHE_NAME = 'zero-watch-v47'
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json']
 
 self.addEventListener('install', event => {
