@@ -1,20 +1,14 @@
 /**
- * ZERØ WATCH — Index v27
+ * ZERØ WATCH — Index v28
  * ========================
+ * v28: Arkham-style desktop layout
+ *      - Desktop: 64px icon-only navbar kiri + full-width table + intel panel di bawah table
+ *      - DesktopIconNav: icon-only vertical navbar, wallet list sebagai slide-over overlay
+ *      - WalletIntelPanel: expand di bawah table saat wallet dipilih (bukan fixed kanan)
+ *      - Tablet: tetap 2-panel (sidebar 240px | main) + intel bottom sheet
+ *      - Mobile: unchanged
  * v27: Cross-Chain Correlation — useCrossChainCorrelation hook
- *      Justin Sun TRX→ETH bridge detection, 30–60 min pre-dump signal
- *      Injects SUN_TRON_BRIDGE pattern events into usePatternRecognition
- *      1 group per whale entity → pass to WalletTable v26
- *      Pinned: Satoshi-Era 🌋 | Mt.Gox ⚠ | FTX Estate 💀 always top
- * v25: WhaleTicker — live scrolling alert banner (top of dashboard)
- *      Entity-aware activity sort — most active first, pinned BLACK SWAN
- *      loadingIds shimmer fix carried from v24
- * - Desktop: 3-panel split (sidebar 272px | main flex | intel 340px)
- * - Tablet (768-1024px): 2-panel (sidebar | main) + intel bottom sheet
- * - Mobile (<768px): tabs (wallets | intel | stats) + bottom nav
- * - DyorBanner: sticky bottom semua device
- * - UnknownWhaleCard: di main content area semua device
- * - Safe area inset: iOS notch support
+ * v25: WhaleTicker — live scrolling alert banner
  *
  * rgba() only ✓  React.memo ✓  useCallback/useMemo ✓
  */
@@ -28,6 +22,7 @@ import WalletTable, { EntityGroup } from '@/components/dashboard/WalletTable'
 import ActivityFeed                from '@/components/dashboard/ActivityFeed'
 import WalletIntelPanel            from '@/components/dashboard/WalletIntelPanel'
 import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
+import MobileMenuOverlay           from '@/components/dashboard/MobileMenuOverlay'
 import WhaleTicker                from '@/components/dashboard/WhaleTicker'
 import UnknownWhaleCard            from '@/components/dashboard/UnknownWhaleCard'
 import { AddWalletModal }          from '@/components/AddWalletModal'
@@ -50,7 +45,7 @@ import {
 }                                  from '@/services/whaleAnalytics'
 import type { WalletIntelligence } from '@/services/whaleAnalytics'
 import type { Transaction }        from '@/services/api'
-import { Download, Zap, Eye, TrendingUp, TrendingDown, Activity, Shield } from 'lucide-react'
+import { Download, Zap, Eye, TrendingUp, TrendingDown, Activity, Shield, Search, Bell, Users, BarChart2, Plus, ChevronDown, ChevronUp, X, Menu } from 'lucide-react'
 import { useWhaleAlerts }          from '@/hooks/useWhaleAlerts'
 import WhaleAlertToggle            from '@/components/WhaleAlertToggle'
 import { TelegramSetupModal }      from '@/components/TelegramSetupModal'
@@ -244,10 +239,11 @@ interface MobileHeaderProps {
   onExport:    () => void
   onUpgrade:   () => void
   onAdd:       () => void
+  onMenu:      () => void
   alerts:      import('@/hooks/useWhaleAlerts').WhaleAlertsState
 }
 
-const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgrade, onAdd, alerts }: MobileHeaderProps) => (
+const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgrade, onAdd, onMenu, alerts }: MobileHeaderProps) => (
   <div
     className="flex-shrink-0"
     style={{
@@ -265,8 +261,14 @@ const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgra
   >
     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(230,161,71,0.18) 40%, rgba(230,161,71,0.08) 70%, transparent)' }} />
 
-    {/* Logo */}
-    <div className="animate-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    {/* Hamburger + Logo */}
+    <div className="animate-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <button
+        onClick={onMenu}
+        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+      >
+        <Menu style={{ width: '20px', height: '20px' }} />
+      </button>
       <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
         <rect x="1" y="1" width="26" height="26" rx="3" stroke="rgba(230,161,71,1)" strokeWidth="2" fill="rgba(230,161,71,0.06)" />
         <polyline points="5,7 13,7 5,14 13,14" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
@@ -377,6 +379,7 @@ const Index = () => {
   const [upgradeOpen, setUpgradeOpen]           = useState(false)
   const [exportOpen, setExportOpen]             = useState(false)
   const [tgOpen, setTgOpen]                     = useState(false)
+  const [menuOpen, setMenuOpen]                 = useState(false)
 
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
@@ -670,7 +673,7 @@ const Index = () => {
         <MobileHeader
           isProActive={isProActive} isFetching={isFetching} isError={!!isError}
           onExport={handleExportClick} onUpgrade={() => setUpgradeOpen(true)}
-          onAdd={() => setAddOpen(true)} alerts={whaleAlerts}
+          onAdd={() => setAddOpen(true)} onMenu={() => setMenuOpen(true)} alerts={whaleAlerts}
         />
         <WhaleTicker />
 
@@ -759,6 +762,17 @@ const Index = () => {
         />
 
         <DyorBanner />
+        <MobileMenuOverlay
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          isProActive={isProActive}
+          tgEnabled={tgAlert.enabled}
+          onAddWallet={() => setAddOpen(true)}
+          onUpgrade={() => setUpgradeOpen(true)}
+          onExport={handleExportClick}
+          onTgSetup={() => setTgOpen(true)}
+          onTabChange={setMobileTab}
+        />
         {modals}
       </div>
     )
@@ -829,7 +843,31 @@ const Index = () => {
     )
   }
 
-  // ── DESKTOP (>1024px) ─────────────────────────────────────────────────────
+  // ── DESKTOP (>1024px) — Arkham-style layout ──────────────────────────────
+  // 64px icon-only navbar kiri + full-width main + intel panel di bawah table
+
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [intelOpen,   setIntelOpen]   = useState(false)
+
+  // Auto-open intel panel saat wallet dipilih
+  const handleSelectWalletDesktop = useCallback((id: string) => {
+    handleSelectWallet(id)
+    setIntelOpen(true)
+  }, [handleSelectWallet])
+
+  // Close intel jika deselect
+  const handleCloseIntel = useCallback(() => {
+    setIntelOpen(false)
+    setSelectedWalletId(null)
+  }, [])
+
+  // Nav items untuk icon navbar
+  const navItems = [
+    { icon: Users,    label: 'Wallets',   action: () => setSidebarOpen(o => !o) },
+    { icon: Bell,     label: 'Alerts',    action: () => whaleAlerts.permission !== 'granted' && whaleAlerts.requestPermission?.() },
+    { icon: Send,     label: 'Telegram',  action: () => setTgOpen(true) },
+    { icon: BarChart2,label: 'Intel',     action: () => setIntelOpen(o => !o) },
+  ]
 
   return (
     <div
@@ -837,48 +875,215 @@ const Index = () => {
       style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'rgba(4,4,10,1)' }}
     >
       <WhaleTicker />
-      {/* Main 3-panel layout */}
+
+      {/* Body: icon nav + main */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
 
-        {/* Left sidebar — 200px fixed, lebih compact */}
-        <div
-          style={{ width: '200px', minWidth: '200px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.065)' }}
+        {/* ── 64px Icon Navbar ─────────────────────────────────────────── */}
+        <nav
+          style={{
+            width:         '64px',
+            minWidth:      '64px',
+            display:       'flex',
+            flexDirection: 'column',
+            alignItems:    'center',
+            borderRight:   '1px solid rgba(255,255,255,0.065)',
+            background:    'rgba(4,4,10,0.98)',
+            paddingTop:    '8px',
+            paddingBottom: '12px',
+            gap:           '2px',
+            zIndex:        30,
+          }}
         >
-          <Logo />
-          <AddBtn
-            onAdd={() => setAddOpen(true)} onExport={handleExportClick}
-            onUpgrade={() => setUpgradeOpen(true)} onTgSetup={() => setTgOpen(true)}
-            isProActive={isProActive} tgEnabled={tgAlert.enabled}
-            isFetching={isFetching} isError={!!isError} alerts={whaleAlerts}
-          />
-          <WalletSidebar
-            wallets={filteredWallets} selectedWalletId={selectedWalletId}
-            activeFilter={activeFilter} searchQuery={searchQuery}
-            onSelectWallet={handleSelectWallet} onFilterChange={setActiveFilter}
-            onSearchChange={setSearchQuery}
-          />
-        </div>
+          {/* Logo icon */}
+          <div style={{ padding: '10px 0 14px', width: '100%', display: 'flex', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.055)', marginBottom: '6px' }}>
+            <img src="/icon-192.png" alt="ZERØ WATCH" style={{ width: 32, height: 32, borderRadius: 9 }} />
+          </div>
 
-        {/* Main content — flex 1 */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Add wallet button */}
+          <button
+            onClick={() => setAddOpen(true)}
+            title="Add Wallet"
+            style={{
+              width: '44px', height: '44px', borderRadius: '12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(230,161,71,0.10)', border: '1px solid rgba(230,161,71,0.28)',
+              color: 'rgba(230,161,71,1)', cursor: 'pointer', transition: 'all 0.15s',
+              marginBottom: '6px',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.18)'; e.currentTarget.style.borderColor = 'rgba(230,161,71,0.50)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.10)'; e.currentTarget.style.borderColor = 'rgba(230,161,71,0.28)' }}
+          >
+            <Plus style={{ width: '18px', height: '18px' }} />
+          </button>
+
+          {/* Nav icons */}
+          {navItems.map(({ icon: Icon, label, action }) => (
+            <button
+              key={label}
+              onClick={action}
+              title={label}
+              style={{
+                width: '44px', height: '44px', borderRadius: '12px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: (label === 'Wallets' && sidebarOpen) || (label === 'Intel' && intelOpen)
+                  ? 'rgba(255,255,255,0.07)' : 'transparent',
+                border: '1px solid transparent',
+                color: (label === 'Wallets' && sidebarOpen) || (label === 'Intel' && intelOpen)
+                  ? 'rgba(230,161,71,0.9)' : 'rgba(255,255,255,0.35)',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
+              onMouseLeave={e => {
+                const isActive = (label === 'Wallets' && sidebarOpen) || (label === 'Intel' && intelOpen)
+                e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'
+                e.currentTarget.style.color = isActive ? 'rgba(230,161,71,0.9)' : 'rgba(255,255,255,0.35)'
+              }}
+            >
+              <Icon style={{ width: '18px', height: '18px' }} />
+            </button>
+          ))}
+
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Live status dot */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', paddingBottom: '4px' }}>
+            <span
+              style={{
+                width: '8px', height: '8px', borderRadius: '50%',
+                background: isFetching ? 'rgba(251,191,36,1)' : isError ? 'rgba(239,68,68,1)' : 'rgba(52,211,153,1)',
+                boxShadow:  isFetching ? '0 0 6px rgba(251,191,36,0.8)' : isError ? '0 0 6px rgba(239,68,68,0.8)' : '0 0 6px rgba(52,211,153,0.8)',
+                animation:  'pulse-glow 2s ease-in-out infinite', display: 'inline-block',
+              }}
+            />
+            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '7px', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.2)', writingMode: 'vertical-rl' as const }}>
+              {isFetching ? 'SYNC' : isError ? 'ERR' : 'LIVE'}
+            </span>
+          </div>
+
+          {/* PRO / Export */}
+          {isProActive ? (
+            <button
+              onClick={handleExportClick}
+              title="Export CSV"
+              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid transparent', color: 'rgba(230,161,71,0.5)', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(230,161,71,1)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(230,161,71,0.5)' }}
+            >
+              <Download style={{ width: '16px', height: '16px' }} />
+            </button>
+          ) : (
+            <button
+              onClick={() => setUpgradeOpen(true)}
+              title="Upgrade to PRO"
+              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.22)', color: 'rgba(230,161,71,0.8)', cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 0 10px rgba(230,161,71,0.12)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.16)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.08)' }}
+            >
+              <Zap style={{ width: '16px', height: '16px' }} />
+            </button>
+          )}
+        </nav>
+
+        {/* ── Wallet Sidebar Overlay (slide-in dari kiri) ──────────────── */}
+        {sidebarOpen && (
+          <div
+            style={{
+              width: '240px', minWidth: '240px',
+              display: 'flex', flexDirection: 'column',
+              borderRight: '1px solid rgba(255,255,255,0.065)',
+              background: 'rgba(5,5,12,0.98)',
+              backdropFilter: 'blur(12px)',
+              animation: 'slideInLeft 0.18s ease-out',
+              zIndex: 20,
+            }}
+          >
+            {/* Sidebar header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 12px 10px', borderBottom: '1px solid rgba(255,255,255,0.055)' }}>
+              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.16em', color: 'rgba(255,255,255,0.3)' }}>WALLETS</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              >
+                <X style={{ width: '14px', height: '14px' }} />
+              </button>
+            </div>
+            <WalletSidebar
+              wallets={filteredWallets} selectedWalletId={selectedWalletId}
+              activeFilter={activeFilter} searchQuery={searchQuery}
+              onSelectWallet={(id) => { handleSelectWalletDesktop(id); }}
+              onFilterChange={setActiveFilter}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
+        )}
+
+        {/* ── Main Content — full width ─────────────────────────────────── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
           <StatsBar />
           <UnknownWhaleCard />
-          <WalletTable
-            wallets={filteredWallets} selectedWalletId={selectedWalletId}
-            onSelectWallet={handleSelectWallet} walletIntelMap={walletIntelMap}
-            loadingIds={loadingIds} entityGroups={entityGroups}
-          />
-        </div>
 
-        {/* Right intel panel — 280px fixed, lebih compact */}
-        <WalletIntelPanel
-          events={filteredEvents} selectedWallet={selectedWallet}
-          selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
-          leaderboard={leaderboard} clusters={clusters}
-        />
+          {/* Scrollable area: table + intel panel */}
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <WalletTable
+              wallets={filteredWallets} selectedWalletId={selectedWalletId}
+              onSelectWallet={handleSelectWalletDesktop} walletIntelMap={walletIntelMap}
+              loadingIds={loadingIds} entityGroups={entityGroups}
+            />
+
+            {/* ── Intel Panel — di bawah table, expand saat wallet dipilih ── */}
+            {intelOpen && (
+              <div
+                style={{
+                  borderTop:  '1px solid rgba(255,255,255,0.07)',
+                  background: 'rgba(6,6,14,0.85)',
+                  animation:  'slideInUp 0.2s ease-out',
+                  flexShrink: 0,
+                  maxHeight:  '420px',
+                  overflow:   'hidden',
+                  display:    'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                {/* Intel panel header bar */}
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '8px 16px',
+                    borderBottom: '1px solid rgba(255,255,255,0.055)',
+                    background: 'rgba(4,4,10,0.6)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(230,161,71,1)', boxShadow: '0 0 5px rgba(230,161,71,0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+                    <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.16em', color: 'rgba(230,161,71,0.8)' }}>
+                      {selectedWallet ? selectedWallet.label.toUpperCase() : 'INTELLIGENCE'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleCloseIntel}
+                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px' }}
+                  >
+                    <X style={{ width: '14px', height: '14px' }} />
+                  </button>
+                </div>
+
+                {/* Intel panel content — horizontal layout untuk desktop */}
+                <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+                  <WalletIntelPanel
+                    events={filteredEvents} selectedWallet={selectedWallet}
+                    selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
+                    leaderboard={leaderboard} clusters={clusters}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* DYOR Banner — sticky bottom */}
       <Footer />
       <DyorBanner />
       {modals}
