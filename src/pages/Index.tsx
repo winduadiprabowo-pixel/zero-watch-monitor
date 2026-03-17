@@ -21,6 +21,7 @@ import StatsBar                    from '@/components/dashboard/StatsBar'
 import WalletTable, { EntityGroup } from '@/components/dashboard/WalletTable'
 import ActivityFeed                from '@/components/dashboard/ActivityFeed'
 import WalletIntelPanel            from '@/components/dashboard/WalletIntelPanel'
+import LiveFeedView                from '@/components/dashboard/LiveFeedView'
 import MobileBottomNav             from '@/components/dashboard/MobileBottomNav'
 import MobileMenuOverlay           from '@/components/dashboard/MobileMenuOverlay'
 import WhaleTicker                from '@/components/dashboard/WhaleTicker'
@@ -847,7 +848,7 @@ const Index = () => {
   // ── DESKTOP (>1024px) — Arkham-style layout ──────────────────────────────
   // 64px icon-only navbar kiri + full-width main + intel panel di bawah table
 
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [desktopView, setDesktopView] = useState<'feed' | 'table'>('feed')
   const [intelOpen,   setIntelOpen]   = useState(false)
 
   // Auto-open intel panel saat wallet dipilih
@@ -1034,13 +1035,48 @@ const Index = () => {
           <StatsBar />
           <UnknownWhaleCard />
 
-          {/* Scrollable area: table + intel panel */}
+          {/* View toggle */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '8px 20px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            flexShrink: 0,
+            background: 'rgba(4,4,10,0.6)',
+          }}>
+            {(['feed', 'table'] as const).map(v => (
+              <button
+                key={v}
+                onClick={() => setDesktopView(v)}
+                style={{
+                  padding: '5px 14px', borderRadius: '8px', cursor: 'pointer',
+                  fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px',
+                  letterSpacing: '0.12em', fontWeight: desktopView === v ? 700 : 400,
+                  background: desktopView === v ? 'rgba(230,161,71,0.10)' : 'transparent',
+                  border: desktopView === v ? '1px solid rgba(230,161,71,0.28)' : '1px solid transparent',
+                  color: desktopView === v ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.3)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {v === 'feed' ? 'LIVE FEED' : 'WALLETS'}
+              </button>
+            ))}
+          </div>
+
+          {/* Scrollable area */}
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <WalletTable
-              wallets={filteredWallets} selectedWalletId={selectedWalletId}
-              onSelectWallet={handleSelectWalletDesktop} walletIntelMap={walletIntelMap}
-              loadingIds={loadingIds} entityGroups={entityGroups}
-            />
+            {desktopView === 'feed' ? (
+              <LiveFeedView
+                events={allEvents}
+                wallets={allWallets}
+                onSelectWallet={handleSelectWalletDesktop}
+              />
+            ) : (
+              <WalletTable
+                wallets={filteredWallets} selectedWalletId={selectedWalletId}
+                onSelectWallet={handleSelectWalletDesktop} walletIntelMap={walletIntelMap}
+                loadingIds={loadingIds} entityGroups={entityGroups}
+              />
+            )}
           </div>
         </div>
       </div>
