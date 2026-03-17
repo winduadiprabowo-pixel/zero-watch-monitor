@@ -75,8 +75,8 @@ const MetricCard = memo(({ label, value, sub, icon, color = 'rgba(255,255,255,0.
     {/* Top: label + icon */}
     <div className="flex items-center justify-between mb-3">
       <span
-        className="font-mono tracking-widest uppercase"
-        style={{ fontSize: '9px', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.14em' }}
+        className="font-mono tracking-widest uppercase col-label"
+        style={{ fontSize: '9px', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.14em' }}
       >
         {label}
       </span>
@@ -115,7 +115,10 @@ const StatsBar = memo(({ mobile }: StatsBarProps) => {
   const stats = useMemo(() => {
     const hasData = storeWallets.length > 0 && apiDataArr && apiDataArr.length > 0
     const totalUsd = hasData
-      ? apiDataArr!.reduce((s, w) => s + (w?.balance.usdValue ?? 0), 0)
+      ? apiDataArr!.reduce((s, w) => {
+          const v = w?.balance.usdValue ?? 0
+          return s + (isNaN(v) || !isFinite(v) ? 0 : v)
+        }, 0)
       : 0
     const activeCount = hasData
       ? apiDataArr!.filter(w =>
@@ -182,7 +185,7 @@ const StatsBar = memo(({ mobile }: StatsBarProps) => {
           <div>
             <span
               className="font-mono tracking-widest uppercase block mb-2"
-              style={{ fontSize: '9px', color: 'rgba(255,255,255,0.30)', letterSpacing: '0.16em' }}
+              style={{ fontSize: '9px', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.16em' }}
             >
               Portfolio Value
             </span>
@@ -190,8 +193,8 @@ const StatsBar = memo(({ mobile }: StatsBarProps) => {
               <div className="h-10 w-40 rounded-lg shimmer" />
             ) : (
               <div
-                className="font-display font-bold leading-none gradient-text-neon"
-                style={{ fontSize: '32px' }}
+                className="font-display font-bold leading-none gradient-text-neon portfolio-value-in"
+                style={{ fontSize: '38px', letterSpacing: '-0.02em' }}
               >
                 {fmtUsd(stats.totalUsd)}
               </div>
