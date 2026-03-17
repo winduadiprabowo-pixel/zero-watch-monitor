@@ -862,6 +862,15 @@ const Index = () => {
     setSelectedWalletId(null)
   }, [])
 
+  // ESC key closes intel overlay
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && intelOpen) handleCloseIntel()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [intelOpen, handleCloseIntel])
+
   // Nav items untuk icon navbar
   const navItems = [
     { icon: Users,    label: 'Wallets',   action: () => setSidebarOpen(o => !o) },
@@ -1032,58 +1041,93 @@ const Index = () => {
               onSelectWallet={handleSelectWalletDesktop} walletIntelMap={walletIntelMap}
               loadingIds={loadingIds} entityGroups={entityGroups}
             />
-
-            {/* ── Intel Panel — di bawah table, expand saat wallet dipilih ── */}
-            {intelOpen && (
-              <div
-                style={{
-                  borderTop:  '1px solid rgba(255,255,255,0.07)',
-                  background: 'rgba(6,6,14,0.85)',
-                  animation:  'slideInUp 0.2s ease-out',
-                  flexShrink: 0,
-                  maxHeight:  '420px',
-                  overflow:   'hidden',
-                  display:    'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                {/* Intel panel header bar */}
-                <div
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '8px 16px',
-                    borderBottom: '1px solid rgba(255,255,255,0.055)',
-                    background: 'rgba(4,4,10,0.6)',
-                    flexShrink: 0,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(230,161,71,1)', boxShadow: '0 0 5px rgba(230,161,71,0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
-                    <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.16em', color: 'rgba(230,161,71,0.8)' }}>
-                      {selectedWallet ? selectedWallet.label.toUpperCase() : 'INTELLIGENCE'}
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleCloseIntel}
-                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px' }}
-                  >
-                    <X style={{ width: '14px', height: '14px' }} />
-                  </button>
-                </div>
-
-                {/* Intel panel content — horizontal layout untuk desktop */}
-                <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
-                  <WalletIntelPanel
-                    events={filteredEvents} selectedWallet={selectedWallet}
-                    selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
-                    leaderboard={leaderboard} clusters={clusters}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
+
+      {/* ── Intel Full Screen Overlay ─────────────────────────────────────── */}
+      {intelOpen && (
+        <div
+          style={{
+            position:   'fixed',
+            inset:      0,
+            zIndex:     100,
+            background: 'rgba(2,2,8,0.92)',
+            backdropFilter: 'blur(8px)',
+            display:    'flex',
+            flexDirection: 'column',
+            animation:  'slideInUp 0.22s cubic-bezier(0.22,1,0.36,1) both',
+          }}
+        >
+          {/* ── Header bar ── */}
+          <div
+            style={{
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'space-between',
+              padding:        '14px 24px',
+              borderBottom:   '1px solid rgba(255,255,255,0.07)',
+              background:     'rgba(4,4,10,0.98)',
+              flexShrink:     0,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img src="/icon-192.png" alt="" style={{ width: 28, height: 28, borderRadius: 8 }} />
+              <div>
+                <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '14px', color: 'rgba(255,255,255,0.9)' }}>
+                  {selectedWallet ? selectedWallet.label : 'INTELLIGENCE'}
+                </div>
+                {selectedWallet && (
+                  <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '2px' }}>
+                    {selectedWallet.address} · {selectedWallet.chain} · {selectedWallet.tag}
+                  </div>
+                )}
+              </div>
+              {selectedWallet && (
+                <div style={{
+                  padding: '4px 10px', borderRadius: '8px',
+                  background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.22)',
+                  fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700,
+                  color: 'rgba(230,161,71,1)',
+                }}>
+                  {selectedWallet.balance}
+                </div>
+              )}
+              {/* Live dot */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '99px', background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.18)' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(52,211,153,1)', boxShadow: '0 0 5px rgba(52,211,153,0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+                <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em', color: 'rgba(52,211,153,0.8)' }}>LIVE</span>
+              </div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={handleCloseIntel}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '8px 16px', borderRadius: '10px',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+                color: 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'all 0.15s',
+                fontFamily: "'IBM Plex Mono',monospace", fontSize: '11px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
+            >
+              <X style={{ width: '14px', height: '14px' }} />
+              ESC
+            </button>
+          </div>
+
+          {/* ── Intel Panel Content — full height ── */}
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', minHeight: 0 }}>
+            <WalletIntelPanel
+              events={filteredEvents} selectedWallet={selectedWallet}
+              selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
+              leaderboard={leaderboard} clusters={clusters}
+            />
+          </div>
+        </div>
+      )}
 
       <Footer />
       <DyorBanner />
