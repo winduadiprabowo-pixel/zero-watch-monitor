@@ -8,8 +8,9 @@
  * AbortController ✓  mountedRef compatible ✓
  */
 
-const BTC_API   = 'https://blockstream.info/api'
-const BTC_PRICE = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
+const PROXY     = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const BTC_API   = () => PROXY ? `${PROXY}/btc` : 'https://blockstream.info/api'
+const BTC_PRICE = () => PROXY ? `${PROXY}/coingecko/price?ids=bitcoin&vs_currencies=usd` : 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
 
 // ── Known BTC Whales ─────────────────────────────────────────────────────────
 
@@ -99,7 +100,7 @@ export async function getBtcPrice(signal?: AbortSignal): Promise<number> {
     return _btcPriceCache.usd
   }
   try {
-    const res  = await fetch(BTC_PRICE, { signal })
+    const res  = await fetch(BTC_PRICE(), { signal })
     const data = await res.json()
     const usd  = data?.bitcoin?.usd ?? 65000
     _btcPriceCache = { usd, ts: Date.now() }
@@ -119,8 +120,8 @@ export async function fetchBtcWalletData(
 
   // Fetch balance
   const [addrRes, txRes] = await Promise.all([
-    fetch(`${BTC_API}/address/${address}`, { signal }),
-    fetch(`${BTC_API}/address/${address}/txs`, { signal }),
+    fetch(`${BTC_API()}/address/${address}`, { signal }),
+    fetch(`${BTC_API()}/address/${address}/txs`, { signal }),
   ])
 
   const addrData = await addrRes.json()
