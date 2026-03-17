@@ -114,14 +114,35 @@ const CopyBtn = memo(({ address }: { address: string }) => {
 })
 CopyBtn.displayName = 'CopyBtn'
 
-const ConvBar = memo(({ value, color }: { value: number; color: string }) => (
-  <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden', flexShrink: 0 }}>
-    <div style={{
-      height: '100%', width: `${Math.max(2, value)}%`,
-      background: color, borderRadius: '99px', transition: 'width 0.5s ease',
-    }} />
-  </div>
-))
+const ConvBar = memo(({ value, color }: { value: number; color: string }) => {
+  const R = 12
+  const circumference = 2 * Math.PI * R
+  const pct = Math.min(100, Math.max(0, value))
+  const dash = (pct / 100) * circumference
+  return (
+    <div style={{ position: 'relative', width: '32px', height: '32px', flexShrink: 0 }}>
+      <svg width="32" height="32" viewBox="0 0 32 32" className="conviction-ring">
+        <circle cx="16" cy="16" r={R} className="conviction-ring-track" />
+        <circle
+          cx="16" cy="16" r={R}
+          className="conviction-ring-fill"
+          stroke={color}
+          strokeDasharray={`${dash} ${circumference}`}
+          style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+        />
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: "'IBM Plex Mono',monospace",
+        fontSize: '9px', fontWeight: 700,
+        color: pct > 50 ? color : 'rgba(255,255,255,0.4)',
+      }}>
+        {pct}
+      </div>
+    </div>
+  )
+})
 ConvBar.displayName = 'ConvBar'
 
 // ── Chain chips (compact multi-chain display) ─────────────────────────────────
@@ -310,9 +331,6 @@ const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChi
       {/* Conviction bar + number */}
       <div style={{ flex: '0 0 72px', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
         <ConvBar value={group.conviction} color={pinned ? pinned.color : cfg.color} />
-        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.35)', width: '20px' }}>
-          {group.conviction}
-        </span>
       </div>
 
       {/* Last move */}
