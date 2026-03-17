@@ -97,12 +97,21 @@ const FeedRow = memo(({ event, wallet, onSelectWallet, index }: RowProps) => {
           display: 'flex', alignItems: 'center', gap: '8px',
         }}
       >
-        {/* Wallet dot */}
-        <span style={{
-          width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
-          background: wallet?.active ? 'rgba(52,211,153,1)' : 'rgba(255,255,255,0.2)',
-          boxShadow:  wallet?.active ? '0 0 6px rgba(52,211,153,0.6)' : 'none',
-        }} />
+        {/* Logo or dot */}
+        {wallet?.logo ? (
+          <img
+            src={wallet.logo}
+            alt={wallet.label}
+            style={{ width: '20px', height: '20px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }}
+            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+        ) : (
+          <span style={{
+            width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
+            background: wallet?.active ? 'rgba(52,211,153,1)' : 'rgba(255,255,255,0.2)',
+            boxShadow:  wallet?.active ? '0 0 6px rgba(52,211,153,0.6)' : 'none',
+          }} />
+        )}
         <div style={{ minWidth: 0 }}>
           <div style={{
             fontFamily: "'IBM Plex Mono',monospace", fontSize: '11px', fontWeight: 600,
