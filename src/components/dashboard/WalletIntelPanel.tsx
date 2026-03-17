@@ -1275,12 +1275,13 @@ const WalletIntelPanel = memo(({
 
   return (
     <aside
-      className="flex flex-col border-l h-screen animate-fade-up delay-3"
+      className="flex flex-col animate-fade-up delay-3"
       style={{
-        width:       '280px',
-        minWidth:    '280px',
+        flex:        1,
+        minWidth:    0,
         borderColor: 'rgba(255,255,255,0.065)',
         background:  'rgba(6,6,14,0.7)',
+        overflow:    'hidden',
       }}
     >
       {/* ── Panel header ── */}
