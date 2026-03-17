@@ -840,9 +840,9 @@ const Index = () => {
       {/* Main 3-panel layout */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
 
-        {/* Left sidebar — 272px fixed */}
+        {/* Left sidebar — 200px fixed, lebih compact */}
         <div
-          style={{ width: '256px', minWidth: '256px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.065)' }}
+          style={{ width: '200px', minWidth: '200px', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.065)' }}
         >
           <Logo />
           <AddBtn
@@ -870,7 +870,7 @@ const Index = () => {
           />
         </div>
 
-        {/* Right intel panel — 340px fixed */}
+        {/* Right intel panel — 280px fixed, lebih compact */}
         <WalletIntelPanel
           events={filteredEvents} selectedWallet={selectedWallet}
           selectedWalletTokens={selectedWalletTokens} selectedWalletIntel={selectedWalletIntel}
