@@ -143,6 +143,7 @@ export const useWalletStore = create<WalletStore>()(
           tag:     dw.tag,
           entity:  (dw as import('@/data/defaultWallets').DefaultWallet).entity,
           pinned:  (dw as import('@/data/defaultWallets').DefaultWallet).pinned ?? false,
+          logo:    (dw as import('@/data/defaultWallets').DefaultWallet).logo,
           addedAt: Date.now() - i * 1000,
           color:   dw.color,
         }))
@@ -152,7 +153,7 @@ export const useWalletStore = create<WalletStore>()(
     }),
     {
       name:       'zero-watch-wallets',
-      version:    4,  // bumped 3→4: force re-seed to pick up pinned field
+      version:    5,  // bumped 4→5: force re-seed to pick up logo field
       partialize: s => ({
         wallets:      s.wallets,
         plan:         s.plan,
