@@ -95,17 +95,27 @@ const WalletRow = memo(({
           }
         }}
       >
-        {/* Row 1: dot + name + balance */}
+        {/* Row 1: logo/dot + name + balance */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
-            <span
-              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-              style={{
-                background: wallet.active ? dot : 'rgba(255,255,255,0.14)',
-                boxShadow:  wallet.active ? `0 0 6px ${dot}90` : 'none',
-                animation:  wallet.active ? 'pulse-glow 2s ease-in-out infinite' : 'none',
-              }}
-            />
+            {/* Logo or colored dot */}
+            {(wallet as typeof wallet & { logo?: string }).logo ? (
+              <img
+                src={(wallet as typeof wallet & { logo?: string }).logo}
+                alt={wallet.label}
+                style={{ width: '16px', height: '16px', borderRadius: '4px', objectFit: 'cover', flexShrink: 0 }}
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+            ) : (
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{
+                  background: wallet.active ? dot : 'rgba(255,255,255,0.14)',
+                  boxShadow:  wallet.active ? `0 0 6px ${dot}90` : 'none',
+                  animation:  wallet.active ? 'pulse-glow 2s ease-in-out infinite' : 'none',
+                }}
+              />
+            )}
             <span
               className="font-mono font-semibold truncate"
               style={{ fontSize: '12px', color: isSelected ? dot : 'rgba(255,255,255,0.85)', maxWidth: '110px' }}
