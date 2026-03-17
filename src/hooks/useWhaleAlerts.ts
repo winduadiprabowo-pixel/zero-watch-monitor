@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import type { WalletIntelligence } from '@/services/whaleAnalytics'
+import { sendPushAlert } from '@/hooks/usePushSubscription'
 
 const ALERT_COOLDOWN_MS = 5 * 60_000
 const MIN_ALERT_USD     = 500_000
@@ -233,13 +234,19 @@ export function useWhaleAlerts(
           multiplier, coordMoves, confidence, historicalRef, severity
         )
 
-        // Browser notification
+        // Browser notification (foreground)
         const ico = severity === 'BLACK_SWAN' ? '🌋' : severity === 'CRITICAL' ? '🚨' : '⚠️'
-        sendBrowserNotif(
-          `ZERØ WATCH — ${severity}`,
-          `${ico} ${label}: ${fmtUsd(move.valueUsd)} · ${confidence}% conf`,
-          `whale-${move.hash}`
-        )
+        const notifTitle = `ZERØ WATCH — ${severity}`
+        const notifBody  = `${ico} ${label}: ${fmtUsd(move.valueUsd)} · ${confidence}% conf`
+        sendBrowserNotif(notifTitle, notifBody, `whale-${move.hash}`)
+
+        // Web Push (background — tab tertutup pun muncul)
+        sendPushAlert({
+          title:    notifTitle,
+          body:     notifBody,
+          tag:      `whale-${move.hash}`,
+          critical: severity === 'BLACK_SWAN' || severity === 'CRITICAL',
+        })
 
         if (onTgAlert) onTgAlert(richMsg)
 
