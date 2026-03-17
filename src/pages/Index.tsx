@@ -87,9 +87,10 @@ function toUiWallet(
     ?? FALLBACK_TAGS[index % FALLBACK_TAGS.length]
 
   const fmtUsd = (n: number) => {
-    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
-    if (n >= 1_000)     return `$${(n / 1_000).toFixed(1)}K`
-    if (n > 0)          return `$${n.toFixed(0)}`
+    if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`
+    if (n >= 1_000_000)     return `$${(n / 1_000_000).toFixed(2)}M`
+    if (n >= 1_000)         return `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+    if (n > 0)              return `$${n.toFixed(2)}`
     return `${ethBal} ETH`
   }
 
