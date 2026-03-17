@@ -7,7 +7,7 @@
 @layer base {
   :root {
     --background: 240 20% 2%;
-    --foreground: 0 0% 88%;
+    --foreground: 0 0% 94%;
     --card: 240 15% 4%;
     --card-foreground: 0 0% 88%;
     --popover: 240 15% 4%;
@@ -406,6 +406,100 @@
   }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
 }
+
+
+  /* ── v24 UI Improvements — Grok feedback ── */
+
+  /* Better row hover */
+  .wallet-row-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .wallet-row-hover:hover {
+    background: rgba(230, 161, 71, 0.06) !important;
+    border-color: rgba(230, 161, 71, 0.20) !important;
+    transform: translateX(3px);
+  }
+
+  /* Conviction ring SVG */
+  .conviction-ring {
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+  .conviction-ring-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 3;
+  }
+  .conviction-ring-fill {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Better label contrast */
+  .col-label {
+    color: rgba(255, 255, 255, 0.45) !important;
+    font-size: 9px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Entity row breathing space */
+  .entity-row {
+    padding: 14px 16px !important;
+    margin-bottom: 4px;
+    border-radius: 12px;
+  }
+
+  /* Portfolio value pulse animation */
+  @keyframes value-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .portfolio-value-in {
+    animation: value-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Active wallet indicator */
+  .active-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(52, 211, 153, 1);
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+
+  /* Chain badge improvement */
+  .chain-badge {
+    font-size: 9px !important;
+    padding: 2px 7px !important;
+    border-radius: 5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  /* Signal badge improvement */
+  .signal-badge {
+    font-size: 9px !important;
+    padding: 3px 9px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  /* Improved bento card */
+  .bento-card-v2 {
+    background: rgba(9, 9, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 16px;
+    transition: all 0.2s ease;
+  }
+  .bento-card-v2:hover {
+    border-color: rgba(230, 161, 71, 0.18);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
 
   /* ── WhaleTicker scroll animation ── */
   @keyframes ticker-scroll {
