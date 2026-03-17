@@ -14,6 +14,7 @@ export interface Wallet {
   lastMove: string;
   txNew: number;
   sparkData: number[];
+  logo?: string;
 }
 
 export interface ActivityEvent {
