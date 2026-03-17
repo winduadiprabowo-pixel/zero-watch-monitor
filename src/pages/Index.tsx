@@ -384,6 +384,11 @@ const Index = () => {
   const [tgOpen, setTgOpen]                     = useState(false)
   const [menuOpen, setMenuOpen]                 = useState(false)
 
+  // ── Desktop states — must be declared before any early returns ──────────
+  const [sidebarOpen,  setSidebarOpen]  = useState(false)
+  const [intelOpen,    setIntelOpen]    = useState(false)
+  const [desktopView,  setDesktopView]  = useState<'feed' | 'table'>('feed')
+
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
@@ -848,9 +853,6 @@ const Index = () => {
 
   // ── DESKTOP (>1024px) — Arkham-style layout ──────────────────────────────
   // 64px icon-only navbar kiri + full-width main + intel panel di bawah table
-
-  const [desktopView, setDesktopView] = useState<'feed' | 'table'>('feed')
-  const [intelOpen,   setIntelOpen]   = useState(false)
 
   // Auto-open intel panel saat wallet dipilih
   const handleSelectWalletDesktop = useCallback((id: string) => {
