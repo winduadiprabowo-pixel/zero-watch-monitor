@@ -107,6 +107,7 @@ function toUiWallet(
     lastMove,
     txNew:    txs.filter(t => (Date.now() / 1000 - parseInt(t.timeStamp)) < 3600).length,
     sparkData,
+    logo:     (storeWallet as typeof storeWallet & { logo?: string }).logo,
   }
 }
 
