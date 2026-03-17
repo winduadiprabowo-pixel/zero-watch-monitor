@@ -1,10 +1,10 @@
 /**
- * ZERØ WATCH — Service Worker v24
+ * ZERØ WATCH — Service Worker v25
  * ================================
- * Cache: zero-watch-v35
+ * Cache: zero-watch-v39
  */
 
-const CACHE_NAME = 'zero-watch-v35'
+const CACHE_NAME = 'zero-watch-v39'
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json']
 
 self.addEventListener('install', event => {
