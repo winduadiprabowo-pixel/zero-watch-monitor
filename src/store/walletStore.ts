@@ -164,7 +164,7 @@ export const useWalletStore = create<WalletStore>()(
         if (version < 2) {
           return { ...(persisted as object), _seeded: false }
         }
-        if (version < 4) {
+        if (version < 5) {
           // v3→v4: force re-seed so pinned field gets picked up from defaultWallets
           return { ...(persisted as object), _seeded: false }
         }
