@@ -1,9 +1,11 @@
 /**
- * ZERØ WATCH — useWalletData v22
+ * ZERØ WATCH — useWalletData v23
  * ================================
- * v22: TRX chain support via tronApi.
- *      Queue-based lazy loading — fetch 1 wallet per 200ms.
- *      Handles 44+ wallets tanpa kena rate limit.
+ * v23: Alchemy WebSocket sebagai primary untuk ETH/EVM wallets
+ *      - Sub-5s latency via alchemy_minedTransactions subscription
+ *      - HTTP poll turun ke 300s (fallback only)
+ *      - Non-EVM (SOL/BTC/TRX/BNB) tetap pakai HTTP poll 120s
+ *      - WebSocket invalidate TanStack Query cache saat tx baru masuk
  *
  * rgba() only ✓  AbortController ✓  mountedRef ✓
  */
@@ -17,11 +19,16 @@ import { fetchSolWalletData } from '@/services/solanaApi'
 import { fetchBtcWalletData } from '@/services/bitcoinApi'
 import { fetchTronWalletData } from '@/services/tronApi'
 import { fetchBnbWalletData } from '@/services/bnbApi'
+import { useAlchemyWebSocket } from '@/hooks/useAlchemyWebSocket'
+import type { AlchemyTx } from '@/hooks/useAlchemyWebSocket'
 
-const POLL        = 120_000  // 120s — reduce CF Worker requests 50%
-const STALE       = 110_000
-const QUEUE_DELAY = 300      // slightly slower queue — less burst
-const PRIORITY    = 5
+const POLL_EVM     = 300_000  // 300s — WS handles real-time, HTTP jadi fallback
+const POLL_NON_EVM = 120_000  // 120s — SOL/BTC/TRX/BNB tetap poll
+const STALE        = 290_000
+const QUEUE_DELAY  = 300
+const PRIORITY     = 5
+
+const EVM_CHAINS = new Set(['ETH', 'ARB', 'BASE', 'OP', 'BNB'])
 
 // ── saveSnapshot — throttled 1x/hour per wallet ──────────────────────────────
 
@@ -182,12 +189,10 @@ export const useAllWalletData = () => {
 
   const fetchOne = useCallback(async (address: string, chain: string) => {
     if (!mountedRef.current) return
-
     const existing = abortMap.current.get(address)
     existing?.abort()
     const ctrl = new AbortController()
     abortMap.current.set(address, ctrl)
-
     try {
       const data = await fetchAnyWalletData(address, chain, ctrl.signal)
       if (!mountedRef.current) return
@@ -196,6 +201,54 @@ export const useAllWalletData = () => {
     } catch { /* silently fail per wallet */ }
   }, [queryClient])
 
+  // ── Alchemy WebSocket — real-time untuk ETH wallets ──────────────────────
+  const ethAddresses = wallets
+    .filter(w => EVM_CHAINS.has(w.chain))
+    .map(w => w.address)
+
+  const handleNewTx = useCallback((tx: AlchemyTx) => {
+    // Invalidate cache wallet yang terkena tx → trigger refetch
+    const wallet = wallets.find(w =>
+      w.address.toLowerCase() === tx.address.toLowerCase()
+    )
+    if (wallet) {
+      // Optimistic: langsung inject tx ke cache sebelum refetch
+      const current = queryClient.getQueryData<WalletData>(
+        ['wallet-lazy', wallet.address, wallet.chain]
+      )
+      if (current) {
+        const valueEth = (parseInt(tx.value, 16) / 1e18).toFixed(4)
+        const newTx = {
+          hash:         tx.hash,
+          from:         tx.from,
+          to:           tx.to ?? '',
+          value:        valueEth,
+          timeStamp:    String(Math.floor(Date.now() / 1000)),
+          isError:      '0',
+          functionName: '',
+          gasUsed:      '21000',
+          type:         'TRANSFER' as const,
+        }
+        queryClient.setQueryData(['wallet-lazy', wallet.address, wallet.chain], {
+          ...current,
+          transactions: [newTx, ...current.transactions].slice(0, 25),
+          lastUpdated:  Date.now(),
+        })
+      }
+      // Trigger full refetch untuk balance update
+      setTimeout(() => {
+        if (mountedRef.current) fetchOne(wallet.address, wallet.chain)
+      }, 2_000) // 2s delay biar block confirmed
+    }
+  }, [wallets, queryClient, fetchOne])
+
+  useAlchemyWebSocket({
+    addresses: ethAddresses,
+    onNewTx:   handleNewTx,
+    enabled:   ethAddresses.length > 0,
+  })
+
+  // ── Initial load + HTTP poll fallback ────────────────────────────────────
   useEffect(() => {
     mountedRef.current = true
     queueRef.current.forEach(t => clearTimeout(t))
@@ -205,10 +258,11 @@ export const useAllWalletData = () => {
 
     if (wallets.length === 0) return
 
+    // Priority: first 5 wallets langsung
     wallets.slice(0, PRIORITY).forEach(w => {
       fetchOne(w.address, w.chain)
     })
-
+    // Rest: queue dengan delay
     wallets.slice(PRIORITY).forEach((w, i) => {
       const t = setTimeout(() => {
         if (mountedRef.current) fetchOne(w.address, w.chain)
@@ -216,15 +270,20 @@ export const useAllWalletData = () => {
       queueRef.current.push(t)
     })
 
+    // HTTP poll fallback — EVM lebih jarang (WS handles it), non-EVM tetap 120s
     const refetchInterval = setInterval(() => {
       if (!mountedRef.current) return
       wallets.forEach((w, i) => {
+        const pollMs = EVM_CHAINS.has(w.chain) ? POLL_EVM : POLL_NON_EVM
+        // Cek apakah data sudah cukup fresh
+        const cached = queryClient.getQueryData<WalletData>(['wallet-lazy', w.address, w.chain])
+        if (cached && Date.now() - cached.lastUpdated < pollMs) return
         const t = setTimeout(() => {
           if (mountedRef.current) fetchOne(w.address, w.chain)
         }, i * QUEUE_DELAY)
         queueRef.current.push(t)
       })
-    }, POLL)
+    }, 30_000) // check setiap 30s, tapi fetch hanya kalau stale
 
     return () => {
       mountedRef.current = false
@@ -232,7 +291,7 @@ export const useAllWalletData = () => {
       clearInterval(refetchInterval)
       abortMap.current.forEach(c => c.abort())
     }
-  }, [wallets.map(w => `${w.address}:${w.chain}`).join(','), fetchOne])
+  }, [wallets.map(w => `${w.address}:${w.chain}`).join(','), fetchOne, queryClient])
 
   return {
     data:       results,
