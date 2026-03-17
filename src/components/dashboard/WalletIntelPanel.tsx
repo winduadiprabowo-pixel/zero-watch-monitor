@@ -281,6 +281,81 @@ const IntelTab = memo(({ intel, wallet, clusters }: {
         </div>
       </div>
 
+      {/* ── ACTIONABLE RECOMMENDATION (v28) ── */}
+      {whaleScore.status !== 'DORMANT' && (() => {
+        const s = whaleScore.status
+        const c = whaleScore.conviction
+
+        type Rec = { emoji: string; action: string; detail: string; color: string; bg: string; border: string }
+        const rec: Rec =
+          s === 'ACCUMULATING' && c >= 70 ? {
+            emoji:  '🟢',
+            action: 'CONSIDER FOLLOWING',
+            detail: `${wallet.label} accumulating dengan conviction ${c}% — historically bullish signal. Mirror position dengan size lebih kecil.`,
+            color:  'rgba(52,211,153,1)',
+            bg:     'rgba(52,211,153,0.07)',
+            border: 'rgba(52,211,153,0.25)',
+          } : s === 'ACCUMULATING' ? {
+            emoji:  '👀',
+            action: 'WATCH CLOSELY',
+            detail: `Accumulation terdeteksi tapi conviction belum kuat (${c}%). Tunggu konfirmasi 2-3 tx lagi sebelum follow.`,
+            color:  'rgba(52,211,153,0.8)',
+            bg:     'rgba(52,211,153,0.05)',
+            border: 'rgba(52,211,153,0.18)',
+          } : s === 'DISTRIBUTING' && c >= 70 ? {
+            emoji:  '🔴',
+            action: 'HIGH RISK — REDUCE',
+            detail: `${wallet.label} distributing agresif (${c}% conviction). Smart money keluar — pertimbangkan reduce exposure ETH.`,
+            color:  'rgba(239,68,68,1)',
+            bg:     'rgba(239,68,68,0.08)',
+            border: 'rgba(239,68,68,0.28)',
+          } : s === 'DISTRIBUTING' ? {
+            emoji:  '⚠️',
+            action: 'CAUTION — MONITOR',
+            detail: `Distribusi terdeteksi (${c}% conviction). Belum confirmed — set stop loss dan pantau 1-2 jam ke depan.`,
+            color:  'rgba(239,68,68,0.8)',
+            bg:     'rgba(239,68,68,0.05)',
+            border: 'rgba(239,68,68,0.20)',
+          } : s === 'HUNTING' ? {
+            emoji:  '🎯',
+            action: 'VOLATILITY INCOMING',
+            detail: `${wallet.label} dalam mode HUNTING — siap-siap volatilitas. Ukur posisi dengan ketat, pasang alerts.`,
+            color:  'rgba(251,191,36,1)',
+            bg:     'rgba(251,191,36,0.07)',
+            border: 'rgba(251,191,36,0.25)',
+          } : {
+            emoji:  '💤',
+            action: 'NO ACTION',
+            detail: 'Wallet dormant — tidak ada signal actionable saat ini.',
+            color:  'rgba(255,255,255,0.3)',
+            bg:     'rgba(255,255,255,0.03)',
+            border: 'rgba(255,255,255,0.07)',
+          }
+
+        return (
+          <div
+            className="rounded-2xl p-4"
+            style={{ background: rec.bg, border: `1px solid ${rec.border}` }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span style={{ fontSize: '13px' }}>{rec.emoji}</span>
+              <span
+                className="font-mono font-bold"
+                style={{ fontSize: '9px', letterSpacing: '0.14em', color: rec.color }}
+              >
+                {rec.action}
+              </span>
+            </div>
+            <p
+              className="font-mono leading-relaxed"
+              style={{ fontSize: '10px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}
+            >
+              {rec.detail}
+            </p>
+          </div>
+        )
+      })()}
+
       {/* ── Big move alerts ── */}
       {bigMoves.length > 0 && (
         <div
