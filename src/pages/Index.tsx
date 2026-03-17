@@ -524,7 +524,8 @@ const Index = () => {
       // Total USD
       const totalUsd = gw.reduce((sum, w) => {
         const idx = storeWallets.findIndex(s => s.id === w.id)
-        return sum + (apiDataArr?.[idx]?.balance.usdValue ?? 0)
+        const val = apiDataArr?.[idx]?.balance.usdValue ?? 0
+        return sum + (isNaN(val) || !isFinite(val) ? 0 : val)
       }, 0)
 
       // Unique chains
