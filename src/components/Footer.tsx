@@ -45,7 +45,7 @@ const Footer = memo(() => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-0.5 transition-colors"
                 style={{ color: 'rgba(255,255,255,0.22)', fontSize: '9px', fontFamily: "'IBM Plex Mono', monospace" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.7)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.22)' }}
               >
                 {s.label}
@@ -66,7 +66,7 @@ const Footer = memo(() => {
               style={{ fontFamily: "'Syne', sans-serif", fontSize: '10px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}
             >
               ZER
-              <span style={{ color: 'rgba(230,161,71,0.6)' }}>Ø</span>
+              <span style={{ color: 'rgba(0, 212, 255, 0.6)' }}>Ø</span>
               {' '}BUILD LAB
             </span>
             <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.14)' }}>·</span>
@@ -93,7 +93,7 @@ const Footer = memo(() => {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[9px] font-mono transition-colors"
               style={{ color: 'rgba(255,255,255,0.22)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.7)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.22)' }}
             >
               <Twitter className="w-2.5 h-2.5" />
@@ -107,7 +107,7 @@ const Footer = memo(() => {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[9px] font-mono transition-colors"
               style={{ color: 'rgba(255,255,255,0.22)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.7)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.22)' }}
             >
               <Github className="w-2.5 h-2.5" />
