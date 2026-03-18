@@ -1352,198 +1352,107 @@ const WalletIntelPanel = memo(({
     <aside
       className="flex flex-col animate-fade-up delay-3"
       style={{
-        flex:       1,
-        minWidth:   0,
-        background: 'rgba(6,8,16,1)',
-        borderLeft: '1px solid rgba(255,255,255,0.055)',
-        overflow:   'hidden',
+        flex:        1,
+        minWidth:    0,
+        borderColor: 'rgba(255,255,255,0.065)',
+        background:  'rgba(6,6,14,0.7)',
+        overflow:    'hidden',
       }}
     >
-      {/* ── Panel header — Arkham-style ── */}
-      {selectedWallet ? (
-        <div
-          className="flex-shrink-0 px-4 pt-4 pb-3"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.055)' }}
-        >
-          {/* Row 1: logo + name + address + alert badge */}
-          <div className="flex items-start gap-3">
-            {/* Entity avatar */}
+      {/* ── Panel header ── */}
+      <div
+        className="px-4 py-4 flex-shrink-0"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.065)' }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            {!selectedWallet && (
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{
+                  background: 'rgba(0, 212, 255, 1)',
+                  boxShadow:  '0 0 5px rgba(0, 212, 255, 0.8)',
+                  animation:  'pulse-glow 2s ease-in-out infinite',
+                }}
+              />
+            )}
+            <h2
+              className="font-mono font-semibold uppercase truncate"
+              style={{ fontSize: '12px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.85)' }}
+            >
+              {selectedWallet?.label ?? 'Intelligence'}
+            </h2>
+          </div>
+          {hasBigMoves && (
             <div
-              className="flex-shrink-0 flex items-center justify-center rounded-xl font-mono font-bold"
+              className="flex items-center gap-1 px-2 py-1 rounded-full animate-pulse flex-shrink-0 ml-2"
               style={{
-                width:      '44px',
-                height:     '44px',
-                fontSize:   '13px',
-                background: 'rgba(0,255,136,0.08)',
-                border:     '1px solid rgba(0,255,136,0.18)',
-                color:      'rgba(0,255,136,0.9)',
+                background: 'rgba(251,191,36,0.10)',
+                border:     '1px solid rgba(251,191,36,0.25)',
               }}
             >
-              {selectedWallet.label.slice(0, 2).toUpperCase()}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              {/* Name + alert */}
-              <div className="flex items-center gap-2">
-                <h2
-                  className="font-semibold truncate"
-                  style={{ fontSize: '15px', color: 'rgba(255,255,255,0.92)', fontFamily: 'Syne, sans-serif', letterSpacing: '-0.01em' }}
-                >
-                  {selectedWallet.label}
-                </h2>
-                {hasBigMoves && (
-                  <div
-                    className="flex items-center gap-1 px-2 py-0.5 rounded flex-shrink-0"
-                    style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)' }}
-                  >
-                    <Zap className="w-2.5 h-2.5" style={{ color: 'rgba(251,191,36,1)' }} />
-                    <span className="font-mono font-bold" style={{ fontSize: '8px', letterSpacing: '0.10em', color: 'rgba(251,191,36,1)' }}>ALERT</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Address */}
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="font-mono" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
-                  {selectedWallet.address.slice(0, 6)}...{selectedWallet.address.slice(-4)}
-                </span>
-                <ExternalLink
-                  className="w-2.5 h-2.5 cursor-pointer"
-                  style={{ color: 'rgba(255,255,255,0.2)' }}
-                  onClick={() => window.open(`https://etherscan.io/address/${selectedWallet.address}`, '_blank')}
-                />
-              </div>
-
-              {/* Tags row */}
-              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                <span
-                  className="font-mono px-2 py-0.5 rounded"
-                  style={{ fontSize: '9px', letterSpacing: '0.08em', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}
-                >
-                  {selectedWallet.chain}
-                </span>
-                {selectedWallet.category && (
-                  <span
-                    className="font-mono px-2 py-0.5 rounded"
-                    style={{ fontSize: '9px', letterSpacing: '0.08em', background: 'rgba(0,255,136,0.06)', color: 'rgba(0,255,136,0.7)', border: '1px solid rgba(0,255,136,0.12)' }}
-                  >
-                    {selectedWallet.category}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2: hero balance */}
-          {selectedWalletIntel && (
-            <div className="mt-3 flex items-baseline gap-2">
-              <span
-                className="font-mono font-bold"
-                style={{ fontSize: '22px', color: 'rgba(255,255,255,0.95)', letterSpacing: '-0.02em' }}
-              >
-                {fmtUsd(selectedWalletIntel.totalValueUsd)}
-              </span>
-              <span
-                className="font-mono font-semibold"
-                style={{
-                  fontSize: '11px',
-                  color: selectedWalletIntel.netFlow24h >= 0 ? 'rgba(0,255,136,1)' : 'rgba(239,68,68,1)',
-                }}
-              >
-                {selectedWalletIntel.netFlow24h >= 0 ? '▲' : '▼'} {fmtUsd(Math.abs(selectedWalletIntel.netFlow24h))} 24h
+              <Zap className="w-2.5 h-2.5" style={{ color: 'rgba(251,191,36,1)' }} />
+              <span className="font-mono font-bold" style={{ fontSize: '8px', letterSpacing: '0.08em', color: 'rgba(251,191,36,1)' }}>
+                ALERT
               </span>
             </div>
           )}
-
-          {/* Row 3: action buttons */}
-          <div className="flex items-center gap-2 mt-3">
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)', fontSize: '10px', fontFamily: 'IBM Plex Mono, monospace', cursor: 'pointer' }}
+        </div>
+        {selectedWallet ? (
+          <div className="flex items-center gap-2 mt-1">
+            <span className="font-mono text-[10px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
+              {selectedWallet.address}
+            </span>
+            <span
+              className="font-mono text-[8px] px-1.5 py-0.5 rounded"
+              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}
             >
-              <Activity className="w-3 h-3" />
-              Create Alert
-            </button>
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)', fontSize: '10px', fontFamily: 'IBM Plex Mono, monospace', cursor: 'pointer' }}
-            >
-              <Globe className="w-3 h-3" />
-              Trace Entity
-            </button>
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors ml-auto"
-              style={{ background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.22)', color: 'rgba(0,255,136,0.9)', fontSize: '10px', fontFamily: 'IBM Plex Mono, monospace', cursor: 'pointer' }}
-              onClick={() => window.open(`https://etherscan.io/address/${selectedWallet.address}`, '_blank')}
-            >
-              <ExternalLink className="w-3 h-3" />
-              Etherscan
-            </button>
+              {selectedWallet.chain}
+            </span>
           </div>
-        </div>
-      ) : (
-        /* ── No wallet selected: compact header ── */
-        <div
-          className="flex-shrink-0 px-4 py-3 flex items-center gap-2"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.055)' }}
-        >
-          <span
-            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            style={{ background: 'rgba(0,255,136,1)', animation: 'pulse-glow 2s ease-in-out infinite' }}
-          />
-          <h2
-            className="font-semibold"
-            style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', fontFamily: 'Syne, sans-serif', letterSpacing: '-0.01em' }}
-          >
-            Intelligence
-          </h2>
-          <span className="font-mono ml-1" style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)' }}>
-            44 wallets tracked
-          </span>
-        </div>
-      )}
+        ) : (
+          <div className="font-mono text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            Live whale surveillance · 44 wallets tracked
+          </div>
+        )}
+      </div>
 
-      {/* ── Tabs — Arkham underline style ── */}
+      {/* ── Tabs ── */}
       <div
         className="flex flex-shrink-0 overflow-x-auto"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.055)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.065)' }}
       >
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={handleTab(tab.id)}
-            className="flex items-center justify-center gap-1 py-2.5 relative transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 relative min-w-0 transition-colors"
             style={{
-              flex:          '1 1 0',
-              minWidth:      '0',
-              color:         activeTab === tab.id ? 'rgba(0,255,136,1)' : 'rgba(255,255,255,0.25)',
-              background:    'transparent',
-              fontSize:      '9px',
-              fontFamily:    'IBM Plex Mono, monospace',
-              fontWeight:    activeTab === tab.id ? 600 : 400,
-              letterSpacing: '0.10em',
-              border:        'none',
-              cursor:        'pointer',
-              paddingLeft:   '4px',
-              paddingRight:  '4px',
+              color:      activeTab === tab.id ? 'rgba(0, 212, 255, 1)' : 'rgba(255,255,255,0.28)',
+              background: activeTab === tab.id ? 'rgba(0, 212, 255, 0.05)' : 'transparent',
+              fontSize:   '9px',
+              fontFamily: 'IBM Plex Mono, monospace',
+              fontWeight: activeTab === tab.id ? 600 : 400,
+              letterSpacing: '0.08em',
             }}
           >
+            <tab.icon className="w-3 h-3 flex-shrink-0" />
             <span className="truncate">{tab.label}</span>
-            {/* dot indicators */}
-            {tab.id === 'SIGNALS' && hasSignals && (
-              <span className="w-1 h-1 rounded-full flex-shrink-0 animate-pulse" style={{ background: 'rgba(0,255,136,1)' }} />
+            {/* Indicator dots */}
+            {tab.id === 'SIGNALS' && hasSignals  && (
+              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0, 212, 255, 1)' }} />
             )}
-            {tab.id === 'INTEL' && hasBigMoves && (
-              <span className="w-1 h-1 rounded-full flex-shrink-0 animate-pulse" style={{ background: 'rgba(251,191,36,1)' }} />
+            {tab.id === 'INTEL'   && hasBigMoves && (
+              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(251,191,36,1)' }} />
             )}
-            {tab.id === 'TOKENS' && hasTokens && (
-              <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'rgba(147,197,253,1)' }} />
+            {tab.id === 'TOKENS'  && hasTokens   && (
+              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(147,197,253,1)' }} />
             )}
-            {/* active underline */}
+            {/* Active underline */}
             {activeTab === tab.id && (
               <span
-                className="absolute bottom-0 left-0 right-0"
-                style={{ height: '2px', background: 'rgba(0,255,136,0.8)' }}
+                className="absolute bottom-0 left-2 right-2 h-px"
+                style={{ background: 'rgba(0, 212, 255, 0.7)' }}
               />
             )}
           </button>
