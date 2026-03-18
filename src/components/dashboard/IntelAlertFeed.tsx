@@ -237,19 +237,19 @@ const IntelAlertFeed = memo(({ activeSubTab = 'ALERTS', onSubTabChange }: IntelA
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Zap style={{ width: '13px', height: '13px', color: 'rgba(230,161,71,0.8)' }} />
+            <Zap style={{ width: '13px', height: '13px', color: 'rgba(0, 212, 255, 0.8)' }} />
             <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.5)' }}>
               ARKHAM INTEL
             </span>
             {/* Live dot */}
             {!loading && !error && (
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(230,161,71,0.9)', boxShadow: '0 0 5px rgba(230,161,71,0.7)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(0, 212, 255, 0.9)', boxShadow: '0 0 5px rgba(0, 212, 255, 0.7)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
             )}
           </div>
           <button
             onClick={refetch}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', transition: 'color 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(230,161,71,0.7)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)' }}
           >
             <RefreshCw style={{ width: '12px', height: '12px' }} />
@@ -261,7 +261,7 @@ const IntelAlertFeed = memo(({ activeSubTab = 'ALERTS', onSubTabChange }: IntelA
           {[
             { label: 'CRITICAL', value: criticalAlerts.length, color: 'rgba(239,68,68,1)', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.20)' },
             { label: 'WARNING',  value: warningAlerts.length,  color: 'rgba(251,191,36,1)', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.18)' },
-            { label: 'FLOWS',    value: flows.length,           color: 'rgba(230,161,71,0.9)', bg: 'rgba(230,161,71,0.04)', border: 'rgba(230,161,71,0.15)' },
+            { label: 'FLOWS',    value: flows.length,           color: 'rgba(0, 212, 255, 0.9)', bg: 'rgba(0, 212, 255, 0.04)', border: 'rgba(0, 212, 255, 0.15)' },
           ].map(s => (
             <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: '10px', padding: '8px 10px', textAlign: 'center' as const }}>
               <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '7px', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.25)', marginBottom: '3px' }}>
@@ -286,9 +286,9 @@ const IntelAlertFeed = memo(({ activeSubTab = 'ALERTS', onSubTabChange }: IntelA
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                   padding: '6px 4px', borderRadius: '8px',
                   fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 600, letterSpacing: '0.06em',
-                  background: active ? 'rgba(230,161,71,0.10)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${active ? 'rgba(230,161,71,0.30)' : 'rgba(255,255,255,0.07)'}`,
-                  color: active ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.35)',
+                  background: active ? 'rgba(0, 212, 255, 0.10)' : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${active ? 'rgba(0, 212, 255, 0.30)' : 'rgba(255,255,255,0.07)'}`,
+                  color: active ? 'rgba(0, 212, 255, 1)' : 'rgba(255,255,255,0.35)',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
@@ -332,7 +332,7 @@ const IntelAlertFeed = memo(({ activeSubTab = 'ALERTS', onSubTabChange }: IntelA
         {!loading && !error && activeSubTab === 'ALERTS' && (
           alerts.length === 0 ? (
             <div style={{ textAlign: 'center' as const, padding: '32px 16px' }}>
-              <Shield style={{ width: '24px', height: '24px', color: 'rgba(230,161,71,0.3)', margin: '0 auto 8px' }} />
+              <Shield style={{ width: '24px', height: '24px', color: 'rgba(0, 212, 255, 0.3)', margin: '0 auto 8px' }} />
               <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
                 No alerts — market quiet
               </p>
