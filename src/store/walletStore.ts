@@ -60,7 +60,7 @@ export interface WalletStore {
 
 const nanoid    = (len = 8) => Math.random().toString(36).slice(2, 2 + len)
 const COLORS    = [
-  'rgba(230,161,71,1)',
+  'rgba(0, 212, 255, 1)',
   'rgba(0,194,255,1)',
   'rgba(255,107,107,1)',
   'rgba(255,217,61,1)',
