@@ -73,19 +73,19 @@ const MobileBottomNav = memo(({
           const isRadar    = tab.id === 'radar'
           const activeBg   = isRadar
             ? 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.06) 100%)'
-            : 'linear-gradient(135deg, rgba(230,161,71,0.12) 0%, rgba(230,161,71,0.06) 100%)'
+            : 'linear-gradient(135deg, rgba(0, 212, 255, 0.12) 0%, rgba(0, 212, 255, 0.06) 100%)'
           const activeBorder = isRadar
             ? 'rgba(239,68,68,0.25)'
-            : 'rgba(230,161,71,0.25)'
+            : 'rgba(0, 212, 255, 0.25)'
           const activeColor = isRadar
             ? 'rgba(239,68,68,1)'
-            : 'rgba(230,161,71,1)'
+            : 'rgba(0, 212, 255, 1)'
           const dotColor    = showRadar
             ? 'rgba(239,68,68,1)'
-            : 'rgba(230,161,71,1)'
+            : 'rgba(0, 212, 255, 1)'
           const dotShadow   = showRadar
             ? '0 0 6px rgba(239,68,68,0.8)'
-            : '0 0 6px rgba(230,161,71,0.8)'
+            : '0 0 6px rgba(0, 212, 255, 0.8)'
 
           return (
             <button
@@ -140,7 +140,7 @@ const MobileBottomNav = memo(({
                   width:      '18px',
                   height:     '18px',
                   filter:     isActive
-                    ? `drop-shadow(0 0 6px ${isRadar ? 'rgba(239,68,68,0.6)' : 'rgba(230,161,71,0.6)'})`
+                    ? `drop-shadow(0 0 6px ${isRadar ? 'rgba(239,68,68,0.6)' : 'rgba(0, 212, 255, 0.6)'})`
                     : 'none',
                   transition: 'filter 0.18s ease',
                 }}
