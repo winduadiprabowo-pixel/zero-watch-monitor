@@ -20,7 +20,7 @@ export interface DefaultWallet {
 
 // ── Logo map per entity ───────────────────────────────────────────────────────
 
-const LOGOS: Record<string, string> = {
+export const LOGOS: Record<string, string> = {
   'Wintermute':        'https://res.cloudinary.com/dju1hggdi/image/upload/v1773778608/wintermute_boorij.png',
   'Jump Trading':      'https://res.cloudinary.com/dju1hggdi/image/upload/v1773778608/jane-street_r1tbdi.png',
   'DWF Labs':          'https://res.cloudinary.com/dju1hggdi/image/upload/v1773778608/dwf-labs_ubiaiy.png',
