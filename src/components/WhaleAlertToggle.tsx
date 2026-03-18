@@ -69,21 +69,21 @@ const WhaleAlertToggle = memo(({ alerts, compact }: Props) => {
           : isPushActive
           ? 'rgba(52,211,153,0.08)'
           : enabled
-          ? 'rgba(230,161,71,0.08)'
+          ? 'rgba(0, 212, 255, 0.08)'
           : 'rgba(255,255,255,0.04)',
         border:        isDenied
           ? '1px solid rgba(239,68,68,0.20)'
           : isPushActive
           ? '1px solid rgba(52,211,153,0.35)'
           : enabled
-          ? '1px solid rgba(230,161,71,0.35)'
+          ? '1px solid rgba(0, 212, 255, 0.35)'
           : '1px solid rgba(255,255,255,0.09)',
         color:         isDenied
           ? 'rgba(252,129,129,0.65)'
           : isPushActive
           ? 'rgba(52,211,153,1)'
           : enabled
-          ? 'rgba(230,161,71,1)'
+          ? 'rgba(0, 212, 255, 1)'
           : 'rgba(255,255,255,0.35)',
         fontSize:      '10px',
         opacity:       isDenied ? 0.6 : 1,
@@ -91,7 +91,7 @@ const WhaleAlertToggle = memo(({ alerts, compact }: Props) => {
         boxShadow:     isPushActive
           ? '0 0 12px rgba(52,211,153,0.15)'
           : enabled
-          ? '0 0 12px rgba(230,161,71,0.12)'
+          ? '0 0 12px rgba(0, 212, 255, 0.12)'
           : 'none',
         letterSpacing: '0.04em',
       }}
@@ -101,8 +101,8 @@ const WhaleAlertToggle = memo(({ alerts, compact }: Props) => {
         <span
           className="w-1.5 h-1.5 rounded-full flex-shrink-0"
           style={{
-            background: isPushActive ? 'rgba(52,211,153,1)' : 'rgba(230,161,71,1)',
-            boxShadow:  isPushActive ? '0 0 5px rgba(52,211,153,0.8)' : '0 0 5px rgba(230,161,71,0.8)',
+            background: isPushActive ? 'rgba(52,211,153,1)' : 'rgba(0, 212, 255, 1)',
+            boxShadow:  isPushActive ? '0 0 5px rgba(52,211,153,0.8)' : '0 0 5px rgba(0, 212, 255, 0.8)',
             animation:  'pulse-glow 1.8s ease-in-out infinite',
           }}
         />
