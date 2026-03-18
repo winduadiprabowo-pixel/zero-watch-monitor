@@ -12,9 +12,8 @@ import React, { memo, useMemo } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
 import { useAllWalletData } from '@/hooks/useWalletData'
-import { useWhaleAlerts } from '@/hooks/useWhaleAlerts'
 
-interface StatsBarProps { mobile?: boolean }
+interface StatsBarProps { mobile?: boolean; alertCount?: number }
 
 const fmtFull = (n: number) => {
   if (n === 0) return '$0'
@@ -81,10 +80,9 @@ const StatCard = memo(({ label, value, sub, valueColor = 'rgba(255,255,255,0.95)
 ))
 StatCard.displayName = 'StatCard'
 
-const StatsBar = memo(({ mobile }: StatsBarProps) => {
+const StatsBar = memo(({ mobile, alertCount = 0 }: StatsBarProps) => {
   const storeWallets                     = useWalletStore(selectWallets)
   const { data: apiDataArr, isFetching } = useAllWalletData()
-  const whaleAlerts                      = useWhaleAlerts()
 
   const stats = useMemo(() => {
     const hasData     = storeWallets.length > 0 && apiDataArr && apiDataArr.length > 0
@@ -97,8 +95,6 @@ const StatsBar = memo(({ mobile }: StatsBarProps) => {
     const loadedCount = apiDataArr?.filter(Boolean).length ?? 0
     return { totalUsd, activeCount, walletCount: storeWallets.length, loading: storeWallets.length > 0 && !hasData, loadedCount }
   }, [apiDataArr, storeWallets])
-
-  const alertCount = whaleAlerts.alertCount ?? 0
 
   if (mobile) {
     return (
