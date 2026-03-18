@@ -261,8 +261,8 @@ const WhaleTicker = memo(() => {
           gap:          '6px',
           padding:      '0 12px',
           height:       '100%',
-          background:   'rgba(230,161,71,0.07)',
-          borderRight:  '1px solid rgba(230,161,71,0.18)',
+          background:   'rgba(0, 212, 255, 0.07)',
+          borderRight:  '1px solid rgba(0, 212, 255, 0.18)',
           zIndex:       2,
         }}
       >
@@ -271,8 +271,8 @@ const WhaleTicker = memo(() => {
             width:        '5px',
             height:       '5px',
             borderRadius: '50%',
-            background:   'rgba(230,161,71,1)',
-            boxShadow:    '0 0 5px rgba(230,161,71,0.8)',
+            background:   'rgba(0, 212, 255, 1)',
+            boxShadow:    '0 0 5px rgba(0, 212, 255, 0.8)',
             animation:    'pulse-glow 1.4s ease-in-out infinite',
             display:      'inline-block',
             flexShrink:   0,
@@ -283,7 +283,7 @@ const WhaleTicker = memo(() => {
             fontFamily:   "'IBM Plex Mono',monospace",
             fontSize:     '9px',
             fontWeight:   700,
-            color:        'rgba(230,161,71,0.9)',
+            color:        'rgba(0, 212, 255, 0.9)',
             letterSpacing:'0.12em',
             whiteSpace:   'nowrap',
           }}
