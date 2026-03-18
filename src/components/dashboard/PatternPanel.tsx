@@ -189,7 +189,7 @@ const PatternCard = memo(({ pattern, index }: { pattern: PatternEvent; index: nu
               fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px',
               color: 'rgba(255,255,255,0.20)', transition: 'color 0.15s',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(230,161,71,0.7)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.20)' }}
           >
             <ExternalLink style={{ width: '9px', height: '9px' }} />
@@ -253,7 +253,7 @@ const PatternPanel = memo(() => {
           {[
             { label: 'CRITICAL', value: criticalPatterns.length, color: 'rgba(239,68,68,1)', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.20)' },
             { label: 'WARNING',  value: warningPatterns.length,  color: 'rgba(251,191,36,1)', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.18)' },
-            { label: 'TOTAL',    value: patterns.length,          color: 'rgba(230,161,71,0.9)', bg: 'rgba(230,161,71,0.04)', border: 'rgba(230,161,71,0.15)' },
+            { label: 'TOTAL',    value: patterns.length,          color: 'rgba(0, 212, 255, 0.9)', bg: 'rgba(0, 212, 255, 0.04)', border: 'rgba(0, 212, 255, 0.15)' },
           ].map(s => (
             <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: '10px', padding: '8px', textAlign: 'center' as const }}>
               <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '7px', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.25)', marginBottom: '3px' }}>
@@ -317,7 +317,7 @@ const PatternPanel = memo(() => {
 
         {!loading && !error && patterns.length === 0 && (
           <div style={{ textAlign: 'center' as const, padding: '32px 16px' }}>
-            <Shield style={{ width: '28px', height: '28px', color: 'rgba(230,161,71,0.3)', margin: '0 auto 10px' }} />
+            <Shield style={{ width: '28px', height: '28px', color: 'rgba(0, 212, 255, 0.3)', margin: '0 auto 10px' }} />
             <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.35)', margin: '0 0 4px' }}>
               No patterns detected
             </p>
