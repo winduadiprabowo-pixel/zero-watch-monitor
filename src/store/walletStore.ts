@@ -153,7 +153,7 @@ export const useWalletStore = create<WalletStore>()(
     }),
     {
       name:       'zero-watch-wallets',
-      version:    5,  // bumped 4→5: force re-seed to pick up logo field
+      version:    6,  // bumped 5→6: force re-seed logos
       partialize: s => ({
         wallets:      s.wallets,
         plan:         s.plan,
@@ -164,7 +164,7 @@ export const useWalletStore = create<WalletStore>()(
         if (version < 2) {
           return { ...(persisted as object), _seeded: false }
         }
-        if (version < 5) {
+        if (version < 6) {
           // v3→v4: force re-seed so pinned field gets picked up from defaultWallets
           return { ...(persisted as object), _seeded: false }
         }
