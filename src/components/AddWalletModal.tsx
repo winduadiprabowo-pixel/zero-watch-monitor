@@ -203,7 +203,7 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                   letterSpacing: '0.06em',
                 }}
               >
-                UPGRADE TO PRO — $9 LIFETIME →
+                UPGRADE TO PRO — $12/MO →
               </button>
               <p className="text-center text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.18)' }}>
                 One-time payment · No subscription · No expiry
