@@ -214,7 +214,7 @@ const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: (
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.2)'; e.currentTarget.style.color = 'rgba(0, 212, 255, 0.7)' }}
         >
           <Zap style={{ width: '14px', height: '14px' }} />
-          UNLOCK PRO — $9 lifetime
+          UNLOCK PRO — $12/mo
         </button>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
           {[
@@ -306,7 +306,7 @@ const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgra
       ) : (
         <button onClick={onUpgrade} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '10px', background: 'rgba(0, 212, 255, 0.12)', border: '1px solid rgba(0, 212, 255, 0.40)', color: 'rgba(0, 212, 255, 1)', cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 14px rgba(0, 212, 255, 0.18)' }}>
           <Zap style={{ width: '12px', height: '12px' }} />
-          PRO $9
+          PRO $12/mo
         </button>
       )}
 
@@ -726,7 +726,7 @@ const Index = () => {
               style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
               className="animate-fade-up"
             >
-              <StatsBar mobile />
+              <StatsBar mobile alertCount={whaleAlerts.alertCount ?? 0} />
               {!isProActive && (
                 <button
                   onClick={() => setUpgradeOpen(true)}
@@ -737,7 +737,7 @@ const Index = () => {
                   <Zap style={{ width: '16px', height: '16px', color: 'rgba(0, 212, 255, 1)', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700, color: 'rgba(0, 212, 255, 1)' }}>
-                      UNLOCK PRO — $9 lifetime
+                      UNLOCK PRO — $12/mo
                     </div>
                     <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', marginTop: '2px', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
                       Unlimited wallets · Whale Intel · CSV Export
@@ -816,7 +816,7 @@ const Index = () => {
 
           {/* Main content */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <StatsBar />
+            <StatsBar alertCount={whaleAlerts.alertCount ?? 0} />
             <UnknownWhaleCard />
             <WalletTable
               wallets={filteredWallets} selectedWalletId={selectedWalletId}
@@ -1035,7 +1035,7 @@ const Index = () => {
 
         {/* ── Main Content — full width ─────────────────────────────────── */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-          <StatsBar />
+          <StatsBar alertCount={whaleAlerts.alertCount ?? 0} />
           <UnknownWhaleCard />
 
           {/* View toggle */}
