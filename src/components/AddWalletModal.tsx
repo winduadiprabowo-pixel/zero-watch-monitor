@@ -161,14 +161,14 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
         {/* Top glow */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(230,161,71,0.4), transparent)' }}
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.4), transparent)' }}
         />
 
         <div className="relative px-6 pt-6 pb-7 space-y-4">
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4" style={{ color: 'rgba(230,161,71,0.7)' }} />
-              <DialogTitle className="text-[10px] tracking-[0.2em] uppercase" style={{ color: 'rgba(230,161,71,0.7)' }}>
+              <Eye className="w-4 h-4" style={{ color: 'rgba(0, 212, 255, 0.7)' }} />
+              <DialogTitle className="text-[10px] tracking-[0.2em] uppercase" style={{ color: 'rgba(0, 212, 255, 0.7)' }}>
                 Track Wallet
               </DialogTitle>
             </div>
@@ -181,11 +181,11 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
             <div className="space-y-4">
               <div
                 className="rounded-xl p-4 space-y-2"
-                style={{ background: 'rgba(230,161,71,0.04)', border: '1px solid rgba(230,161,71,0.15)' }}
+                style={{ background: 'rgba(0, 212, 255, 0.04)', border: '1px solid rgba(0, 212, 255, 0.15)' }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(230,161,71,1)' }} />
-                  <span className="text-[10px] font-mono tracking-wider" style={{ color: 'rgba(230,161,71,0.8)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(0, 212, 255, 1)' }} />
+                  <span className="text-[10px] font-mono tracking-wider" style={{ color: 'rgba(0, 212, 255, 0.8)' }}>
                     FREE TIER — 3/3 WALLETS USED
                   </span>
                 </div>
@@ -197,9 +197,9 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                 onClick={() => { onClose(); onUpgrade() }}
                 className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98]"
                 style={{
-                  background:    'linear-gradient(135deg, rgba(230,161,71,1) 0%, rgba(0,200,120,1) 100%)',
+                  background:    'linear-gradient(135deg, rgba(0, 212, 255, 1) 0%, rgba(0,200,120,1) 100%)',
                   color:         'rgba(2,10,6,1)',
-                  boxShadow:     '0 0 20px rgba(230,161,71,0.25)',
+                  boxShadow:     '0 0 20px rgba(0, 212, 255, 0.25)',
                   letterSpacing: '0.06em',
                 }}
               >
@@ -214,7 +214,7 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
               {/* Free slots indicator */}
               <div
                 className="flex items-center justify-between px-3 py-2 rounded-lg"
-                style={{ background: 'rgba(230,161,71,0.04)', border: '1px solid rgba(230,161,71,0.10)' }}
+                style={{ background: 'rgba(0, 212, 255, 0.04)', border: '1px solid rgba(0, 212, 255, 0.10)' }}
               >
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
@@ -222,7 +222,7 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                       <div
                         key={i}
                         className="w-4 h-1.5 rounded-full"
-                        style={{ background: i < (3 - freeSlots) ? 'rgba(230,161,71,0.7)' : 'rgba(255,255,255,0.08)' }}
+                        style={{ background: i < (3 - freeSlots) ? 'rgba(0, 212, 255, 0.7)' : 'rgba(255,255,255,0.08)' }}
                       />
                     ))}
                   </div>
@@ -230,7 +230,7 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                     {freeSlots} of 3 free slots remaining
                   </span>
                 </div>
-                <span className="text-[8px] font-mono tracking-wider" style={{ color: 'rgba(230,161,71,0.5)' }}>
+                <span className="text-[8px] font-mono tracking-wider" style={{ color: 'rgba(0, 212, 255, 0.5)' }}>
                   FREE
                 </span>
               </div>
@@ -246,8 +246,8 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                     onClick={() => setTab(t)}
                     className="flex-1 py-2 text-[10px] font-mono tracking-wider transition-all"
                     style={{
-                      background:    tab === t ? 'rgba(230,161,71,0.08)' : 'transparent',
-                      color:         tab === t ? 'rgba(230,161,71,0.9)' : 'rgba(255,255,255,0.3)',
+                      background:    tab === t ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                      color:         tab === t ? 'rgba(0, 212, 255, 0.9)' : 'rgba(255,255,255,0.3)',
                       borderRight:   t === 'demo' ? '1px solid rgba(255,255,255,0.07)' : 'none',
                       letterSpacing: '0.1em',
                     }}
@@ -283,8 +283,8 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                           border:     '1px solid rgba(255,255,255,0.07)',
                         }}
                         onMouseEnter={e => {
-                          e.currentTarget.style.background  = 'rgba(230,161,71,0.05)'
-                          e.currentTarget.style.borderColor = 'rgba(230,161,71,0.2)'
+                          e.currentTarget.style.background  = 'rgba(0, 212, 255, 0.05)'
+                          e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.2)'
                         }}
                         onMouseLeave={e => {
                           e.currentTarget.style.background  = 'rgba(255,255,255,0.025)'
@@ -293,14 +293,14 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                       >
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2 min-w-0">
-                            <Zap className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(230,161,71,0.5)' }} />
+                            <Zap className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(0, 212, 255, 0.5)' }} />
                             <span className="text-[11px] font-mono font-semibold" style={{ color: 'rgba(255,255,255,0.88)' }}>
                               {demo.label}
                             </span>
                           </div>
                           <span
                             className="text-[8px] font-mono px-1.5 py-0.5 rounded flex-shrink-0 ml-2"
-                            style={{ background: 'rgba(230,161,71,0.08)', color: 'rgba(230,161,71,0.7)', border: '1px solid rgba(230,161,71,0.15)' }}
+                            style={{ background: 'rgba(0, 212, 255, 0.08)', color: 'rgba(0, 212, 255, 0.7)', border: '1px solid rgba(0, 212, 255, 0.15)' }}
                           >
                             {demo.chain}
                           </span>
@@ -332,7 +332,7 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                       value={address}
                       onChange={e => { setAddress(e.target.value); setErr('') }}
                       style={inputStyle}
-                      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
                       onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                     />
                   </div>
@@ -347,7 +347,7 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                       value={label}
                       onChange={e => setLabel(e.target.value)}
                       style={inputStyle}
-                      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
                       onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                     />
                   </div>
@@ -396,9 +396,9 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
 
                   <div
                     className="flex items-center gap-2 px-3 py-2 rounded-xl"
-                    style={{ background: 'rgba(230,161,71,0.03)', border: '1px solid rgba(230,161,71,0.10)' }}
+                    style={{ background: 'rgba(0, 212, 255, 0.03)', border: '1px solid rgba(0, 212, 255, 0.10)' }}
                   >
-                    <Shield className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(230,161,71,0.5)' }} />
+                    <Shield className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(0, 212, 255, 0.5)' }} />
                     <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.28)' }}>
                       Read-only. ZERØ never asks for private keys.
                     </span>
@@ -408,9 +408,9 @@ export const AddWalletModal = memo(({ open, onClose, onUpgrade }: Props) => {
                     onClick={handleSubmit}
                     className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98]"
                     style={{
-                      background:    'linear-gradient(135deg, rgba(230,161,71,1) 0%, rgba(0,200,120,1) 100%)',
+                      background:    'linear-gradient(135deg, rgba(0, 212, 255, 1) 0%, rgba(0,200,120,1) 100%)',
                       color:         'rgba(2,10,6,1)',
-                      boxShadow:     '0 0 20px rgba(230,161,71,0.25)',
+                      boxShadow:     '0 0 20px rgba(0, 212, 255, 0.25)',
                       letterSpacing: '0.06em',
                       opacity:       address ? 1 : 0.5,
                     }}
