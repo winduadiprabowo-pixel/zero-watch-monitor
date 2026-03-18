@@ -1,13 +1,12 @@
 /**
- * ZERØ WATCH — Service Worker v29
+ * ZERØ WATCH — Service Worker v30
  * ================================
- * Cache: zero-watch-v53
- * v28: Web Push notification handler
- *      - push event → show notification background (tab tertutup pun muncul)
- *      - notificationclick → focus/open app
+ * Cache: zero-watch-v59
+ * v30: Fix "Failed to convert value to Response" — sw cache fallback
+ *      Bump cache key zero-watch-v53 → zero-watch-v59
  */
 
-const CACHE_NAME = 'zero-watch-v53'
+const CACHE_NAME   = 'zero-watch-v59'
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json']
 
 self.addEventListener('install', event => {
@@ -26,30 +25,58 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
-  if (url.pathname.includes('/api/') || url.pathname.includes('/etherscan') ||
-      url.pathname.includes('/alchemy') || url.pathname.includes('/tron') ||
-      url.hostname !== location.hostname) {
-    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)))
+
+  // Bypass SW untuk semua API calls — jangan cache, langsung fetch
+  if (
+    url.hostname !== location.hostname ||
+    url.pathname.includes('/api/') ||
+    url.pathname.includes('/etherscan') ||
+    url.pathname.includes('/alchemy') ||
+    url.pathname.includes('/tron') ||
+    url.pathname.includes('/coingecko') ||
+    url.pathname.includes('/btc/') ||
+    url.pathname.includes('/solana') ||
+    url.pathname.includes('/fapi/') ||
+    url.pathname.includes('/auth/') ||
+    url.pathname.includes('/push/') ||
+    url.pathname.includes('/verify-license') ||
+    url.pathname.includes('/health') ||
+    url.pathname.includes('/ws') ||
+    url.pathname.includes('/snapshot')
+  ) {
+    // Langsung fetch, kalau gagal return network error (bukan undefined)
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        new Response(JSON.stringify({ error: 'Network error' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
+    )
     return
   }
+
+  // Static assets — cache first
   event.respondWith(
-    caches.match(event.request).then(cached =>
-      cached ?? fetch(event.request).then(res => {
-        if (res.ok) {
+    caches.match(event.request).then(cached => {
+      if (cached) return cached
+      return fetch(event.request).then(res => {
+        if (res && res.ok && res.status < 400) {
           const clone = res.clone()
           caches.open(CACHE_NAME).then(c => c.put(event.request, clone))
         }
         return res
-      })
-    )
+      }).catch(() =>
+        new Response('Offline', { status: 503 })
+      )
+    })
   )
 })
 
-// ── Web Push Handler (v28) ────────────────────────────────────────────────────
+// ── Web Push Handler ──────────────────────────────────────────────────────────
 
 self.addEventListener('push', event => {
   if (!event.data) return
-
   let payload
   try   { payload = event.data.json() }
   catch { payload = { title: 'ZERØ WATCH', body: event.data.text() } }
@@ -68,7 +95,6 @@ self.addEventListener('push', event => {
       { action: 'dismiss', title: 'Dismiss'  },
     ],
   }
-
   event.waitUntil(self.registration.showNotification(title, options))
 })
 
