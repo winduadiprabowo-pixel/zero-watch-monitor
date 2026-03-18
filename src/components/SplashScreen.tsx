@@ -47,7 +47,7 @@ const SplashScreen = memo(({ onDone }: SplashScreenProps) => {
           width:      '300px',
           height:     '300px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(230,161,71,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(0, 212, 255, 0.08) 0%, transparent 70%)',
           pointerEvents: 'none',
           animation:  'splash-pulse 2s ease-in-out infinite',
         }}
@@ -68,7 +68,7 @@ const SplashScreen = memo(({ onDone }: SplashScreenProps) => {
             width:        '96px',
             height:       '96px',
             borderRadius: '28px',
-            boxShadow:    '0 0 40px rgba(230,161,71,0.25), 0 0 80px rgba(230,161,71,0.10)',
+            boxShadow:    '0 0 40px rgba(0, 212, 255, 0.25), 0 0 80px rgba(0, 212, 255, 0.10)',
           }}
         />
       </div>
@@ -99,7 +99,7 @@ const SplashScreen = memo(({ onDone }: SplashScreenProps) => {
             fontFamily:    "'IBM Plex Mono', monospace",
             fontSize:      '9px',
             letterSpacing: '0.20em',
-            color:         'rgba(230,161,71,0.4)',
+            color:         'rgba(0, 212, 255, 0.4)',
             textTransform: 'uppercase',
             marginTop:     '4px',
           }}
@@ -124,7 +124,7 @@ const SplashScreen = memo(({ onDone }: SplashScreenProps) => {
               width:        '4px',
               height:       '4px',
               borderRadius: '50%',
-              background:   'rgba(230,161,71,0.5)',
+              background:   'rgba(0, 212, 255, 0.5)',
               animation:    `splash-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
             }}
           />
