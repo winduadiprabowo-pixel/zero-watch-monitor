@@ -68,8 +68,8 @@ const SignalRow = memo(({ tx, index }: { tx: WhaleTx; index: number }) => {
           height:       '8px',
           minWidth:     '8px',
           borderRadius: '50%',
-          background:   tx.isMega ? 'rgba(251,191,36,1)' : 'rgba(230,161,71,1)',
-          boxShadow:    tx.isMega ? '0 0 8px rgba(251,191,36,0.7)' : '0 0 8px rgba(230,161,71,0.7)',
+          background:   tx.isMega ? 'rgba(251,191,36,1)' : 'rgba(0, 212, 255, 1)',
+          boxShadow:    tx.isMega ? '0 0 8px rgba(251,191,36,0.7)' : '0 0 8px rgba(0, 212, 255, 0.7)',
           animation:    'pulse-glow 2s ease-in-out infinite',
         }}
       />
@@ -77,7 +77,7 @@ const SignalRow = memo(({ tx, index }: { tx: WhaleTx; index: number }) => {
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' as const }}>
-          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '13px', fontWeight: 700, color: tx.isMega ? 'rgba(251,191,36,1)' : 'rgba(230,161,71,1)' }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '13px', fontWeight: 700, color: tx.isMega ? 'rgba(251,191,36,1)' : 'rgba(0, 212, 255, 1)' }}>
             {fmtUsd(tx.valueUsd)}
           </span>
           <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', padding: '2px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
@@ -107,7 +107,7 @@ const SignalRow = memo(({ tx, index }: { tx: WhaleTx; index: number }) => {
           rel="noopener noreferrer"
           onClick={e => e.stopPropagation()}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)', flexShrink: 0, transition: 'border-color 0.15s' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(230,161,71,0.3)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0, 212, 255, 0.3)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.08)' }}
         >
           <ExternalLink style={{ width: '12px', height: '12px' }} />
@@ -153,20 +153,20 @@ const UnknownWhaleCard = memo(({ mobile }: UnknownWhaleCardProps) => {
         margin:       mobile ? '8px 12px 4px' : '8px 16px 4px',
         borderRadius: '16px',
         overflow:     'hidden',
-        background:   'linear-gradient(135deg, rgba(230,161,71,0.04) 0%, rgba(99,102,241,0.03) 100%)',
-        border:       '1px solid rgba(230,161,71,0.15)',
+        background:   'linear-gradient(135deg, rgba(0, 212, 255, 0.04) 0%, rgba(99,102,241,0.03) 100%)',
+        border:       '1px solid rgba(0, 212, 255, 0.15)',
         flexShrink:   0,
       }}
     >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.055)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <div style={{ width: '6px', height: '6px', minWidth: '6px', borderRadius: '50%', background: 'rgba(230,161,71,1)', boxShadow: '0 0 6px rgba(230,161,71,0.8)', animation: 'pulse-glow 2s ease-in-out infinite' }} />
-          <Eye style={{ width: '12px', height: '12px', color: 'rgba(230,161,71,0.7)', flexShrink: 0 }} />
-          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: 'rgba(230,161,71,0.9)', whiteSpace: 'nowrap' as const }}>
+          <div style={{ width: '6px', height: '6px', minWidth: '6px', borderRadius: '50%', background: 'rgba(0, 212, 255, 1)', boxShadow: '0 0 6px rgba(0, 212, 255, 0.8)', animation: 'pulse-glow 2s ease-in-out infinite' }} />
+          <Eye style={{ width: '12px', height: '12px', color: 'rgba(0, 212, 255, 0.7)', flexShrink: 0 }} />
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: 'rgba(0, 212, 255, 0.9)', whiteSpace: 'nowrap' as const }}>
             Unknown Whale
           </span>
-          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', padding: '2px 8px', borderRadius: '99px', background: 'rgba(230,161,71,0.08)', color: 'rgba(230,161,71,0.6)', border: '1px solid rgba(230,161,71,0.15)', flexShrink: 0 }}>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', padding: '2px 8px', borderRadius: '99px', background: 'rgba(0, 212, 255, 0.08)', color: 'rgba(0, 212, 255, 0.6)', border: '1px solid rgba(0, 212, 255, 0.15)', flexShrink: 0 }}>
             {unknownTxs.length} signal{unknownTxs.length > 1 ? 's' : ''}
           </span>
         </div>
