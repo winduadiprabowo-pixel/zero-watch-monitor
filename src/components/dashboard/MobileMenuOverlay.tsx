@@ -233,7 +233,7 @@ const MobileMenuOverlay = memo(({
               <MenuItem
                 icon={<Zap style={{ width: 16, height: 16 }} />}
                 label="Upgrade to PRO"
-                badge="$9"
+                badge="$12/mo"
                 badgeColor="rgba(0, 212, 255, 1)"
                 onClick={() => { onUpgrade(); onClose() }}
               />
