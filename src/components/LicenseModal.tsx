@@ -88,22 +88,22 @@ export const LicenseModal = memo(({ open, onClose }: Props) => {
         {/* Top glow line */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(230,161,71,0.5), transparent)' }}
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent)' }}
         />
 
         {/* Ambient */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse, rgba(230,161,71,0.07) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse, rgba(0, 212, 255, 0.07) 0%, transparent 70%)' }}
         />
 
         <div className="relative px-6 pt-6 pb-7 space-y-5">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-1">
-              <Key className="w-4 h-4" style={{ color: 'rgba(230,161,71,0.8)' }} />
+              <Key className="w-4 h-4" style={{ color: 'rgba(0, 212, 255, 0.8)' }} />
               <DialogTitle
                 className="text-[10px] tracking-[0.2em] uppercase"
-                style={{ color: 'rgba(230,161,71,0.7)' }}
+                style={{ color: 'rgba(0, 212, 255, 0.7)' }}
               >
                 ACTIVATE LICENSE
               </DialogTitle>
@@ -134,10 +134,10 @@ export const LicenseModal = memo(({ open, onClose }: Props) => {
                 border:      status === 'error'
                   ? '1px solid rgba(239,68,68,0.4)'
                   : status === 'success'
-                  ? '1px solid rgba(230,161,71,0.4)'
+                  ? '1px solid rgba(0, 212, 255, 0.4)'
                   : '1px solid rgba(255,255,255,0.08)',
                 color:       'rgba(255,255,255,0.9)',
-                caretColor:  'rgba(230,161,71,0.8)',
+                caretColor:  'rgba(0, 212, 255, 0.8)',
               }}
             />
 
@@ -155,9 +155,9 @@ export const LicenseModal = memo(({ open, onClose }: Props) => {
             <div
               className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold"
               style={{
-                background: 'rgba(230,161,71,0.1)',
-                border:     '1px solid rgba(230,161,71,0.3)',
-                color:      'rgba(230,161,71,0.9)',
+                background: 'rgba(0, 212, 255, 0.1)',
+                border:     '1px solid rgba(0, 212, 255, 0.3)',
+                color:      'rgba(0, 212, 255, 0.9)',
               }}
             >
               <CheckCircle2 className="w-4 h-4" />
@@ -169,9 +169,9 @@ export const LicenseModal = memo(({ open, onClose }: Props) => {
               disabled={!key.trim() || status === 'loading'}
               className="w-full py-3 rounded-xl font-bold font-mono text-sm transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
-                background:    'linear-gradient(135deg, rgba(230,161,71,1) 0%, rgba(0,200,120,1) 100%)',
+                background:    'linear-gradient(135deg, rgba(0, 212, 255, 1) 0%, rgba(0,200,120,1) 100%)',
                 color:         'rgba(2,10,6,1)',
-                boxShadow:     '0 0 20px rgba(230,161,71,0.25), 0 4px 16px rgba(0,0,0,0.4)',
+                boxShadow:     '0 0 20px rgba(0, 212, 255, 0.25), 0 4px 16px rgba(0,0,0,0.4)',
                 letterSpacing: '0.06em',
               }}
             >
