@@ -241,3 +241,4 @@ const LiveFeedView = memo(({ events, wallets, onSelectWallet }: LiveFeedViewProp
 LiveFeedView.displayName = 'LiveFeedView'
 
 export default LiveFeedView
+
