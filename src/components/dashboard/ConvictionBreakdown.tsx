@@ -39,9 +39,9 @@ const ConvictionBreakdown = memo(({ intel }: Props) => {
       label:  'Activity',
       weight: 35,
       score:  Math.round(activityRaw),
-      color:  'rgba(230,161,71,1)',
-      bg:     'rgba(230,161,71,0.08)',
-      border: 'rgba(230,161,71,0.18)',
+      color:  'rgba(0, 212, 255, 1)',
+      bg:     'rgba(0, 212, 255, 0.08)',
+      border: 'rgba(0, 212, 255, 0.18)',
       desc:   'TX frequency + volume 30d',
     },
     {
