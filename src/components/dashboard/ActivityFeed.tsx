@@ -26,7 +26,7 @@ const ACTION_CONFIG: Record<ActionType, {
   label: string; bg: string; text: string; border: string; glow: string; Icon: typeof Activity
 }> = {
   SWAP:     { label: 'SWAP',     bg: 'rgba(59,130,246,0.12)',  text: 'rgba(96,165,250,1)',     border: 'rgba(59,130,246,0.30)',  glow: 'rgba(59,130,246,0.06)',  Icon: Repeat2 },
-  DEPOSIT:  { label: 'DEPOSIT',  bg: 'rgba(230,161,71,0.10)',   text: 'rgba(230,161,71,1)',      border: 'rgba(230,161,71,0.30)',   glow: 'rgba(230,161,71,0.05)',   Icon: ArrowDownLeft },
+  DEPOSIT:  { label: 'DEPOSIT',  bg: 'rgba(0, 212, 255, 0.10)',   text: 'rgba(0, 212, 255, 1)',      border: 'rgba(0, 212, 255, 0.30)',   glow: 'rgba(0, 212, 255, 0.05)',   Icon: ArrowDownLeft },
   TRANSFER: { label: 'TRANSFER', bg: 'rgba(251,191,36,0.10)',  text: 'rgba(251,191,36,1)',     border: 'rgba(251,191,36,0.28)',  glow: 'rgba(251,191,36,0.05)',  Icon: ArrowUpRight },
   BORROW:   { label: 'BORROW',   bg: 'rgba(167,139,250,0.12)', text: 'rgba(167,139,250,1)',    border: 'rgba(167,139,250,0.30)', glow: 'rgba(167,139,250,0.05)', Icon: TrendingUp },
   UNKNOWN:  { label: 'TX',       bg: 'rgba(255,255,255,0.05)', text: 'rgba(255,255,255,0.45)', border: 'rgba(255,255,255,0.12)', glow: 'transparent',            Icon: HelpCircle },
@@ -48,10 +48,10 @@ const TokensSection = memo(({ tokens }: { tokens: TokenHolding[] }) => {
     <div className="border-t flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
       <div className="px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Coins className="w-3 h-3" style={{ color: 'rgba(230,161,71,0.5)' }} />
+          <Coins className="w-3 h-3" style={{ color: 'rgba(0, 212, 255, 0.5)' }} />
           <span className="text-[9px] font-mono tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Token Holdings</span>
         </div>
-        <span className="text-[10px] font-mono font-bold tabular-nums" style={{ color: 'rgba(230,161,71,0.8)' }}>{fmtTokenUsd(totalUsd)}</span>
+        <span className="text-[10px] font-mono font-bold tabular-nums" style={{ color: 'rgba(0, 212, 255, 0.8)' }}>{fmtTokenUsd(totalUsd)}</span>
       </div>
       <div className="px-3 pb-3 space-y-1">
         {tokens.slice(0, 8).map((tok, i) => (
@@ -59,13 +59,13 @@ const TokensSection = memo(({ tokens }: { tokens: TokenHolding[] }) => {
             key={i}
             className="flex items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors"
             style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(230,161,71,0.03)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(0, 212, 255, 0.03)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.02)' }}
           >
             <div className="flex items-center gap-2 min-w-0">
               <div
                 className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 text-[8px] font-mono font-bold"
-                style={{ background: 'rgba(230,161,71,0.06)', border: '1px solid rgba(230,161,71,0.15)', color: 'rgba(230,161,71,0.7)' }}
+                style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.15)', color: 'rgba(0, 212, 255, 0.7)' }}
               >
                 {tok.symbol.slice(0, 2)}
               </div>
@@ -141,14 +141,14 @@ const ActivityFeed = memo(({ events, selectedWallet, selectedWalletTokens = [], 
       {/* Header */}
       <div className="px-4 py-3 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-2">
-          <Activity className="w-3.5 h-3.5" style={{ color: 'rgba(230,161,71,0.6)' }} />
+          <Activity className="w-3.5 h-3.5" style={{ color: 'rgba(0, 212, 255, 0.6)' }} />
           <h2 className="text-[9px] font-mono font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(255,255,255,0.6)' }}>LIVE SIGNAL FEED</h2>
           {hasEvents && (
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(230,161,71,1)', boxShadow: '0 0 5px rgba(230,161,71,0.8)', animation: 'pulse 2s ease-in-out infinite' }} />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(0, 212, 255, 1)', boxShadow: '0 0 5px rgba(0, 212, 255, 0.8)', animation: 'pulse 2s ease-in-out infinite' }} />
           )}
         </div>
         {selectedWallet && (
-          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(230,161,71,0.07)', border: '1px solid rgba(230,161,71,0.18)', color: 'rgba(230,161,71,0.75)' }}>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(0, 212, 255, 0.07)', border: '1px solid rgba(0, 212, 255, 0.18)', color: 'rgba(0, 212, 255, 0.75)' }}>
             {selectedWallet.label}
           </span>
         )}
@@ -159,8 +159,8 @@ const ActivityFeed = memo(({ events, selectedWallet, selectedWalletTokens = [], 
         {!hasEvents ? (
           <div className="px-4 py-8 text-center space-y-4">
             <div className="flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(230,161,71,0.05)', border: '1px solid rgba(230,161,71,0.15)', animation: 'pulse 2.5s ease-in-out infinite' }}>
-                <RefreshCw className="w-5 h-5" style={{ color: 'rgba(230,161,71,0.4)', animation: 'spin 3s linear infinite' }} />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)', animation: 'pulse 2.5s ease-in-out infinite' }}>
+                <RefreshCw className="w-5 h-5" style={{ color: 'rgba(0, 212, 255, 0.4)', animation: 'spin 3s linear infinite' }} />
               </div>
             </div>
             <div className="space-y-1.5">
