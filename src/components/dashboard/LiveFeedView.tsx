@@ -25,7 +25,7 @@ interface LiveFeedViewProps {
 
 const ACTION_CFG: Record<ActionType, { label: string; color: string; bg: string; border: string; Icon: typeof ArrowUpRight }> = {
   SWAP:     { label: 'SWAP',     color: 'rgba(96,165,250,1)',     bg: 'rgba(59,130,246,0.10)',  border: 'rgba(59,130,246,0.25)',  Icon: Repeat2       },
-  DEPOSIT:  { label: 'DEPOSIT',  color: 'rgba(230,161,71,1)',      bg: 'rgba(230,161,71,0.08)',   border: 'rgba(230,161,71,0.25)',   Icon: ArrowDownLeft },
+  DEPOSIT:  { label: 'DEPOSIT',  color: 'rgba(0, 212, 255, 1)',      bg: 'rgba(0, 212, 255, 0.08)',   border: 'rgba(0, 212, 255, 0.25)',   Icon: ArrowDownLeft },
   TRANSFER: { label: 'TRANSFER', color: 'rgba(251,191,36,1)',     bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.22)',  Icon: ArrowUpRight  },
   BORROW:   { label: 'BORROW',   color: 'rgba(167,139,250,1)',    bg: 'rgba(167,139,250,0.10)', border: 'rgba(167,139,250,0.25)', Icon: TrendingUp    },
   UNKNOWN:  { label: 'TX',       color: 'rgba(255,255,255,0.35)', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.08)', Icon: HelpCircle    },
