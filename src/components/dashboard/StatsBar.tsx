@@ -1,257 +1,181 @@
 /**
- * ZERØ WATCH — StatsBar v23
+ * ZERØ WATCH — StatsBar v24
  * ===========================
- * v23 BENTO REDESIGN:
- * - Bento grid header cards (not flat bar)
- * - Portfolio: large gradient number with sparkline area
- * - ETH price: live with 24h change
- * - Active wallets: real count
- * - Gas price card
- * - Each card: hover lift + neon glow
+ * v24: Arkham-style hero layout
+ * - Portfolio Value: full hero box, full number format $16,170,482,910
+ * - 3 stat cards below: Active 1H, Whale Alerts, Wallets Tracked
+ * - No ETH Price card
  * rgba() only ✓  React.memo + displayName ✓
  */
 
-import React, { memo, useMemo, useState, useEffect } from 'react'
-import { TrendingUp, TrendingDown, Activity, Zap, Eye, RefreshCw } from 'lucide-react'
+import React, { memo, useMemo } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { useWalletStore, selectWallets } from '@/store/walletStore'
-import { useAllWalletData, useEthPrice } from '@/hooks/useWalletData'
+import { useAllWalletData } from '@/hooks/useWalletData'
+import { useWhaleAlerts } from '@/hooks/useWhaleAlerts'
 
 interface StatsBarProps { mobile?: boolean }
 
-const fmtUsd = (n: number) => {
+const fmtFull = (n: number) => {
+  if (n === 0) return '$0'
+  return '$' + Math.round(n).toLocaleString('en-US')
+}
+
+const fmtShort = (n: number) => {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`
   if (n >= 1_000_000)     return `$${(n / 1_000_000).toFixed(2)}M`
   if (n >= 1_000)         return `$${(n / 1_000).toFixed(1)}K`
   return `$${n.toFixed(0)}`
 }
 
-// ── LIVE Badge ────────────────────────────────────────────────────────────────
-const LiveBadge = memo(({ syncing }: { syncing: boolean }) => (
-  <div
-    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-    style={{
-      background:    syncing ? 'rgba(251,191,36,0.10)' : 'rgba(230,161,71,0.08)',
-      border:        syncing ? '1px solid rgba(251,191,36,0.25)' : '1px solid rgba(230,161,71,0.22)',
-    }}
-  >
-    <span
-      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-      style={{
-        background: syncing ? 'rgba(251,191,36,1)' : 'rgba(230,161,71,1)',
-        boxShadow:  syncing ? '0 0 5px rgba(251,191,36,0.8)' : '0 0 5px rgba(230,161,71,0.8)',
-        animation:  'pulse-glow 1.8s ease-in-out infinite',
-      }}
-    />
-    <span
-      className="font-mono font-bold tracking-widest"
-      style={{ fontSize: '8px', color: syncing ? 'rgba(251,191,36,0.9)' : 'rgba(230,161,71,0.9)' }}
-    >
+const LiveDot = memo(({ syncing }: { syncing: boolean }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <span style={{
+      width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', flexShrink: 0,
+      background: syncing ? 'rgba(251,191,36,1)' : 'rgba(52,211,153,1)',
+      boxShadow:  syncing ? '0 0 5px rgba(251,191,36,0.8)' : '0 0 5px rgba(52,211,153,0.8)',
+      animation:  'pulse-glow 1.8s ease-in-out infinite',
+    }} />
+    <span style={{
+      fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.10em',
+      color: syncing ? 'rgba(251,191,36,0.9)' : 'rgba(52,211,153,0.9)',
+    }}>
       {syncing ? 'SYNC' : 'LIVE'}
     </span>
   </div>
 ))
-LiveBadge.displayName = 'LiveBadge'
+LiveDot.displayName = 'LiveDot'
 
-// ── Metric Bento Card ─────────────────────────────────────────────────────────
-interface MetricCardProps {
-  label:     string
-  value:     string
-  sub?:      string
-  icon:      React.ReactNode
-  color?:    string
-  glow?:     string
-  loading?:  boolean
-  delay?:    number
+interface StatCardProps {
+  label:       string
+  value:       string | number
+  sub?:        string
+  valueColor?: string
+  subColor?:   string
+  loading?:    boolean
 }
 
-const MetricCard = memo(({ label, value, sub, icon, color = 'rgba(255,255,255,0.85)', glow, loading, delay = 0 }: MetricCardProps) => (
-  <div
-    className="rounded-2xl p-4 flex flex-col justify-between animate-float-up bento-card glow-line-top"
-    style={{
-      animationDelay: `${delay}s`,
-      minWidth:       0,
-    }}
-  >
-    {/* Top: label + icon */}
-    <div className="flex items-center justify-between mb-3">
-      <span
-        className="font-mono tracking-widest uppercase col-label"
-        style={{ fontSize: '9px', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.14em' }}
-      >
-        {label}
-      </span>
-      <span style={{ color: 'rgba(255,255,255,0.2)', display: 'flex' }}>{icon}</span>
+const StatCard = memo(({ label, value, sub, valueColor = 'rgba(255,255,255,0.95)', subColor = 'rgba(255,255,255,0.28)', loading }: StatCardProps) => (
+  <div style={{
+    background: 'rgba(13,14,20,1)', border: '1px solid rgba(255,255,255,0.07)',
+    borderRadius: '10px', padding: '12px 16px', flex: 1, minWidth: 0,
+  }}>
+    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.28)', marginBottom: '6px' }}>
+      {label}
     </div>
-
-    {/* Value */}
     {loading ? (
-      <div className="h-8 rounded-lg shimmer" />
+      <div className="shimmer" style={{ height: '22px', borderRadius: '6px' }} />
     ) : (
-      <div>
-        <div
-          className="font-display font-bold leading-none"
-          style={{ fontSize: '22px', color, textShadow: glow ? `0 0 20px ${glow}` : 'none' }}
-        >
+      <>
+        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '20px', fontWeight: 700, color: valueColor, lineHeight: 1 }}>
           {value}
         </div>
         {sub && (
-          <div className="font-mono mt-1.5" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: subColor, marginTop: '4px' }}>
             {sub}
           </div>
         )}
-      </div>
+      </>
     )}
   </div>
 ))
-MetricCard.displayName = 'MetricCard'
-
-// ── Main StatsBar ─────────────────────────────────────────────────────────────
+StatCard.displayName = 'StatCard'
 
 const StatsBar = memo(({ mobile }: StatsBarProps) => {
-  const storeWallets                    = useWalletStore(selectWallets)
+  const storeWallets                     = useWalletStore(selectWallets)
   const { data: apiDataArr, isFetching } = useAllWalletData()
-  const { data: ethPrice }              = useEthPrice()
+  const whaleAlerts                      = useWhaleAlerts()
 
   const stats = useMemo(() => {
-    const hasData = storeWallets.length > 0 && apiDataArr && apiDataArr.length > 0
-    const totalUsd = hasData
-      ? apiDataArr!.reduce((s, w) => {
-          const v = w?.balance.usdValue ?? 0
-          return s + (isNaN(v) || !isFinite(v) ? 0 : v)
-        }, 0)
+    const hasData     = storeWallets.length > 0 && apiDataArr && apiDataArr.length > 0
+    const totalUsd    = hasData
+      ? apiDataArr!.reduce((s, w) => { const v = w?.balance.usdValue ?? 0; return s + (isNaN(v) || !isFinite(v) ? 0 : v) }, 0)
       : 0
     const activeCount = hasData
-      ? apiDataArr!.filter(w =>
-          (w?.transactions ?? []).some(tx => {
-            const age = Date.now() / 1000 - parseInt(tx.timeStamp)
-            return age < 3600
-          })
-        ).length
+      ? apiDataArr!.filter(w => (w?.transactions ?? []).some(tx => (Date.now() / 1000 - parseInt(tx.timeStamp)) < 3600)).length
       : 0
     const loadedCount = apiDataArr?.filter(Boolean).length ?? 0
     return { totalUsd, activeCount, walletCount: storeWallets.length, loading: storeWallets.length > 0 && !hasData, loadedCount }
   }, [apiDataArr, storeWallets])
 
-  const ethDisplay = ethPrice
-    ? `$${ethPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
-    : '—'
+  const alertCount = whaleAlerts.alertCount ?? 0
 
   if (mobile) {
     return (
-      <div
-        className="px-3 pt-3 pb-2 grid grid-cols-2 gap-2"
-        style={{ background: 'rgba(4,4,10,0.95)' }}
-      >
-        <MetricCard
-          label="Portfolio"
-          value={fmtUsd(stats.totalUsd)}
-          sub={`${stats.walletCount} wallets tracked`}
-          icon={<TrendingUp className="w-3.5 h-3.5" />}
-          color="rgba(230,161,71,1)"
-          glow="rgba(230,161,71,0.4)"
-          loading={stats.loading}
-          delay={0}
-        />
-        <MetricCard
-          label="ETH Price"
-          value={ethDisplay}
-          sub="live feed"
-          icon={<Activity className="w-3.5 h-3.5" />}
-          color="rgba(255,255,255,0.90)"
-          loading={!ethPrice}
-          delay={0.05}
-        />
+      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(8,8,14,1)', flexShrink: 0 }}>
+        <div style={{ background: 'rgba(10,12,22,1)', border: '1px solid rgba(0,212,255,0.35)', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.16em', color: 'rgba(0,212,255,0.6)', marginBottom: '6px' }}>TOTAL PORTFOLIO VALUE</div>
+            {stats.loading ? <div className="shimmer" style={{ height: '26px', width: '160px', borderRadius: '6px' }} /> : (
+              <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '22px', fontWeight: 700, color: 'rgba(255,255,255,0.97)', letterSpacing: '-0.01em', lineHeight: 1 }}>{fmtShort(stats.totalUsd)}</div>
+            )}
+            <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '5px' }}>{stats.walletCount} wallets</div>
+          </div>
+          <LiveDot syncing={isFetching} />
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <StatCard label="ACTIVE 1H" value={`${stats.activeCount}/${stats.walletCount}`} sub={stats.activeCount > 0 ? 'moving' : 'dormant'} valueColor="rgba(0,212,255,1)" loading={stats.loading} />
+          <StatCard label="ALERTS" value={alertCount} sub="last 1h" valueColor={alertCount > 0 ? 'rgba(239,68,68,1)' : 'rgba(255,255,255,0.95)'} />
+        </div>
       </div>
     )
   }
 
   return (
-    <div
-      className="grid gap-3 px-4 pt-4 pb-3 flex-shrink-0"
-      style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}
-    >
-      {/* Portfolio — wide card */}
-      <div
-        className="rounded-2xl p-4 relative overflow-hidden animate-float-up bento-card-neon glow-line-top"
-        style={{ animationDelay: '0s' }}
-      >
-        {/* Ambient orb */}
-        <div
-          className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(230,161,71,0.08) 0%, transparent 70%)' }}
-        />
+    <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(8,8,14,1)', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
 
-        <div className="flex items-start justify-between mb-2 relative">
-          <div>
-            <span
-              className="font-mono tracking-widest uppercase block mb-2"
-              style={{ fontSize: '9px', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.16em' }}
-            >
-              Portfolio Value
-            </span>
-            {stats.loading ? (
-              <div className="h-10 w-40 rounded-lg shimmer" />
-            ) : (
-              <div
-                className="font-display font-bold leading-none gradient-text-neon portfolio-value-in"
-                style={{ fontSize: '38px', letterSpacing: '-0.02em' }}
-              >
-                {fmtUsd(stats.totalUsd)}
-              </div>
+      {/* Hero Portfolio Box */}
+      <div style={{ background: 'rgba(10,12,22,1)', border: '1px solid rgba(0,212,255,0.40)', borderRadius: '12px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 60% 80% at 0% 50%, rgba(0,212,255,0.04) 0%, transparent 70%)' }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.18em', color: 'rgba(0,212,255,0.65)', marginBottom: '8px' }}>
+            TOTAL PORTFOLIO VALUE — {stats.walletCount} WALLETS
+          </div>
+          {stats.loading ? (
+            <div className="shimmer" style={{ height: '36px', width: '280px', borderRadius: '8px' }} />
+          ) : (
+            <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '34px', fontWeight: 700, color: 'rgba(255,255,255,0.97)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {fmtFull(stats.totalUsd)}
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>{stats.loadedCount}/{stats.walletCount} loaded</span>
+            {isFetching && stats.loadedCount < stats.walletCount && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(251,191,36,0.7)' }}>
+                <RefreshCw style={{ width: '10px', height: '10px', animation: 'spin 1s linear infinite' }} />
+                updating
+              </span>
             )}
           </div>
-          <LiveBadge syncing={isFetching} />
         </div>
-
-        <div className="flex items-center gap-3 mt-3">
-          <span className="font-mono" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.28)' }}>
-            {stats.walletCount} wallets tracked
-          </span>
-          {stats.loadedCount > 0 && stats.loadedCount < stats.walletCount && (
-            <span
-              className="font-mono flex items-center gap-1"
-              style={{ fontSize: '9px', color: 'rgba(251,191,36,0.7)' }}
-            >
-              <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-              {stats.loadedCount}/{stats.walletCount}
-            </span>
-          )}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <LiveDot syncing={isFetching} />
         </div>
       </div>
 
-      {/* ETH Price */}
-      <MetricCard
-        label="ETH Price"
-        value={ethDisplay}
-        sub="live feed"
-        icon={<TrendingUp className="w-3.5 h-3.5" />}
-        color="rgba(255,255,255,0.92)"
-        loading={!ethPrice}
-        delay={0.06}
-      />
+      {/* 3 Stat Cards */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <StatCard
+          label="ACTIVE 1H"
+          value={`${stats.activeCount} / ${stats.walletCount}`}
+          sub={stats.activeCount > 0 ? `${stats.walletCount - stats.activeCount} dormant` : 'all dormant'}
+          valueColor="rgba(0,212,255,1)"
+          loading={stats.loading}
+        />
+        <StatCard
+          label="WHALE ALERTS"
+          value={String(alertCount)}
+          sub="last 1 hour"
+          valueColor={alertCount > 0 ? 'rgba(239,68,68,1)' : 'rgba(255,255,255,0.95)'}
+        />
+        <StatCard
+          label="WALLETS TRACKED"
+          value={String(stats.walletCount)}
+          sub={stats.loadedCount === stats.walletCount ? 'all loaded' : `${stats.loadedCount} loaded`}
+          subColor={stats.loadedCount === stats.walletCount ? 'rgba(52,211,153,0.8)' : 'rgba(255,255,255,0.28)'}
+        />
+      </div>
 
-      {/* Active 1H */}
-      <MetricCard
-        label="Active 1H"
-        value={`${stats.activeCount}/${stats.walletCount}`}
-        sub={stats.activeCount > 0 ? '🔥 moving' : 'all dormant'}
-        icon={<Activity className="w-3.5 h-3.5" />}
-        color={stats.activeCount > 0 ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.4)'}
-        glow={stats.activeCount > 0 ? 'rgba(230,161,71,0.4)' : undefined}
-        loading={stats.loading}
-        delay={0.10}
-      />
-
-      {/* Wallets Loaded */}
-      <MetricCard
-        label="Wallets"
-        value={String(stats.walletCount)}
-        sub={`${stats.loadedCount} loaded`}
-        icon={<Eye className="w-3.5 h-3.5" />}
-        color="rgba(255,255,255,0.85)"
-        loading={false}
-        delay={0.14}
-      />
     </div>
   )
 })
