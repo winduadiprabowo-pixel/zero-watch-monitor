@@ -104,7 +104,7 @@ const FlowCard = memo(({ flow }: { flow: CrossFlow }) => {
           rel="noopener noreferrer"
           className="font-mono transition-colors"
           style={{ fontSize: '8px', color: 'rgba(255,255,255,0.20)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(230,161,71,0.7)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.20)' }}
         >
           {flow.hash.slice(0, 8)}…
@@ -138,12 +138,12 @@ const CrossFlowPanel = memo(() => {
         </div>
         <div
           className="rounded-xl p-3"
-          style={{ background: 'rgba(230,161,71,0.04)', border: '1px solid rgba(230,161,71,0.15)' }}
+          style={{ background: 'rgba(0, 212, 255, 0.04)', border: '1px solid rgba(0, 212, 255, 0.15)' }}
         >
-          <div className="font-mono text-[9px] tracking-widest mb-1" style={{ color: 'rgba(230,161,71,0.6)' }}>
+          <div className="font-mono text-[9px] tracking-widest mb-1" style={{ color: 'rgba(0, 212, 255, 0.6)' }}>
             TOTAL FLOWS
           </div>
-          <div className="font-display font-bold text-[22px]" style={{ color: 'rgba(230,161,71,0.9)' }}>
+          <div className="font-display font-bold text-[22px]" style={{ color: 'rgba(0, 212, 255, 0.9)' }}>
             {flows.length}
           </div>
         </div>
@@ -182,14 +182,14 @@ const CrossFlowPanel = memo(() => {
             Live Cross-Wallet Flows
           </span>
           {flows.length > 0 && (
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(230,161,71,0.8)' }} />
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0, 212, 255, 0.8)' }} />
           )}
         </div>
         <button
           onClick={refetch}
           className="transition-colors"
           style={{ color: 'rgba(255,255,255,0.2)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(230,161,71,0.7)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)' }}
         >
           <RefreshCw className="w-3 h-3" />
