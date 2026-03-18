@@ -46,7 +46,9 @@ import {
 }                                  from '@/services/whaleAnalytics'
 import type { WalletIntelligence } from '@/services/whaleAnalytics'
 import type { Transaction }        from '@/services/api'
-import { Download, Zap, Eye, TrendingUp, TrendingDown, Activity, Shield, Search, Bell, Users, BarChart2, Plus, ChevronDown, ChevronUp, X, Menu } from 'lucide-react'
+import { Download, Zap, Eye, TrendingUp, TrendingDown, Activity, Shield, Search, Bell, Users, BarChart2, Plus, ChevronDown, ChevronUp, X, Menu, LogIn, LogOut } from 'lucide-react'
+import { AuthModal } from '@/components/AuthModal'
+import { useAuth }   from '@/hooks/useAuth'
 import { useWhaleAlerts }          from '@/hooks/useWhaleAlerts'
 import WhaleAlertToggle            from '@/components/WhaleAlertToggle'
 import { TelegramSetupModal }      from '@/components/TelegramSetupModal'
@@ -383,6 +385,8 @@ const Index = () => {
   const [exportOpen, setExportOpen]             = useState(false)
   const [tgOpen, setTgOpen]                     = useState(false)
   const [menuOpen, setMenuOpen]                 = useState(false)
+  const [loginOpen, setLoginOpen]               = useState(false)
+  const { user, isLoggedIn, logout }            = useAuth()
 
   // ── Desktop states — must be declared before any early returns ──────────
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
@@ -643,6 +647,7 @@ const Index = () => {
     <>
       <AddWalletModal      open={addOpen}     onClose={() => setAddOpen(false)}     onUpgrade={() => setUpgradeOpen(true)} />
       <UpgradeModal        open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <AuthModal           open={loginOpen}   onClose={() => setLoginOpen(false)} defaultTab="login" />
       <ExportModal         open={exportOpen}  onClose={() => setExportOpen(false)} />
       <TelegramSetupModal  open={tgOpen}      onClose={() => setTgOpen(false)} tg={tgAlert} />
     </>
@@ -996,6 +1001,29 @@ const Index = () => {
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.08)' }}
             >
               <Zap style={{ width: '16px', height: '16px' }} />
+            </button>
+          )}
+
+          {/* Login / Logout */}
+          {isLoggedIn ? (
+            <button
+              onClick={logout}
+              title={`Logout (${user?.email})`}
+              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(239,68,68,0.7)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
+            >
+              <LogOut style={{ width: '14px', height: '14px' }} />
+            </button>
+          ) : (
+            <button
+              onClick={() => setLoginOpen(true)}
+              title="Login ke akun lo"
+              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(0,212,255,0.7)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.2)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
+            >
+              <LogIn style={{ width: '14px', height: '14px' }} />
             </button>
           )}
         </nav>
