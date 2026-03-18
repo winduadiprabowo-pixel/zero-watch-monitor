@@ -70,157 +70,103 @@ const WalletRow = memo(({
 
   const handleClick = useCallback(() => onSelect(wallet.id), [wallet.id, onSelect])
 
-  const logo = (wallet as typeof wallet & { logo?: string }).logo
-
   return (
     <div className="animate-fade-up" style={{ animationDelay: `${(index + 3) * 0.03}s` }}>
       <button
         onClick={handleClick}
-        className="w-full text-left transition-all"
+        className="w-full text-left px-3 py-2.5 transition-all"
         style={{
-          display:      'flex',
-          alignItems:   'center',
-          gap:          '10px',
-          padding:      '9px 12px',
-          background:   isSelected ? `rgba(${dotRgb}, 0.07)` : 'transparent',
-          borderLeft:   `2px solid ${isSelected ? dot : 'transparent'}`,
-          paddingLeft:  '10px',
+          background:  isSelected ? `rgba(${dotRgb}, 0.07)` : 'transparent',
+          borderLeft:  isSelected ? `2px solid ${dot}` : '2px solid transparent',
+          paddingLeft: isSelected ? '10px' : '12px',
+          borderRadius: '0 10px 10px 0',
+          marginLeft: '-2px',
         }}
-        onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
-        onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
+        onMouseEnter={e => {
+          if (!isSelected) {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+            e.currentTarget.style.borderLeftColor = 'rgba(255,255,255,0.12)'
+          }
+        }}
+        onMouseLeave={e => {
+          if (!isSelected) {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.borderLeftColor = 'transparent'
+          }
+        }}
       >
-        {/* Logo — 28px with live dot overlay */}
-        <div style={{ position: 'relative', flexShrink: 0, width: '28px', height: '28px' }}>
-          {logo ? (
-            <img
-              src={logo}
-              alt={wallet.label}
-              style={{ width: '28px', height: '28px', borderRadius: '7px', objectFit: 'cover', display: 'block', background: 'rgba(255,255,255,0.05)' }}
-              onError={e => {
-                const el = e.target as HTMLImageElement
-                el.style.display = 'none'
-                const fb = el.nextElementSibling as HTMLElement | null
-                if (fb) fb.style.display = 'flex'
-              }}
-            />
-          ) : null}
-          {/* Fallback initials */}
-          <div
-            style={{
-              display:        logo ? 'none' : 'flex',
-              width:          '28px',
-              height:         '28px',
-              borderRadius:   '7px',
-              background:     `rgba(${dotRgb}, 0.12)`,
-              border:         `1px solid rgba(${dotRgb}, 0.22)`,
-              alignItems:     'center',
-              justifyContent: 'center',
-              fontSize:       '10px',
-              fontWeight:     700,
-              fontFamily:     'IBM Plex Mono, monospace',
-              color:          dot,
-            }}
-          >
-            {wallet.label.slice(0, 2).toUpperCase()}
-          </div>
-          {/* Live pulse dot */}
-          {wallet.active && (
-            <span style={{
-              position:   'absolute',
-              bottom:     '-2px',
-              right:      '-2px',
-              width:      '7px',
-              height:     '7px',
-              borderRadius: '50%',
-              background: dot,
-              border:     '1.5px solid rgba(4,4,10,1)',
-              animation:  'pulse-glow 2s ease-in-out infinite',
-            }} />
-          )}
-        </div>
-
-        {/* Text content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Name + tx badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        {/* Row 1: logo/dot + name + balance */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Logo or colored dot */}
+            {(wallet as typeof wallet & { logo?: string }).logo ? (
+              <img
+                src={(wallet as typeof wallet & { logo?: string }).logo}
+                alt={wallet.label}
+                style={{ width: '16px', height: '16px', borderRadius: '4px', objectFit: 'cover', flexShrink: 0 }}
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+            ) : (
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{
+                  background: wallet.active ? dot : 'rgba(255,255,255,0.14)',
+                  boxShadow:  wallet.active ? `0 0 6px ${dot}90` : 'none',
+                  animation:  wallet.active ? 'pulse-glow 2s ease-in-out infinite' : 'none',
+                }}
+              />
+            )}
             <span
-              style={{
-                fontFamily: 'IBM Plex Mono, monospace',
-                fontWeight: 600,
-                fontSize:   '12px',
-                color:      isSelected ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.82)',
-                overflow:   'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                maxWidth:   '110px',
-              }}
+              className="font-mono font-semibold truncate"
+              style={{ fontSize: '12px', color: isSelected ? dot : 'rgba(255,255,255,0.85)', maxWidth: '110px' }}
             >
               {wallet.label}
             </span>
             {wallet.txNew > 0 && (
-              <span style={{
-                fontFamily:    'IBM Plex Mono, monospace',
-                fontWeight:    700,
-                fontSize:      '7px',
-                padding:       '1px 5px',
-                borderRadius:  '10px',
-                background:    'rgba(0,255,136,0.10)',
-                color:         'rgba(0,255,136,1)',
-                border:        '1px solid rgba(0,255,136,0.22)',
-                flexShrink:    0,
-              }}>
+              <span
+                className="font-mono font-bold px-1 py-0.5 rounded-full flex-shrink-0"
+                style={{ fontSize: '7px', background: 'rgba(0, 212, 255, 0.10)', color: 'rgba(0, 212, 255, 1)', border: '1px solid rgba(0, 212, 255, 0.22)' }}
+              >
                 {wallet.txNew}
               </span>
             )}
           </div>
-          {/* Address + tag */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
-            <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.20)' }}>
-              {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
-            </span>
-            <span style={{
-              fontFamily:    'IBM Plex Mono, monospace',
-              fontWeight:    600,
-              fontSize:      '7px',
-              padding:       '1px 5px',
-              borderRadius:  '4px',
-              background:    tagC.bg,
-              color:         tagC.text,
-              border:        `1px solid ${tagC.border}`,
-              flexShrink:    0,
-            }}>
-              {(wallet.tag ?? '').split(' ')[0].toUpperCase()}
-            </span>
-          </div>
+          <span
+            className="font-mono font-semibold tabular-nums flex-shrink-0 ml-1"
+            style={{ fontSize: '11px', color: 'rgba(255,255,255,0.80)' }}
+          >
+            {wallet.balance}
+          </span>
         </div>
 
-        {/* Balance */}
-        <span style={{
-          fontFamily:  'IBM Plex Mono, monospace',
-          fontWeight:  600,
-          fontSize:    '11px',
-          color:       'rgba(255,255,255,0.75)',
-          flexShrink:  0,
-          tabularNums: true,
-        }}>
-          {wallet.balance}
-        </span>
+        {/* Row 2: address + tag */}
+        <div className="flex items-center justify-between mt-1 pl-3.5">
+          <span className="font-mono" style={{ fontSize: '8px', color: 'rgba(255,255,255,0.22)' }}>
+            {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
+          </span>
+          <span
+            className="font-mono px-1.5 py-0.5 rounded flex-shrink-0"
+            style={{ fontSize: '7px', fontWeight: 600, background: tagC.bg, color: tagC.text, border: `1px solid ${tagC.border}` }}
+          >
+            {(wallet.tag ?? '').split(' ')[0].toUpperCase()}
+          </span>
+        </div>
       </button>
 
       {/* Notes — only when selected */}
       {isSelected && (
-        <div className="pb-2" style={{ paddingLeft: '50px', paddingRight: '12px' }} onClick={e => e.stopPropagation()}>
+        <div className="px-3 pb-2" onClick={e => e.stopPropagation()}>
           <textarea
-            placeholder="Notes… insider, fund, thesis"
+            placeholder="Add notes… (insider, fund, thesis)"
             value={notes ?? ''}
             onChange={e => onNotesChange(wallet.id, e.target.value)}
             rows={2}
             style={{
               width:        '100%',
               background:   'rgba(255,255,255,0.03)',
-              border:       '1px solid rgba(255,255,255,0.07)',
-              borderRadius: '6px',
-              color:        'rgba(255,255,255,0.55)',
+              border:       '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '8px',
+              color:        'rgba(255,255,255,0.60)',
               fontSize:     '9px',
               fontFamily:   "'IBM Plex Mono', monospace",
               padding:      '6px 8px',
@@ -228,8 +174,8 @@ const WalletRow = memo(({
               resize:       'none',
               lineHeight:   1.5,
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0,255,136,0.2)' }}
-            onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.25)' }}
+            onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
           />
         </div>
       )}
