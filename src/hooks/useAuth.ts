@@ -1,12 +1,13 @@
 /**
- * ZERØ WATCH — useAuth v1
+ * ZERØ WATCH — useAuth v2
  * ========================
  * Auth hook: register, login, logout, link-license
  * JWT disimpan di localStorage key: "zw_token"
  * rgba() only ✓  useCallback + useMemo ✓  AbortController ✓  mountedRef ✓
+ * v2: AuthContext + useAuthState exported for AuthProvider pattern
  */
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo, createContext, useContext } from 'react'
 
 const PROXY     = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 const TOKEN_KEY = 'zw_token'
@@ -19,6 +20,29 @@ export interface AuthUser {
 
 export type AuthStatus = 'idle' | 'loading' | 'success' | 'error'
 
+export interface AuthState {
+  user:         AuthUser | null
+  status:       AuthStatus
+  error:        string
+  isLoggedIn:   boolean
+  register:     (email: string, password: string) => Promise<boolean>
+  login:        (email: string, password: string) => Promise<boolean>
+  logout:       () => void
+  linkLicense:  (licenseKey: string) => Promise<boolean>
+  resetRequest: (email: string) => Promise<boolean>
+  resetStatus:  () => void
+}
+
+// Context — populated by AuthProvider in App.tsx
+export const AuthContext = createContext<AuthState | null>(null)
+
+// useAuth — context consumer (use anywhere inside AuthProvider)
+export function useAuth(): AuthState {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
+  return ctx
+}
+
 function decodeJWT(token: string): AuthUser | null {
   try {
     const [, payload] = token.split('.')
@@ -28,7 +52,8 @@ function decodeJWT(token: string): AuthUser | null {
   } catch { return null }
 }
 
-export function useAuth() {
+// useAuthState — internal hook, ONLY used by AuthProvider
+export function useAuthState(): AuthState {
   const mountedRef = useRef(true)
   const abortRef   = useRef<AbortController | null>(null)
 
