@@ -56,9 +56,9 @@ const MenuItem = memo(({ icon, label, badge, badgeColor, arrow, onClick }: MenuI
       transition:      'color 0.15s',
       WebkitTapHighlightColor: 'transparent',
     }}
-    onTouchStart={e => { e.currentTarget.style.color = 'rgba(230,161,71,1)' }}
+    onTouchStart={e => { e.currentTarget.style.color = 'rgba(0, 212, 255, 1)' }}
     onTouchEnd={e   => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
-    onMouseEnter={e => { e.currentTarget.style.color = 'rgba(230,161,71,1)' }}
+    onMouseEnter={e => { e.currentTarget.style.color = 'rgba(0, 212, 255, 1)' }}
     onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
   >
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -179,7 +179,7 @@ const MobileMenuOverlay = memo(({
             <img src="/icon-192.png" alt="ZERØ WATCH" style={{ width: 32, height: 32, borderRadius: 9 }} />
             <div>
               <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '16px', lineHeight: 1 }}>
-                ZER<span style={{ color: 'rgba(230,161,71,1)' }}>Ø</span>
+                ZER<span style={{ color: 'rgba(0, 212, 255, 1)' }}>Ø</span>
                 <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '10px', letterSpacing: '0.14em', marginLeft: '4px', fontWeight: 400 }}>WATCH</span>
               </span>
             </div>
@@ -234,7 +234,7 @@ const MobileMenuOverlay = memo(({
                 icon={<Zap style={{ width: 16, height: 16 }} />}
                 label="Upgrade to PRO"
                 badge="$9"
-                badgeColor="rgba(230,161,71,1)"
+                badgeColor="rgba(0, 212, 255, 1)"
                 onClick={() => { onUpgrade(); onClose() }}
               />
             )}
