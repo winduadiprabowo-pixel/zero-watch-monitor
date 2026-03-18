@@ -1,7 +1,7 @@
 /**
- * ZERØ WATCH — MobileMenuOverlay v2
+ * ZERØ WATCH — MobileMenuOverlay v3
  * ====================================
- * v2: Login / Logout di section GENERAL
+ * Redesign: green accent, Arkham-style header
  * rgba() only ✓  React.memo + displayName ✓
  */
 
@@ -22,7 +22,6 @@ interface MobileMenuOverlayProps {
   onExport:      () => void
   onTgSetup:     () => void
   onTabChange:   (tab: 'wallets' | 'intel' | 'stats' | 'radar') => void
-  // auth props
   isLoggedIn:    boolean
   userEmail?:    string
   onLogin:       () => void
@@ -33,52 +32,65 @@ interface MenuItemProps {
   icon:        React.ReactNode
   label:       string
   badge?:      string
-  badgeColor?: string
+  badgeGreen?: boolean
+  badgeBlue?:  boolean
   arrow?:      boolean
   dim?:        boolean
+  danger?:     boolean
   onClick:     () => void
 }
 
-const MenuItem = memo(({ icon, label, badge, badgeColor, arrow, dim, onClick }: MenuItemProps) => (
+const MenuItem = memo(({ icon, label, badge, badgeGreen, badgeBlue, arrow, dim, danger, onClick }: MenuItemProps) => (
   <button
     onClick={onClick}
     style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      width: '100%', padding: '13px 0', background: 'none', border: 'none',
-      cursor: 'pointer', color: dim ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.85)',
-      transition: 'color 0.15s', WebkitTapHighlightColor: 'transparent',
+      width: '100%', padding: '12px 0', background: 'none', border: 'none',
+      cursor: 'pointer',
+      color: danger ? 'rgba(239,68,68,0.7)' : dim ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.80)',
+      transition: 'color 0.12s', WebkitTapHighlightColor: 'transparent',
     }}
-    onTouchStart={e => { e.currentTarget.style.color = 'rgba(0,212,255,1)' }}
-    onTouchEnd={e   => { e.currentTarget.style.color = dim ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.85)' }}
-    onMouseEnter={e => { e.currentTarget.style.color = 'rgba(0,212,255,1)' }}
-    onMouseLeave={e => { e.currentTarget.style.color = dim ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.85)' }}
+    onTouchStart={e => { e.currentTarget.style.color = danger ? 'rgba(239,68,68,1)' : 'rgba(0,255,136,1)' }}
+    onTouchEnd={e   => { e.currentTarget.style.color = danger ? 'rgba(239,68,68,0.7)' : dim ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.80)' }}
+    onMouseEnter={e => { e.currentTarget.style.color = danger ? 'rgba(239,68,68,1)' : 'rgba(0,255,136,1)' }}
+    onMouseLeave={e => { e.currentTarget.style.color = danger ? 'rgba(239,68,68,0.7)' : dim ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.80)' }}
   >
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <span style={{ color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center' }}>{icon}</span>
-      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '14px', fontWeight: 400 }}>{label}</span>
+      <span style={{ color: 'rgba(255,255,255,0.30)', display: 'flex', alignItems: 'center' }}>{icon}</span>
+      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '13px', fontWeight: 400 }}>{label}</span>
       {badge && (
         <span style={{
-          fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', fontWeight: 700,
-          letterSpacing: '0.06em', padding: '2px 6px', borderRadius: '4px',
-          background: badgeColor ?? 'rgba(52,211,153,0.15)',
-          color: badgeColor ? 'rgba(2,10,6,1)' : 'rgba(52,211,153,1)',
-          border: `1px solid ${badgeColor ? 'transparent' : 'rgba(52,211,153,0.3)'}`,
+          fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700,
+          letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '4px',
+          background: badgeGreen
+            ? 'rgba(0,255,136,0.10)' : badgeBlue
+            ? 'rgba(59,130,246,0.10)' : 'rgba(255,255,255,0.06)',
+          color: badgeGreen
+            ? 'rgba(0,255,136,1)' : badgeBlue
+            ? 'rgba(147,197,253,1)' : 'rgba(255,255,255,0.45)',
+          border: badgeGreen
+            ? '1px solid rgba(0,255,136,0.22)' : badgeBlue
+            ? '1px solid rgba(59,130,246,0.22)' : '1px solid rgba(255,255,255,0.08)',
         }}>{badge}</span>
       )}
     </div>
-    {arrow && <ChevronRight style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.2)' }} />}
+    {arrow && <ChevronRight style={{ width: '14px', height: '14px', color: 'rgba(255,255,255,0.18)' }} />}
   </button>
 ))
 MenuItem.displayName = 'MenuItem'
 
 const SectionLabel = memo(({ label }: { label: string }) => (
-  <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.22em', color: 'rgba(255,255,255,0.25)', fontWeight: 500, paddingBottom: '4px', paddingTop: '4px' }}>
+  <div style={{
+    fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px',
+    letterSpacing: '0.20em', color: 'rgba(255,255,255,0.20)',
+    fontWeight: 500, padding: '16px 0 6px',
+  }}>
     {label}
   </div>
 ))
 SectionLabel.displayName = 'SectionLabel'
 
-const Divider = () => <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '8px 0' }} />
+const Divider = () => <div style={{ height: '1px', background: 'rgba(255,255,255,0.055)', margin: '4px 0' }} />
 
 const MobileMenuOverlay = memo(({
   open, onClose, isProActive, tgEnabled,
@@ -98,116 +110,139 @@ const MobileMenuOverlay = memo(({
   if (!open) return null
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}>
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.7)' }}
+    >
       <div
         onClick={e => e.stopPropagation()}
         style={{
           position: 'absolute', top: 0, left: 0, bottom: 0,
-          width: '85%', maxWidth: '320px',
-          background: 'rgba(4,4,10,0.99)', display: 'flex', flexDirection: 'column',
-          animation: 'slideInLeft 0.22s cubic-bezier(0.22,1,0.36,1) both',
-          borderRight: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden',
+          width: '82%', maxWidth: '300px',
+          background: 'rgba(6,6,12,1)',
+          display: 'flex', flexDirection: 'column',
+          animation: 'slideInLeft 0.2s cubic-bezier(0.22,1,0.36,1) both',
+          borderRight: '1px solid rgba(255,255,255,0.055)',
+          overflow: 'hidden',
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 20px 16px',
+          borderBottom: '1px solid rgba(255,255,255,0.055)',
+          flexShrink: 0,
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/icon-192.png" alt="ZERØ WATCH" style={{ width: 32, height: 32, borderRadius: 9 }} />
-            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '16px', lineHeight: 1 }}>
-              ZER<span style={{ color: 'rgba(0,212,255,1)' }}>Ø</span>
-              <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '10px', letterSpacing: '0.14em', marginLeft: '4px', fontWeight: 400 }}>WATCH</span>
-            </span>
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '9px',
+              background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.18)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '11px', color: 'rgba(0,255,136,0.9)' }}>ZW</span>
+            </div>
+            <div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '15px', color: 'rgba(255,255,255,0.92)', letterSpacing: '-0.01em', lineHeight: 1 }}>
+                ZER<span style={{ color: 'rgba(0,255,136,1)' }}>Ø</span> WATCH
+              </div>
+              <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.25)', marginTop: '2px', letterSpacing: '0.06em' }}>
+                whale intelligence
+              </div>
+            </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}>
-            <X style={{ width: '22px', height: '22px' }} />
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+          >
+            <X style={{ width: '20px', height: '20px' }} />
           </button>
         </div>
 
         {/* Scrollable body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
 
-          {/* PLATFORM */}
-          <div style={{ paddingTop: '16px' }}>
-            <SectionLabel label="PLATFORM" />
-            <MenuItem icon={<Wallet style={{ width: 16, height: 16 }} />}    label="Wallets"   onClick={() => go('wallets')} />
-            <MenuItem icon={<Brain style={{ width: 16, height: 16 }} />}     label="Intel"     onClick={() => go('intel')} arrow />
-            <MenuItem icon={<BarChart3 style={{ width: 16, height: 16 }} />} label="Stats"     onClick={() => go('stats')} />
-            <MenuItem icon={<ScanLine style={{ width: 16, height: 16 }} />}  label="RADAR"     badge="LIVE" onClick={() => go('radar')} />
-            <MenuItem icon={<Bell style={{ width: 16, height: 16 }} />}      label="Alerts"    onClick={onClose} arrow />
-            <MenuItem
-              icon={<Send style={{ width: 16, height: 16 }} />}
-              label="Telegram"
-              badge={tgEnabled ? 'ON' : undefined}
-              badgeColor={tgEnabled ? 'rgba(52,211,153,1)' : undefined}
-              onClick={() => { onTgSetup(); onClose() }}
-              arrow
-            />
-            <MenuItem icon={<Wallet style={{ width: 16, height: 16 }} />} label="Add Wallet" onClick={() => { onAddWallet(); onClose() }} />
-          </div>
+          <SectionLabel label="PLATFORM" />
+          <MenuItem icon={<Wallet style={{ width: 15, height: 15 }} />}   label="Wallets"      onClick={() => go('wallets')} />
+          <MenuItem icon={<Brain style={{ width: 15, height: 15 }} />}    label="Intel"        onClick={() => go('intel')} arrow />
+          <MenuItem icon={<BarChart3 style={{ width: 15, height: 15 }} />}label="Stats"        onClick={() => go('stats')} />
+          <MenuItem icon={<ScanLine style={{ width: 15, height: 15 }} />} label="RADAR"        badge="LIVE" badgeGreen onClick={() => go('radar')} />
+          <MenuItem icon={<Bell style={{ width: 15, height: 15 }} />}     label="Alerts"       onClick={onClose} arrow />
+          <MenuItem
+            icon={<Send style={{ width: 15, height: 15 }} />}
+            label="Telegram"
+            badge={tgEnabled ? 'ON' : undefined}
+            badgeGreen={tgEnabled}
+            onClick={() => { onTgSetup(); onClose() }}
+            arrow
+          />
+          <MenuItem icon={<Wallet style={{ width: 15, height: 15 }} />}   label="Add Wallet"   onClick={() => { onAddWallet(); onClose() }} />
 
           <Divider />
 
-          {/* GENERAL */}
-          <div style={{ paddingTop: '8px' }}>
-            <SectionLabel label="GENERAL" />
-            {isProActive ? (
-              <MenuItem icon={<Download style={{ width: 16, height: 16 }} />} label="Export CSV" onClick={() => { onExport(); onClose() }} />
-            ) : (
-              <MenuItem
-                icon={<Zap style={{ width: 16, height: 16 }} />}
-                label="Upgrade to PRO"
-                badge="$12/mo"
-                badgeColor="rgba(0,212,255,1)"
-                onClick={() => { onUpgrade(); onClose() }}
-              />
-            )}
+          <SectionLabel label="ACCOUNT" />
+          {isProActive ? (
+            <MenuItem icon={<Download style={{ width: 15, height: 15 }} />} label="Export CSV" onClick={() => { onExport(); onClose() }} />
+          ) : (
+            <MenuItem
+              icon={<Zap style={{ width: 15, height: 15 }} />}
+              label="Upgrade to PRO"
+              badge="$12/mo"
+              badgeBlue
+              onClick={() => { onUpgrade(); onClose() }}
+            />
+          )}
 
-            {/* Login / Logout */}
-            {isLoggedIn ? (
-              <>
-                {userEmail && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0 4px', opacity: 0.5 }}>
-                    <User style={{ width: '12px', height: '12px', color: 'rgba(0,212,255,0.6)' }} />
-                    <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{userEmail}</span>
-                  </div>
-                )}
-                <MenuItem
-                  icon={<LogOut style={{ width: 16, height: 16 }} />}
-                  label="Logout"
-                  dim
-                  onClick={() => { onLogout(); onClose() }}
-                />
-              </>
-            ) : (
+          {isLoggedIn ? (
+            <>
+              {userEmail && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0 4px' }}>
+                  <User style={{ width: '12px', height: '12px', color: 'rgba(0,255,136,0.5)' }} />
+                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.32)' }}>
+                    {userEmail}
+                  </span>
+                </div>
+              )}
               <MenuItem
-                icon={<LogIn style={{ width: 16, height: 16 }} />}
-                label="Login ke akun"
-                onClick={() => { onLogin(); onClose() }}
-                arrow
+                icon={<LogOut style={{ width: 15, height: 15 }} />}
+                label="Logout"
+                danger
+                onClick={() => { onLogout(); onClose() }}
               />
-            )}
-          </div>
+            </>
+          ) : (
+            <MenuItem
+              icon={<LogIn style={{ width: 15, height: 15 }} />}
+              label="Login"
+              onClick={() => { onLogin(); onClose() }}
+              arrow
+            />
+          )}
 
           <Divider />
 
-          {/* HELP */}
-          <div style={{ paddingTop: '8px', paddingBottom: '80px' }}>
-            <SectionLabel label="HELP" />
-            <MenuItem icon={<Info style={{ width: 16, height: 16 }} />} label="About ZERØ WATCH" onClick={onClose} />
-            <MenuItem
-              icon={<Github style={{ width: 16, height: 16 }} />}
-              label="Source"
-              onClick={() => { window.open('https://github.com/winduadiprabowo-pixel/zero-watch-monitor', '_blank'); onClose() }}
-              arrow
-            />
-          </div>
+          <SectionLabel label="HELP" />
+          <MenuItem icon={<Info style={{ width: 15, height: 15 }} />}   label="About ZERØ WATCH" onClick={onClose} />
+          <MenuItem
+            icon={<Github style={{ width: 15, height: 15 }} />}
+            label="Source"
+            onClick={() => { window.open('https://github.com/winduadiprabowo-pixel/zero-watch-monitor', '_blank'); onClose() }}
+            arrow
+          />
+
+          <div style={{ paddingBottom: '80px' }} />
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '12px 20px', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0, background: 'rgba(4,4,10,0.99)' }}>
-          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.18)', lineHeight: 1.8 }}>
-            ZERØ BUILD LAB © 2026<br />
-            <span style={{ color: 'rgba(255,255,255,0.12)' }}>Read-only · No wallet connect · @ZerobuildLab</span>
+        <div style={{
+          padding: '12px 20px',
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+          borderTop: '1px solid rgba(255,255,255,0.055)',
+          flexShrink: 0,
+        }}>
+          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.16)', lineHeight: 2 }}>
+            ZERØ BUILD LAB © 2026
+            <br />
+            <span style={{ color: 'rgba(255,255,255,0.10)' }}>Read-only · No wallet connect · @ZerobuildLab</span>
           </div>
         </div>
       </div>
