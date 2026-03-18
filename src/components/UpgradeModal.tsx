@@ -4,8 +4,8 @@
  * v15 TOTAL REWRITE — FOMO-driven copy:
  * - "You're watching $X whale wallets. They don't know."
  * - Features framed as alpha edge, not generic features
- * - $9 = "less than a coffee" framing
- * - Urgency: "One-time. No subscription. No expiry."
+ * - $12/mo = less than a meal out framing
+ * - Urgency: "$12/month. Cancel anytime."
  * - Social proof: "Trusted by 200+ DeFi traders"
  * rgba() only ✓  React.memo + displayName ✓
  */
@@ -150,23 +150,28 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
                 className="absolute inset-0 pointer-events-none"
                 style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(0, 212, 255, 0.06) 0%, transparent 65%)' }}
               />
-              <div
-                className="text-[56px] font-mono font-bold leading-none tabular-nums"
-                style={{ color: 'rgba(0, 212, 255, 1)', textShadow: '0 0 30px rgba(0, 212, 255, 0.3)' }}
-              >
-                $9
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                <div
+                  className="text-[56px] font-mono font-bold leading-none tabular-nums"
+                  style={{ color: 'rgba(0, 212, 255, 1)', textShadow: '0 0 30px rgba(0, 212, 255, 0.3)' }}
+                >
+                  $12
+                </div>
+                <div className="font-mono" style={{ fontSize: '18px', color: 'rgba(0, 212, 255, 0.7)' }}>
+                  /mo
+                </div>
               </div>
               <div
                 className="text-[11px] font-mono mt-1"
                 style={{ color: 'rgba(0, 212, 255, 0.6)' }}
               >
-                ONE-TIME · NO SUBSCRIPTION · NO EXPIRY
+                MONTHLY · CANCEL ANYTIME
               </div>
               <div
                 className="text-[10px] font-mono mt-2"
                 style={{ color: 'rgba(255,255,255,0.25)' }}
               >
-                Less than one bad trade. Permanent alpha.
+                Less than one bad trade. Full alpha every month.
               </div>
             </div>
 
@@ -245,7 +250,7 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
                     letterSpacing: '0.06em',
                   }}
                 >
-                  GET PRO — $9 LIFETIME →
+                  GET PRO — $12/MO →
                 </button>
 
                 <button
