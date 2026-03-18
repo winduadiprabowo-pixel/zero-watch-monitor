@@ -63,8 +63,8 @@ const w = (
 export const DEFAULT_WHALE_WALLETS: DefaultWallet[] = [
 
   // ── 🏦 Market Makers ──────────────────────────────────────────────────────
-  w('0xdbf5e9c5206d0db70a90108bf936da60221dc080', 'Wintermute',        'ETH', 'Smart Money', 'rgba(230,161,71,1)',    'Biggest crypto market maker. 152K+ txs. When they move, market follows.',       'Wintermute'),
-  w('0x00000000ae347930bd1e7b0f35588b92280f9e75', 'Wintermute 2',      'ETH', 'Smart Money', 'rgba(230,161,71,0.8)', 'Wintermute secondary wallet. High-frequency ops.',                              'Wintermute'),
+  w('0xdbf5e9c5206d0db70a90108bf936da60221dc080', 'Wintermute',        'ETH', 'Smart Money', 'rgba(0, 212, 255, 1)',    'Biggest crypto market maker. 152K+ txs. When they move, market follows.',       'Wintermute'),
+  w('0x00000000ae347930bd1e7b0f35588b92280f9e75', 'Wintermute 2',      'ETH', 'Smart Money', 'rgba(0, 212, 255, 0.8)', 'Wintermute secondary wallet. High-frequency ops.',                              'Wintermute'),
   w('0xf584f8728b874a6a5c7a8d4d387c9aae9172d621', 'Jump Trading',      'ETH', 'Smart Money', 'rgba(0,194,255,1)',    'Top institutional crypto HFT firm. $137M+ across 8 chains.',                   'Jump Trading'),
   w('0x9507c04b10486547584c37bcbd931b2a4fee9a41', 'Jump Trading 2',    'ETH', 'Smart Money', 'rgba(0,170,255,1)',    'Jump Trading secondary wallet. 300K+ txs.',                                    'Jump Trading'),
   w('0xddacad3b1edee8e2f5b2e84f658202534fcb0374', 'DWF Labs',          'ETH', 'Smart Money', 'rgba(20,184,166,1)',   'DWF Labs market maker. Invest + pump small caps. Watch for accumulation.',      'DWF Labs'),
