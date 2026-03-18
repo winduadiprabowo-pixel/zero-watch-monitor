@@ -23,12 +23,13 @@ export interface EntityGroup {
   entity:       string
   wallets:      Wallet[]
   totalUsd:     number
-  chains:       string[]            // unique chains in this entity
-  activeChains: string[]            // chains with txNew > 0 in last hour
+  chains:       string[]
+  activeChains: string[]
   topSignal:    'ACCUMULATING' | 'DISTRIBUTING' | 'HUNTING' | 'DORMANT'
-  conviction:   number              // max across wallets
-  lastMove:     string              // most recent across wallets
-  pinned:       boolean             // BLACK SWAN watch — always top
+  conviction:   number
+  lastMove:     string
+  pinned:       boolean
+  logo?:        string
 }
 
 interface WalletTableProps {
@@ -259,35 +260,51 @@ const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChi
         }
       </div>
 
-      {/* Entity name */}
-      <div style={{ flex: '0 0 160px', minWidth: 0, paddingRight: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          {pinned && (
-            <span style={{ fontSize: '11px', flexShrink: 0, lineHeight: 1 }}>
-              {pinned.icon}
+      {/* Entity name + logo */}
+      <div style={{ flex: '0 0 180px', minWidth: 0, paddingRight: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Logo or fallback */}
+        {group.logo ? (
+          <img
+            src={group.logo}
+            alt={group.entity}
+            style={{ width: '24px', height: '24px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0, opacity: 0.92 }}
+            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+          />
+        ) : pinned ? (
+          <span style={{ fontSize: '14px', flexShrink: 0, lineHeight: 1 }}>{pinned.icon}</span>
+        ) : (
+          <div style={{
+            width: '24px', height: '24px', borderRadius: '6px', flexShrink: 0,
+            background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700,
+            color: 'rgba(0,212,255,0.7)',
+          }}>
+            {group.entity.slice(0, 2).toUpperCase()}
+          </div>
+        )}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {pinned && group.logo && (
+              <span style={{ fontSize: '10px', flexShrink: 0, lineHeight: 1 }}>{pinned.icon}</span>
+            )}
+            <span style={{
+              fontFamily:   "'Syne',sans-serif",
+              fontSize:     '12px',
+              fontWeight:   700,
+              letterSpacing:'0.01em',
+              color:        pinned ? pinned.color : 'rgba(255,255,255,0.90)',
+              whiteSpace:   'nowrap',
+              overflow:     'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth:     '130px',
+            }}>
+              {group.entity}
             </span>
-          )}
-          <span style={{
-            fontFamily:   "'Syne',sans-serif",
-            fontSize:     '12px',
-            fontWeight:   700,
-            letterSpacing:'0.01em',
-            color:        pinned ? pinned.color : 'rgba(255,255,255,0.90)',
-            whiteSpace:   'nowrap',
-            overflow:     'hidden',
-            textOverflow: 'ellipsis',
-            maxWidth:     pinned ? '128px' : '150px',
-          }}>
-            {group.entity}
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-          <span style={{
-            fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px',
-            color: 'rgba(255,255,255,0.20)',
-          }}>
-            {walletCount} wallet{walletCount > 1 ? 's' : ''}
-          </span>
+          </div>
+          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', color: 'rgba(255,255,255,0.20)', marginTop: '1px' }}>
+            {group.wallets.length} wallet{group.wallets.length > 1 ? 's' : ''}
+          </div>
         </div>
       </div>
 
