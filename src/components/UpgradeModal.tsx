@@ -13,8 +13,10 @@
 import { memo, useState, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useWalletStore } from '@/store/walletStore'
-import { Zap, Shield, Brain, Download, Eye, TrendingUp, Bell, Lock } from 'lucide-react'
+import { Zap, Shield, Brain, Download, Eye, TrendingUp, Bell, Lock, LogIn } from 'lucide-react'
 import { LicenseModal } from '@/components/LicenseModal'
+import { AuthModal } from '@/components/AuthModal'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Props { open: boolean; onClose: () => void }
 
@@ -63,7 +65,9 @@ const PRO_FEATURES = [
 export const UpgradeModal = memo(({ open, onClose }: Props) => {
   const isProActive   = useWalletStore(s => s.isProActive())
   const walletCount   = useWalletStore(s => s.wallets.length)
+  const { isLoggedIn } = useAuth()
   const [showLicense, setShowLicense] = useState(false)
+  const [showLogin,   setShowLogin]   = useState(false)
 
   const handleBuy = useCallback(() => {
     window.open(PAYMENT_LINK, '_blank')
@@ -266,6 +270,23 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
                 >
                   Already purchased? Enter license key →
                 </button>
+
+                {!isLoggedIn && (
+                  <button
+                    onClick={() => setShowLogin(true)}
+                    className="w-full py-2.5 rounded-xl font-mono text-[11px] transition-all active:scale-[0.98]"
+                    style={{
+                      background: 'rgba(255,255,255,0.02)',
+                      border:     '1px solid rgba(255,255,255,0.06)',
+                      color:      'rgba(255,255,255,0.25)',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.2)'; e.currentTarget.style.color = 'rgba(0, 212, 255, 0.7)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.25)' }}
+                  >
+                    <LogIn style={{ display: 'inline', width: '10px', height: '10px', marginRight: '5px' }} />
+                    Udah punya akun? Login →
+                  </button>
+                )}
               </div>
             )}
 
@@ -280,6 +301,7 @@ export const UpgradeModal = memo(({ open, onClose }: Props) => {
       </Dialog>
 
       <LicenseModal open={showLicense} onClose={handleLicenseClose} />
+      <AuthModal open={showLogin} onClose={() => setShowLogin(false)} defaultTab="login" />
     </>
   )
 })
