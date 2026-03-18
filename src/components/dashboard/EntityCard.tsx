@@ -204,7 +204,7 @@ const EntityCard = memo(({ entity, index = 0 }: EntityCardProps) => {
           <button
             onClick={handleLink}
             style={{ padding: '3px', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.18)', transition: 'color 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(230,161,71,0.7)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(0, 212, 255, 0.7)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.18)' }}
           >
             <ExternalLink style={{ width: '10px', height: '10px' }} />
