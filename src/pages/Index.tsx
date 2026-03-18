@@ -158,23 +158,23 @@ const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: (
       }}
     >
       {/* Grid bg */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(230,161,71,0.010) 1px, transparent 1px), linear-gradient(90deg, rgba(230,161,71,0.010) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(0, 212, 255, 0.010) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.010) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
       {/* Top bloom */}
-      <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '600px', height: '280px', background: 'radial-gradient(ellipse at top, rgba(230,161,71,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '600px', height: '280px', background: 'radial-gradient(ellipse at top, rgba(0, 212, 255, 0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
       <div className="animate-fade-up" style={{ zIndex: 1 }}>
         <Logo compact />
       </div>
 
       <div className="animate-fade-up" style={{ textAlign: 'center', zIndex: 1, animationDelay: '0.08s' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '99px', background: 'rgba(230,161,71,0.06)', border: '1px solid rgba(230,161,71,0.18)', marginBottom: '12px' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(230,161,71,1)', boxShadow: '0 0 6px rgba(230,161,71,0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
-          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.12em', color: 'rgba(230,161,71,0.8)' }}>LIVE SURVEILLANCE ACTIVE</span>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '99px', background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.18)', marginBottom: '12px' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(0, 212, 255, 1)', boxShadow: '0 0 6px rgba(0, 212, 255, 0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', letterSpacing: '0.12em', color: 'rgba(0, 212, 255, 0.8)' }}>LIVE SURVEILLANCE ACTIVE</span>
         </div>
 
         <h1 style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: 'clamp(20px,5vw,32px)', color: 'rgba(255,255,255,0.95)', lineHeight: 1.3, marginBottom: '12px' }}>
           They move first.<br />
-          <span style={{ color: 'rgba(230,161,71,1)' }}>You watch.</span>
+          <span style={{ color: 'rgba(0, 212, 255, 1)' }}>You watch.</span>
         </h1>
 
         <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '13px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.6, maxWidth: '300px', margin: '0 auto' }}>
@@ -201,17 +201,17 @@ const HeroScreen = memo(({ onAdd, onUpgrade }: { onAdd: () => void; onUpgrade: (
       <div className="animate-fade-up" style={{ width: '100%', maxWidth: '360px', zIndex: 1, animationDelay: '0.28s', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <button
           onClick={onAdd}
-          style={{ width: '100%', padding: '14px', borderRadius: '14px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '13px', letterSpacing: '0.06em', background: 'rgba(230,161,71,1)', color: 'rgba(2,10,6,1)', boxShadow: '0 0 28px rgba(230,161,71,0.25), 0 4px 16px rgba(0,0,0,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 0 36px rgba(230,161,71,0.35), 0 6px 20px rgba(0,0,0,0.4)' }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(230,161,71,0.25), 0 4px 16px rgba(0,0,0,0.4)' }}
+          style={{ width: '100%', padding: '14px', borderRadius: '14px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '13px', letterSpacing: '0.06em', background: 'rgba(0, 212, 255, 1)', color: 'rgba(2,10,6,1)', boxShadow: '0 0 28px rgba(0, 212, 255, 0.25), 0 4px 16px rgba(0,0,0,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 0 36px rgba(0, 212, 255, 0.35), 0 6px 20px rgba(0,0,0,0.4)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(0, 212, 255, 0.25), 0 4px 16px rgba(0,0,0,0.4)' }}
         >
           START WATCHING WHALES
         </button>
         <button
           onClick={onUpgrade}
-          style={{ width: '100%', padding: '12px', borderRadius: '14px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', letterSpacing: '0.06em', background: 'rgba(230,161,71,0.05)', border: '1px solid rgba(230,161,71,0.2)', color: 'rgba(230,161,71,0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.15s' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.4)'; e.currentTarget.style.color = 'rgba(230,161,71,1)' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.2)'; e.currentTarget.style.color = 'rgba(230,161,71,0.7)' }}
+          style={{ width: '100%', padding: '12px', borderRadius: '14px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', letterSpacing: '0.06em', background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.2)', color: 'rgba(0, 212, 255, 0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.4)'; e.currentTarget.style.color = 'rgba(0, 212, 255, 1)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.2)'; e.currentTarget.style.color = 'rgba(0, 212, 255, 0.7)' }}
         >
           <Zap style={{ width: '14px', height: '14px' }} />
           UNLOCK PRO — $9 lifetime
@@ -262,7 +262,7 @@ const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgra
       position:        'relative',
     }}
   >
-    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(230,161,71,0.18) 40%, rgba(230,161,71,0.08) 70%, transparent)' }} />
+    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.18) 40%, rgba(0, 212, 255, 0.08) 70%, transparent)' }} />
 
     {/* Hamburger + Logo */}
     <div className="animate-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -273,16 +273,16 @@ const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgra
         <Menu style={{ width: '20px', height: '20px' }} />
       </button>
       <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-        <rect x="1" y="1" width="26" height="26" rx="3" stroke="rgba(230,161,71,1)" strokeWidth="2" fill="rgba(230,161,71,0.06)" />
+        <rect x="1" y="1" width="26" height="26" rx="3" stroke="rgba(0, 212, 255, 1)" strokeWidth="2" fill="rgba(0, 212, 255, 0.06)" />
         <polyline points="5,7 13,7 5,14 13,14" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-        <line x1="15" y1="6" x2="15" y2="22" stroke="rgba(230,161,71,1)" strokeWidth="1" strokeLinecap="round" opacity="0.4"/>
+        <line x1="15" y1="6" x2="15" y2="22" stroke="rgba(0, 212, 255, 1)" strokeWidth="1" strokeLinecap="round" opacity="0.4"/>
         <line x1="17" y1="7" x2="17" y2="21" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round"/>
         <path d="M17,7 Q23,7 23,10.5 Q23,14 17,14" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" fill="none"/>
-        <path d="M17,14 Q24,14 24,17.5 Q24,21 17,21" stroke="rgba(230,161,71,1)" strokeWidth="2" strokeLinecap="round" fill="none"/>
-        <polyline points="5,16 5,22 12,22" stroke="rgba(230,161,71,1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+        <path d="M17,14 Q24,14 24,17.5 Q24,21 17,21" stroke="rgba(0, 212, 255, 1)" strokeWidth="2" strokeLinecap="round" fill="none"/>
+        <polyline points="5,16 5,22 12,22" stroke="rgba(0, 212, 255, 1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
       </svg>
       <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '15px', lineHeight: 1 }}>
-        ZER<span style={{ color: 'rgba(230,161,71,1)' }}>Ø</span>
+        ZER<span style={{ color: 'rgba(0, 212, 255, 1)' }}>Ø</span>
         <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', letterSpacing: '0.14em', marginLeft: '4px', fontWeight: 400 }}>WATCH</span>
       </span>
     </div>
@@ -291,20 +291,20 @@ const MobileHeader = memo(({ isProActive, isFetching, isError, onExport, onUpgra
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       {/* Live dot */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', borderRadius: '99px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isFetching ? 'rgba(251,191,36,1)' : isError ? 'rgba(239,68,68,1)' : 'rgba(230,161,71,1)', boxShadow: isFetching ? '0 0 4px rgba(251,191,36,0.8)' : isError ? '0 0 4px rgba(239,68,68,0.8)' : '0 0 4px rgba(230,161,71,0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
-        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', letterSpacing: '0.10em', color: isFetching ? 'rgba(251,191,36,0.8)' : isError ? 'rgba(239,68,68,0.7)' : 'rgba(230,161,71,0.75)' }}>
+        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isFetching ? 'rgba(251,191,36,1)' : isError ? 'rgba(239,68,68,1)' : 'rgba(0, 212, 255, 1)', boxShadow: isFetching ? '0 0 4px rgba(251,191,36,0.8)' : isError ? '0 0 4px rgba(239,68,68,0.8)' : '0 0 4px rgba(0, 212, 255, 0.8)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', letterSpacing: '0.10em', color: isFetching ? 'rgba(251,191,36,0.8)' : isError ? 'rgba(239,68,68,0.7)' : 'rgba(0, 212, 255, 0.75)' }}>
           {isFetching ? 'SYNC' : isError ? 'ERR' : 'LIVE'}
         </span>
       </div>
 
       {/* PRO / CSV */}
       {isProActive ? (
-        <button onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', background: 'rgba(230,161,71,0.06)', border: '1px solid rgba(230,161,71,0.25)', color: 'rgba(230,161,71,0.9)', cursor: 'pointer' }}>
+        <button onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.25)', color: 'rgba(0, 212, 255, 0.9)', cursor: 'pointer' }}>
           <Download style={{ width: '12px', height: '12px' }} />
           CSV
         </button>
       ) : (
-        <button onClick={onUpgrade} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '10px', background: 'rgba(230,161,71,0.12)', border: '1px solid rgba(230,161,71,0.40)', color: 'rgba(230,161,71,1)', cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 14px rgba(230,161,71,0.18)' }}>
+        <button onClick={onUpgrade} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '10px', background: 'rgba(0, 212, 255, 0.12)', border: '1px solid rgba(0, 212, 255, 0.40)', color: 'rgba(0, 212, 255, 1)', cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 14px rgba(0, 212, 255, 0.18)' }}>
           <Zap style={{ width: '12px', height: '12px' }} />
           PRO $9
         </button>
@@ -333,9 +333,9 @@ const AddBtn = memo(({ onAdd, onExport, onUpgrade, onTgSetup, isProActive, isFet
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px 12px' }}>
     <button
       onClick={onAdd}
-      style={{ flex: 1, padding: '8px 0', borderRadius: '10px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 600, fontSize: '11px', letterSpacing: '0.06em', background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.25)', color: 'rgba(230,161,71,0.9)', cursor: 'pointer', transition: 'all 0.15s' }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.14)'; e.currentTarget.style.borderColor = 'rgba(230,161,71,0.40)' }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.08)'; e.currentTarget.style.borderColor = 'rgba(230,161,71,0.25)' }}
+      style={{ flex: 1, padding: '8px 0', borderRadius: '10px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 600, fontSize: '11px', letterSpacing: '0.06em', background: 'rgba(0, 212, 255, 0.08)', border: '1px solid rgba(0, 212, 255, 0.25)', color: 'rgba(0, 212, 255, 0.9)', cursor: 'pointer', transition: 'all 0.15s' }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.14)'; e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.40)' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.25)' }}
     >
       + ADD WALLET
     </button>
@@ -350,16 +350,16 @@ const AddBtn = memo(({ onAdd, onExport, onUpgrade, onTgSetup, isProActive, isFet
       <Send style={{ width: '14px', height: '14px' }} />
     </button>
     {isProActive ? (
-      <button onClick={onExport} style={{ padding: '8px 10px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(230,161,71,0.7)', cursor: 'pointer', transition: 'border-color 0.15s' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(230,161,71,0.25)' }}
+      <button onClick={onExport} style={{ padding: '8px 10px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(0, 212, 255, 0.7)', cursor: 'pointer', transition: 'border-color 0.15s' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.25)' }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
       >
         <Download style={{ width: '14px', height: '14px' }} />
       </button>
     ) : (
-      <button onClick={onUpgrade} style={{ padding: '8px 10px', borderRadius: '10px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '11px', letterSpacing: '0.04em', background: 'rgba(230,161,71,0.06)', border: '1px solid rgba(230,161,71,0.20)', color: 'rgba(230,161,71,0.8)', cursor: 'pointer', transition: 'background 0.15s' }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.12)' }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.06)' }}
+      <button onClick={onUpgrade} style={{ padding: '8px 10px', borderRadius: '10px', fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '11px', letterSpacing: '0.04em', background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.20)', color: 'rgba(0, 212, 255, 0.8)', cursor: 'pointer', transition: 'background 0.15s' }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.12)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.06)' }}
       >
         PRO
       </button>
@@ -653,8 +653,8 @@ const Index = () => {
     return (
       <div style={{ height: '100dvh', background: 'rgba(4,4,10,1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(230,161,71,0.8)', boxShadow: '0 0 8px rgba(230,161,71,0.6)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
-          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', letterSpacing: '0.14em', color: 'rgba(230,161,71,0.5)' }}>INITIALIZING...</span>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(0, 212, 255, 0.8)', boxShadow: '0 0 8px rgba(0, 212, 255, 0.6)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', letterSpacing: '0.14em', color: 'rgba(0, 212, 255, 0.5)' }}>INITIALIZING...</span>
         </div>
       </div>
     )
@@ -730,20 +730,20 @@ const Index = () => {
               {!isProActive && (
                 <button
                   onClick={() => setUpgradeOpen(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '12px', width: 'calc(100% - 24px)', margin: '8px 12px', padding: '12px 16px', borderRadius: '14px', background: 'rgba(230,161,71,0.05)', border: '1px solid rgba(230,161,71,0.22)', cursor: 'pointer', textAlign: 'left' as const, transition: 'all 0.15s' }}
-                  onTouchStart={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.08)' }}
-                  onTouchEnd={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.05)' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', width: 'calc(100% - 24px)', margin: '8px 12px', padding: '12px 16px', borderRadius: '14px', background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.22)', cursor: 'pointer', textAlign: 'left' as const, transition: 'all 0.15s' }}
+                  onTouchStart={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.08)' }}
+                  onTouchEnd={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.05)' }}
                 >
-                  <Zap style={{ width: '16px', height: '16px', color: 'rgba(230,161,71,1)', flexShrink: 0 }} />
+                  <Zap style={{ width: '16px', height: '16px', color: 'rgba(0, 212, 255, 1)', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700, color: 'rgba(230,161,71,1)' }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700, color: 'rgba(0, 212, 255, 1)' }}>
                       UNLOCK PRO — $9 lifetime
                     </div>
                     <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', marginTop: '2px', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
                       Unlimited wallets · Whale Intel · CSV Export
                     </div>
                   </div>
-                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700, color: 'rgba(230,161,71,0.8)', flexShrink: 0 }}>→</span>
+                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700, color: 'rgba(0, 212, 255, 0.8)', flexShrink: 0 }}>→</span>
                 </button>
               )}
               <WalletTable
@@ -829,7 +829,7 @@ const Index = () => {
         {/* Intel bottom sheet trigger */}
         <button
           onClick={() => setFeedDrawerOpen(true)}
-          style={{ position: 'fixed', bottom: '56px', right: '16px', zIndex: 40, display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '11px', fontWeight: 600, background: 'rgba(230,161,71,0.12)', border: '1px solid rgba(230,161,71,0.35)', color: 'rgba(230,161,71,1)', cursor: 'pointer', boxShadow: '0 0 16px rgba(230,161,71,0.15)', letterSpacing: '0.04em' }}
+          style={{ position: 'fixed', bottom: '56px', right: '16px', zIndex: 40, display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '99px', fontFamily: "'IBM Plex Mono',monospace", fontSize: '11px', fontWeight: 600, background: 'rgba(0, 212, 255, 0.12)', border: '1px solid rgba(0, 212, 255, 0.35)', color: 'rgba(0, 212, 255, 1)', cursor: 'pointer', boxShadow: '0 0 16px rgba(0, 212, 255, 0.15)', letterSpacing: '0.04em' }}
         >
           Intel ↑
         </button>
@@ -921,12 +921,12 @@ const Index = () => {
             style={{
               width: '44px', height: '44px', borderRadius: '12px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(230,161,71,0.10)', border: '1px solid rgba(230,161,71,0.28)',
-              color: 'rgba(230,161,71,1)', cursor: 'pointer', transition: 'all 0.15s',
+              background: 'rgba(0, 212, 255, 0.10)', border: '1px solid rgba(0, 212, 255, 0.28)',
+              color: 'rgba(0, 212, 255, 1)', cursor: 'pointer', transition: 'all 0.15s',
               marginBottom: '6px',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.18)'; e.currentTarget.style.borderColor = 'rgba(230,161,71,0.50)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.10)'; e.currentTarget.style.borderColor = 'rgba(230,161,71,0.28)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.18)'; e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.50)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.10)'; e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.28)' }}
           >
             <Plus style={{ width: '18px', height: '18px' }} />
           </button>
@@ -944,14 +944,14 @@ const Index = () => {
                   ? 'rgba(255,255,255,0.07)' : 'transparent',
                 border: '1px solid transparent',
                 color: (label === 'Wallets' && sidebarOpen) || (label === 'Intel' && intelOpen)
-                  ? 'rgba(230,161,71,0.9)' : 'rgba(255,255,255,0.35)',
+                  ? 'rgba(0, 212, 255, 0.9)' : 'rgba(255,255,255,0.35)',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
               onMouseLeave={e => {
                 const isActive = (label === 'Wallets' && sidebarOpen) || (label === 'Intel' && intelOpen)
                 e.currentTarget.style.background = isActive ? 'rgba(255,255,255,0.07)' : 'transparent'
-                e.currentTarget.style.color = isActive ? 'rgba(230,161,71,0.9)' : 'rgba(255,255,255,0.35)'
+                e.currentTarget.style.color = isActive ? 'rgba(0, 212, 255, 0.9)' : 'rgba(255,255,255,0.35)'
               }}
             >
               <Icon style={{ width: '18px', height: '18px' }} />
@@ -981,9 +981,9 @@ const Index = () => {
             <button
               onClick={handleExportClick}
               title="Export CSV"
-              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid transparent', color: 'rgba(230,161,71,0.5)', cursor: 'pointer', transition: 'all 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(230,161,71,1)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(230,161,71,0.5)' }}
+              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid transparent', color: 'rgba(0, 212, 255, 0.5)', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(0, 212, 255, 1)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(0, 212, 255, 0.5)' }}
             >
               <Download style={{ width: '16px', height: '16px' }} />
             </button>
@@ -991,9 +991,9 @@ const Index = () => {
             <button
               onClick={() => setUpgradeOpen(true)}
               title="Upgrade to PRO"
-              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.22)', color: 'rgba(230,161,71,0.8)', cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 0 10px rgba(230,161,71,0.12)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.16)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(230,161,71,0.08)' }}
+              style={{ width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 212, 255, 0.08)', border: '1px solid rgba(0, 212, 255, 0.22)', color: 'rgba(0, 212, 255, 0.8)', cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 0 10px rgba(0, 212, 255, 0.12)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.16)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.08)' }}
             >
               <Zap style={{ width: '16px', height: '16px' }} />
             </button>
@@ -1054,9 +1054,9 @@ const Index = () => {
                   padding: '5px 14px', borderRadius: '8px', cursor: 'pointer',
                   fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px',
                   letterSpacing: '0.12em', fontWeight: desktopView === v ? 700 : 400,
-                  background: desktopView === v ? 'rgba(230,161,71,0.10)' : 'transparent',
-                  border: desktopView === v ? '1px solid rgba(230,161,71,0.28)' : '1px solid transparent',
-                  color: desktopView === v ? 'rgba(230,161,71,1)' : 'rgba(255,255,255,0.3)',
+                  background: desktopView === v ? 'rgba(0, 212, 255, 0.10)' : 'transparent',
+                  border: desktopView === v ? '1px solid rgba(0, 212, 255, 0.28)' : '1px solid transparent',
+                  color: desktopView === v ? 'rgba(0, 212, 255, 1)' : 'rgba(255,255,255,0.3)',
                   transition: 'all 0.15s',
                 }}
               >
@@ -1125,9 +1125,9 @@ const Index = () => {
               {selectedWallet && (
                 <div style={{
                   padding: '4px 10px', borderRadius: '8px',
-                  background: 'rgba(230,161,71,0.08)', border: '1px solid rgba(230,161,71,0.22)',
+                  background: 'rgba(0, 212, 255, 0.08)', border: '1px solid rgba(0, 212, 255, 0.22)',
                   fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: 700,
-                  color: 'rgba(230,161,71,1)',
+                  color: 'rgba(0, 212, 255, 1)',
                 }}>
                   {selectedWallet.balance}
                 </div>
