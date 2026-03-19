@@ -1,19 +1,13 @@
 /**
- * ZERØ WATCH — AuthProvider v1
+ * ZERØ WATCH — AuthProvider v3
  * ==============================
- * Single source of truth untuk auth state
- * Wrap di App.tsx — semua komponen pakai useAuth() dari context
+ * Simple passthrough — each component calls useAuth() directly
  * rgba() only ✓  React.memo + displayName ✓
  */
 
 import { memo } from 'react'
-import { AuthContext, useAuthState } from '@/hooks/useAuth'
 
 interface Props { children: React.ReactNode }
 
-export const AuthProvider = memo(({ children }: Props) => {
-  const auth = useAuthState()
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>
-})
-
+export const AuthProvider = memo(({ children }: Props) => <>{children}</>)
 AuthProvider.displayName = 'AuthProvider'
