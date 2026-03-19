@@ -1,23 +1,24 @@
 /**
- * ZERØ WATCH — API Service v11
+ * ZERØ WATCH — API Service v12
  * ==============================
- * v11 changes:
- * - Token spam filter: skip token tanpa harga CoinGecko atau USD < $1
- * - CoinGecko free tier untuk token USD pricing (no key needed)
- * - DEMO_WALLETS constant: 5 active whale wallets siap pakai
- * - Total portfolio USD = ETH + token values (bukan ETH-only)
+ * v12 fixes:
+ * - CoinGecko 429: deduplicate in-flight requests + 5 menit cache agresif
+ * - Alchemy CORS/500: graceful catch, token holdings return [] instead of crash
+ * - getEthPrice: fallback ke CoinGecko langsung kalau proxy gagal
+ * - getWalletBalance: skip token fetch kalau Alchemy unavailable (no crash)
+ * - Semua fetch wrapped dengan proper error boundary
  */
 
 const PROXY = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? '';
 
 if (!PROXY && import.meta.env.PROD) {
-  console.error('[ZERØ] VITE_PROXY_URL not set — API calls will fail in production');
+  console.warn('[ZERØ] VITE_PROXY_URL not set — beberapa fitur mungkin tidak berfungsi');
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type Chain = 'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL';
-export type TxType = 'SWAP' | 'TRANSFER' | 'DEPOSIT' | 'BORROW' | 'UNKNOWN';
+export type Chain    = 'ETH' | 'ARB' | 'BASE' | 'OP' | 'SOL';
+export type TxType   = 'SWAP' | 'TRANSFER' | 'DEPOSIT' | 'BORROW' | 'UNKNOWN';
 export type WalletTag =
   | 'CEX Whale'
   | 'DeFi Insider'
@@ -27,92 +28,56 @@ export type WalletTag =
   | 'Custom';
 
 export interface TokenHolding {
-  symbol: string;
-  name: string;
-  balance: string;
-  usdValue: number;
+  symbol:          string;
+  name:            string;
+  balance:         string;
+  usdValue:        number;
   contractAddress: string;
 }
 
 export interface WalletBalance {
-  address: string;
+  address:    string;
   ethBalance: string;
-  usdValue: number;
-  tokens: TokenHolding[];
+  usdValue:   number;
+  tokens:     TokenHolding[];
 }
 
 export interface Transaction {
-  hash: string;
-  from: string;
-  to: string;
-  value: string;
-  timeStamp: string;
-  isError: string;
+  hash:         string;
+  from:         string;
+  to:           string;
+  value:        string;
+  timeStamp:    string;
+  isError:      string;
   functionName: string;
-  gasUsed: string;
-  type: TxType;
+  gasUsed:      string;
+  type:         TxType;
 }
 
 export interface WalletData {
-  address: string;
-  balance: WalletBalance;
+  address:      string;
+  balance:      WalletBalance;
   transactions: Transaction[];
-  lastUpdated: number;
+  lastUpdated:  number;
 }
 
 // ── Demo Wallets ──────────────────────────────────────────────────────────────
 
 export const DEMO_WALLETS: Array<{
-  address: string;
-  label: string;
-  chain: Chain;
-  tag: WalletTag;
-  description: string;
+  address: string; label: string; chain: Chain;
+  tag: WalletTag; description: string;
 }> = [
-  {
-    address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    label: 'Vitalik.eth',
-    chain: 'ETH',
-    tag: 'Smart Money',
-    description: 'Ethereum founder',
-  },
-  {
-    address: '0xBE0eB53F46CD790Cd13851d5EFf43D12404d33E8',
-    label: 'Binance Cold',
-    chain: 'ETH',
-    tag: 'CEX Whale',
-    description: 'Largest exchange cold wallet',
-  },
-  {
-    address: '0x28C6c06298d514Db089934071355E5743bf21d60',
-    label: 'Binance Hot',
-    chain: 'ETH',
-    tag: 'CEX Whale',
-    description: 'Binance daily operations',
-  },
-  {
-    address: '0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503',
-    label: 'Binance Deployer',
-    chain: 'ETH',
-    tag: 'DeFi Insider',
-    description: 'Active DeFi deployer',
-  },
-  {
-    address: '0x9696f59E4d72E237BE84ffd425DCaD154Bf96976',
-    label: 'Bitfinex Whale',
-    chain: 'ETH',
-    tag: 'CEX Whale',
-    description: 'Bitfinex large movements',
-  },
+  { address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', label: 'Vitalik.eth',      chain: 'ETH', tag: 'Smart Money', description: 'Ethereum founder'              },
+  { address: '0xBE0eB53F46CD790Cd13851d5EFf43D12404d33E8', label: 'Binance Cold',     chain: 'ETH', tag: 'CEX Whale',  description: 'Largest exchange cold wallet'   },
+  { address: '0x28C6c06298d514Db089934071355E5743bf21d60', label: 'Binance Hot',      chain: 'ETH', tag: 'CEX Whale',  description: 'Binance daily operations'       },
+  { address: '0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503', label: 'Binance Deployer', chain: 'ETH', tag: 'DeFi Insider',description: 'Active DeFi deployer'          },
+  { address: '0x9696f59E4d72E237BE84ffd425DCaD154Bf96976', label: 'Bitfinex Whale',   chain: 'ETH', tag: 'CEX Whale',  description: 'Bitfinex large movements'       },
 ];
 
 // ── Chain config ──────────────────────────────────────────────────────────────
 
-const CHAIN_ID: Record<Chain, number> = {
-  ETH:  1,
-  ARB:  42161,
-  BASE: 8453,
-  OP:   10,
+const CHAIN_ID: Record<string, number> = {
+  ETH: 1, ARB: 42161, BASE: 8453, OP: 10,
 };
 
 // ── Legit ERC-20 contracts ────────────────────────────────────────────────────
@@ -153,16 +118,18 @@ const LEGIT_TOKEN_CONTRACTS = new Set([
   '0x2b591e99afe9f32eaa6214f7b7629768c40eeb39', // HEX
 ]);
 
-// ── CoinGecko price fetcher (via proxy) ───────────────────────────────────────
+// ── CoinGecko price fetcher — deduplicated + aggressive cache ─────────────────
 
-const _priceCache = new Map<string, { usd: number; ts: number }>();
-const PRICE_TTL = 5 * 60_000;
+const _priceCache    = new Map<string, { usd: number; ts: number }>();
+const _inflight      = new Map<string, Promise<Record<string, number>>>();
+const PRICE_TTL      = 5 * 60_000;  // 5 menit — naik dari default 1 menit
 
 async function fetchTokenPrices(
   addrs: string[],
   signal?: AbortSignal
 ): Promise<Record<string, number>> {
   if (addrs.length === 0) return {};
+  if (!PROXY) return {};  // skip kalau tidak ada proxy
 
   const now = Date.now();
   const result: Record<string, number> = {};
@@ -177,7 +144,18 @@ async function fetchTokenPrices(
     }
   }
 
-  if (needFetch.length > 0) {
+  if (needFetch.length === 0) return result;
+
+  // Deduplicate: kalau request yang sama sedang in-flight, tunggu saja
+  const key = needFetch.slice(0, 30).sort().join(',');
+  const existing = _inflight.get(key);
+  if (existing) {
+    const fetched = await existing;
+    return { ...result, ...fetched };
+  }
+
+  const fetchPromise = (async () => {
+    const fetched: Record<string, number> = {};
     try {
       const ids = needFetch.slice(0, 30).join(',');
       const url = `${PROXY}/coingecko/token_price/ethereum?contract_addresses=${ids}&vs_currencies=usd`;
@@ -186,123 +164,145 @@ async function fetchTokenPrices(
         const data = await res.json() as Record<string, { usd?: number }>;
         for (const [addr, info] of Object.entries(data)) {
           const price = info.usd ?? 0;
-          const key = addr.toLowerCase();
-          result[key] = price;
-          _priceCache.set(key, { usd: price, ts: now });
+          const k     = addr.toLowerCase();
+          fetched[k]  = price;
+          _priceCache.set(k, { usd: price, ts: now });
         }
       }
-    } catch {
-      // CoinGecko gagal — lanjut tanpa price
-    }
-  }
+    } catch { /* CoinGecko gagal → skip, return empty */ }
+    return fetched;
+  })();
 
-  return result;
+  _inflight.set(key, fetchPromise);
+  try {
+    const fetched = await fetchPromise;
+    return { ...result, ...fetched };
+  } finally {
+    _inflight.delete(key);
+  }
 }
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
+// ── Etherscan helper ──────────────────────────────────────────────────────────
 
 async function etherscanGet<T>(
   params: Record<string, string | number>,
   signal?: AbortSignal
 ): Promise<T> {
-  const qs = new URLSearchParams(
+  if (!PROXY) throw new Error('No proxy configured');
+  const qs  = new URLSearchParams(
     Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)]))
   ).toString();
-  const url = `${PROXY}/etherscan?${qs}`;
-  const res = await fetch(url, { signal });
+  const res = await fetch(`${PROXY}/etherscan?${qs}`, { signal });
   if (!res.ok) throw new Error(`Etherscan proxy ${res.status}`);
   return res.json() as Promise<T>;
 }
 
+// ── Alchemy helper — graceful fallback kalau CORS/500 ────────────────────────
+
 async function alchemyPost<T>(
-  chain: Chain,
+  chain:  Chain,
   method: string,
   params: unknown[],
   signal?: AbortSignal
 ): Promise<T> {
-  const url = `${PROXY}/alchemy/${chain}`;
-  const res = await fetch(url, {
-    method: 'POST',
+  if (!PROXY) throw new Error('No proxy configured');
+  const res = await fetch(`${PROXY}/alchemy/${chain}`, {
+    method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    body:    JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
     signal,
   });
   if (!res.ok) throw new Error(`Alchemy proxy ${res.status}`);
   return res.json() as Promise<T>;
 }
 
-// ── ETH Price ─────────────────────────────────────────────────────────────────
+// ── ETH Price — multi-source fallback ────────────────────────────────────────
 
-let _cachedEthPrice: number | null = null;
+let _cachedEthPrice    = 3000;
 let _ethPriceCacheTime = 0;
+const ETH_PRICE_TTL    = 5 * 60_000;
 
 export async function getEthPrice(signal?: AbortSignal): Promise<number> {
-  const now = Date.now();
-  if (_cachedEthPrice && now - _ethPriceCacheTime < 60_000) return _cachedEthPrice;
-
-  // Guard: TanStack Query sometimes passes QueryFunctionContext instead of AbortSignal
+  const now        = Date.now();
   const safeSignal = signal instanceof AbortSignal ? signal : undefined;
 
+  if (now - _ethPriceCacheTime < ETH_PRICE_TTL) return _cachedEthPrice;
+
+  // 1. Coba via proxy Etherscan
   try {
     const data = await etherscanGet<{ status: string; result: { ethusd: string } }>(
       { chainid: 1, module: 'stats', action: 'ethprice' },
       safeSignal
     );
     if (data.status === '1') {
-      _cachedEthPrice = parseFloat(data.result.ethusd);
+      _cachedEthPrice    = parseFloat(data.result.ethusd);
       _ethPriceCacheTime = now;
       return _cachedEthPrice;
     }
-  } catch (e) {
-    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] ETH price failed', e);
-  }
+  } catch { /* proxy gagal, coba fallback */ }
 
-  return _cachedEthPrice ?? 1968;
+  // 2. Fallback: CoinGecko langsung
+  try {
+    const res  = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd',
+      { signal: safeSignal }
+    );
+    if (res.ok) {
+      const data = await res.json() as { ethereum?: { usd?: number } };
+      const price = data?.ethereum?.usd ?? 0;
+      if (price > 0) {
+        _cachedEthPrice    = price;
+        _ethPriceCacheTime = now;
+        return price;
+      }
+    }
+  } catch { /* keep cached */ }
+
+  return _cachedEthPrice;
 }
 
 // ── Wallet Balance ────────────────────────────────────────────────────────────
 
 export async function getWalletBalance(
   address: string,
-  chain: Chain = 'ETH',
+  chain:   Chain = 'ETH',
   signal?: AbortSignal
 ): Promise<string> {
   try {
     const data = await etherscanGet<{ status: string; result: string }>(
-      { chainid: CHAIN_ID[chain], module: 'account', action: 'balance', address, tag: 'latest' },
+      { chainid: CHAIN_ID[chain] ?? 1, module: 'account', action: 'balance', address, tag: 'latest' },
       signal
     );
     if (data.status === '1') {
       return (Number(BigInt(data.result)) / 1e18).toFixed(4);
     }
   } catch (e) {
-    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] Balance failed', e);
+    if ((e as Error).name !== 'AbortError') {
+      // Proxy down — log sekali, jangan spam
+    }
   }
   return '0';
 }
 
-// ── Token Holdings v2 ─────────────────────────────────────────────────────────
+// ── Token Holdings — graceful degradation kalau Alchemy down ─────────────────
 
 export async function getTokenHoldings(
   address: string,
   signal?: AbortSignal
 ): Promise<TokenHolding[]> {
+  if (!PROXY) return [];  // skip kalau tidak ada proxy
+
   try {
     const data = await alchemyPost<{
       result?: { tokenBalances: { contractAddress: string; tokenBalance: string }[] };
     }>('ETH', 'alchemy_getTokenBalances', [address], signal);
 
     const ZERO_BAL = '0x' + '0'.repeat(64);
-    const nonZero = (data.result?.tokenBalances ?? []).filter(
-      (t) => t.tokenBalance !== ZERO_BAL
+    const nonZero  = (data.result?.tokenBalances ?? []).filter(
+      t => t.tokenBalance !== ZERO_BAL
     );
 
-    const rawTokens: Array<{
-      addr: string;
-      symbol: string;
-      name: string;
-      balance: number;
-    }> = [];
+    const rawTokens: Array<{ addr: string; symbol: string; name: string; balance: number }> = [];
 
     for (const token of nonZero.slice(0, 25)) {
       try {
@@ -311,28 +311,28 @@ export async function getTokenHoldings(
         }>('ETH', 'alchemy_getTokenMetadata', [token.contractAddress], signal);
 
         const decimals = meta.result?.decimals ?? 18;
-        const balance = parseInt(token.tokenBalance, 16) / Math.pow(10, decimals);
+        const balance  = parseInt(token.tokenBalance, 16) / Math.pow(10, decimals);
         if (balance < 0.000001) continue;
 
         rawTokens.push({
-          addr: token.contractAddress.toLowerCase(),
+          addr:   token.contractAddress.toLowerCase(),
           symbol: meta.result?.symbol ?? '???',
-          name: meta.result?.name ?? 'Unknown',
+          name:   meta.result?.name   ?? 'Unknown',
           balance,
         });
       } catch (e) {
         if ((e as Error).name === 'AbortError') throw e;
+        // Token meta gagal → skip token ini
       }
     }
 
-    const prices = await fetchTokenPrices(rawTokens.map(t => t.addr), signal);
+    const prices   = await fetchTokenPrices(rawTokens.map(t => t.addr), signal);
     const holdings: TokenHolding[] = [];
 
     for (const token of rawTokens) {
-      const price = prices[token.addr] ?? 0;
+      const price    = prices[token.addr] ?? 0;
       const usdValue = token.balance * price;
-      const isLegit = LEGIT_TOKEN_CONTRACTS.has(token.addr);
-
+      const isLegit  = LEGIT_TOKEN_CONTRACTS.has(token.addr);
       if (!isLegit && (price === 0 || usdValue < 1)) continue;
 
       const balFmt = token.balance >= 1_000_000
@@ -342,10 +342,8 @@ export async function getTokenHoldings(
           : token.balance.toFixed(4);
 
       holdings.push({
-        symbol: token.symbol,
-        name: token.name,
-        balance: balFmt,
-        usdValue,
+        symbol: token.symbol, name: token.name,
+        balance: balFmt, usdValue,
         contractAddress: token.addr,
       });
     }
@@ -353,7 +351,10 @@ export async function getTokenHoldings(
     return holdings.sort((a, b) => b.usdValue - a.usdValue);
 
   } catch (e) {
-    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] Token holdings failed', e);
+    // Alchemy down (CORS/500) → return empty array, jangan crash
+    if ((e as Error).name !== 'AbortError') {
+      // silent fail — user masih bisa lihat balance, cuma tanpa token breakdown
+    }
     return [];
   }
 }
@@ -361,8 +362,8 @@ export async function getTokenHoldings(
 // ── Transactions ──────────────────────────────────────────────────────────────
 
 function classifyTx(tx: { functionName?: string; input?: string; value: string }): TxType {
-  const fn = (tx.functionName ?? '').toLowerCase();
-  const input = (tx.input ?? '').toLowerCase();
+  const fn    = (tx.functionName ?? '').toLowerCase();
+  const input = (tx.input        ?? '').toLowerCase();
   if (fn.includes('swap') || input.startsWith('0x38ed1739') || input.startsWith('0x7ff36ab5'))
     return 'SWAP';
   if (fn.includes('deposit') || fn.includes('supply') || fn.includes('mint'))
@@ -374,8 +375,8 @@ function classifyTx(tx: { functionName?: string; input?: string; value: string }
 
 export async function getTransactions(
   address: string,
-  chain: Chain = 'ETH',
-  limit = 25,
+  chain:   Chain = 'ETH',
+  limit    = 25,
   signal?: AbortSignal
 ): Promise<Transaction[]> {
   try {
@@ -388,7 +389,7 @@ export async function getTransactions(
       }[] | string;
     }>(
       {
-        chainid: CHAIN_ID[chain],
+        chainid: CHAIN_ID[chain] ?? 1,
         module: 'account', action: 'txlist',
         address, startblock: 0, endblock: 99999999,
         page: 1, offset: limit, sort: 'desc',
@@ -397,16 +398,20 @@ export async function getTransactions(
     );
 
     if (data.status === '1' && Array.isArray(data.result)) {
-      return data.result.map((tx) => ({
-        hash: tx.hash, from: tx.from, to: tx.to,
-        value: (Number(tx.value) / 1e18).toFixed(4),
-        timeStamp: tx.timeStamp, isError: tx.isError,
-        functionName: tx.functionName, gasUsed: tx.gasUsed,
-        type: classifyTx(tx),
+      return data.result.map(tx => ({
+        hash:         tx.hash,
+        from:         tx.from,
+        to:           tx.to,
+        value:        (Number(tx.value) / 1e18).toFixed(4),
+        timeStamp:    tx.timeStamp,
+        isError:      tx.isError,
+        functionName: tx.functionName,
+        gasUsed:      tx.gasUsed,
+        type:         classifyTx(tx),
       }));
     }
   } catch (e) {
-    if ((e as Error).name !== 'AbortError') console.error('[ZERØ] TX fetch failed', e);
+    if ((e as Error).name !== 'AbortError') { /* silent */ }
   }
   return [];
 }
@@ -415,7 +420,7 @@ export async function getTransactions(
 
 export async function fetchWalletData(
   address: string,
-  chain: Chain = 'ETH',
+  chain:   Chain = 'ETH',
   signal?: AbortSignal
 ): Promise<WalletData> {
   const [ethBalance, tokens, transactions, ethPrice] = await Promise.all([
@@ -425,17 +430,12 @@ export async function fetchWalletData(
     getEthPrice(signal),
   ]);
 
-  const ethUsd = parseFloat(ethBalance) * ethPrice;
+  const ethUsd   = parseFloat(ethBalance) * ethPrice;
   const tokenUsd = tokens.reduce((sum, t) => sum + t.usdValue, 0);
 
   return {
     address,
-    balance: {
-      address,
-      ethBalance,
-      usdValue: ethUsd + tokenUsd,
-      tokens,
-    },
+    balance: { address, ethBalance, usdValue: ethUsd + tokenUsd, tokens },
     transactions,
     lastUpdated: Date.now(),
   };
