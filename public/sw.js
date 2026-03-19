@@ -1,12 +1,12 @@
 /**
  * ZERØ WATCH — Service Worker v30
  * ================================
- * Cache: zero-watch-v59
+ * Cache: zero-watch-v60
  * v30: Fix "Failed to convert value to Response" — sw cache fallback
- *      Bump cache key zero-watch-v53 → zero-watch-v59
+ *      Bump cache key zero-watch-v53 → zero-watch-v60
  */
 
-const CACHE_NAME   = 'zero-watch-v59'
+const CACHE_NAME   = 'zero-watch-v60'
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json']
 
 self.addEventListener('install', event => {
