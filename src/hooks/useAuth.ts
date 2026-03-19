@@ -1,13 +1,12 @@
 /**
- * ZERØ WATCH — useAuth v2
+ * ZERØ WATCH — useAuth v1
  * ========================
  * Auth hook: register, login, logout, link-license
  * JWT disimpan di localStorage key: "zw_token"
  * rgba() only ✓  useCallback + useMemo ✓  AbortController ✓  mountedRef ✓
- * v2: AuthContext + useAuthState exported for AuthProvider pattern
  */
 
-import { useState, useCallback, useEffect, useRef, useMemo, createContext, useContext } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 
 const PROXY     = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 const TOKEN_KEY = 'zw_token'
@@ -20,41 +19,6 @@ export interface AuthUser {
 
 export type AuthStatus = 'idle' | 'loading' | 'success' | 'error'
 
-export interface AuthState {
-  user:         AuthUser | null
-  status:       AuthStatus
-  error:        string
-  isLoggedIn:   boolean
-  register:     (email: string, password: string) => Promise<boolean>
-  login:        (email: string, password: string) => Promise<boolean>
-  logout:       () => void
-  linkLicense:  (licenseKey: string) => Promise<boolean>
-  resetRequest: (email: string) => Promise<boolean>
-  resetStatus:  () => void
-}
-
-// Context — populated by AuthProvider in App.tsx
-export const AuthContext = createContext<AuthState | null>(null)
-
-// useAuth — context consumer. Falls back gracefully if used outside AuthProvider.
-export function useAuth(): AuthState {
-  return useContext(AuthContext) ?? _fallbackState
-}
-
-// Static fallback — used when useAuth is called outside AuthProvider (should not happen in prod)
-const _fallbackState: AuthState = {
-  user:         null,
-  status:       'idle',
-  error:        '',
-  isLoggedIn:   false,
-  register:     async () => false,
-  login:        async () => false,
-  logout:       () => {},
-  linkLicense:  async () => false,
-  resetRequest: async () => false,
-  resetStatus:  () => {},
-}
-
 function decodeJWT(token: string): AuthUser | null {
   try {
     const [, payload] = token.split('.')
@@ -64,8 +28,7 @@ function decodeJWT(token: string): AuthUser | null {
   } catch { return null }
 }
 
-// useAuthState — internal hook, ONLY used by AuthProvider
-export function useAuthState(): AuthState {
+export function useAuth() {
   const mountedRef = useRef(true)
   const abortRef   = useRef<AbortController | null>(null)
 
