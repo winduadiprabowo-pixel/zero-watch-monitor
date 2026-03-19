@@ -642,6 +642,25 @@ const Index = () => {
     else setUpgradeOpen(true)
   }, [isProActive])
 
+  // Desktop-only handlers — must be here before early returns (Rules of Hooks)
+  const handleSelectWalletDesktop = useCallback((id: string) => {
+    handleSelectWallet(id)
+    setIntelOpen(true)
+  }, [handleSelectWallet])
+
+  const handleCloseIntel = useCallback(() => {
+    setIntelOpen(false)
+    setSelectedWalletId(null)
+  }, [])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && intelOpen) handleCloseIntel()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [intelOpen, handleCloseIntel])
+
   // Common modals
   const modals = (
     <>
@@ -858,27 +877,6 @@ const Index = () => {
 
   // ── DESKTOP (>1024px) — Arkham-style layout ──────────────────────────────
   // 64px icon-only navbar kiri + full-width main + intel panel di bawah table
-
-  // Auto-open intel panel saat wallet dipilih
-  const handleSelectWalletDesktop = useCallback((id: string) => {
-    handleSelectWallet(id)
-    setIntelOpen(true)
-  }, [handleSelectWallet])
-
-  // Close intel jika deselect
-  const handleCloseIntel = useCallback(() => {
-    setIntelOpen(false)
-    setSelectedWalletId(null)
-  }, [])
-
-  // ESC key closes intel overlay
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && intelOpen) handleCloseIntel()
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [intelOpen, handleCloseIntel])
 
   // Nav items untuk icon navbar
   const navItems = [
