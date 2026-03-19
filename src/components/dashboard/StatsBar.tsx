@@ -15,10 +15,7 @@ interface StatsBarProps { mobile?: boolean; alertCount?: number }
 
 const fmtBig = (n: number) => {
   if (n === 0) return '$0'
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(0)}B`
-  if (n >= 1_000_000)     return `$${(n / 1_000_000).toFixed(0)}M`
-  if (n >= 1_000)         return `$${(n / 1_000).toFixed(0)}K`
-  return `$${n.toFixed(0)}`
+  return '$' + Math.round(n).toLocaleString('en-US')
 }
 
 const CHAIN_COLOR: Record<string, string> = {
