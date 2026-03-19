@@ -1,27 +1,29 @@
 /**
- * ZERØ WATCH — Solana API Service v1
+ * ZERØ WATCH — Solana API Service v2
  * =====================================
- * Public Solana RPC (Helius free endpoint) + Solscan fallback.
- * No API key needed — uses public cluster endpoint.
- * AbortController ✓  mountedRef pattern compatible ✓
+ * v2 fixes:
+ * - Proxy 404/500 → auto-fallback ke public Solana RPC langsung
+ * - SOL price 429 → fallback ke cached value lalu hardcoded default
+ * - Aggressive caching 5 menit untuk harga
  *
- * NOTE: Solana is non-EVM — separate address format (base58, 32-44 chars).
- * We keep it isolated from EVM logic in api.ts.
+ * AbortController ✓  mountedRef compatible ✓
  */
 
-// Route semua Solana RPC lewat CF Worker proxy — hindari CORS + 403
-const PROXY = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
-const SOL_RPC_URL = () => PROXY ? `${PROXY}/solana` : 'https://api.mainnet-beta.solana.com'
-const SOL_PRICE_URL = `${PROXY}/coingecko/price?ids=solana&vs_currencies=usd`
+const PROXY      = (import.meta.env.VITE_PROXY_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const SOL_PUBLIC = 'https://api.mainnet-beta.solana.com'
+
+function getSolRpcUrls(): string[] {
+  return PROXY ? [`${PROXY}/solana`, SOL_PUBLIC] : [SOL_PUBLIC]
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface SolTokenHolding {
-  symbol:          string
-  name:            string
-  balance:         string
-  usdValue:        number
-  mintAddress:     string
+  symbol:      string
+  name:        string
+  balance:     string
+  usdValue:    number
+  mintAddress: string
 }
 
 export interface SolWalletBalance {
@@ -32,13 +34,13 @@ export interface SolWalletBalance {
 }
 
 export interface SolTransaction {
-  signature:   string
-  blockTime:   number
-  type:        'TRANSFER' | 'SWAP' | 'UNKNOWN'
-  valueSOL:    number
-  from:        string
-  to:          string
-  err:         boolean
+  signature: string
+  blockTime: number
+  type:      'TRANSFER' | 'SWAP' | 'UNKNOWN'
+  valueSOL:  number
+  from:      string
+  to:        string
+  err:       boolean
 }
 
 export interface SolWalletData {
@@ -48,55 +50,69 @@ export interface SolWalletData {
   lastUpdated:  number
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 export function isValidSolAddress(addr: string): boolean {
   return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr.trim())
 }
+
+// ── RPC helper — proxy first, auto-fallback ke public RPC ────────────────────
 
 async function rpcPost<T>(
   method: string,
   params: unknown[],
   signal?: AbortSignal
 ): Promise<T | null> {
-  try {
-    const res = await fetch(SOL_RPC_URL(), {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-      signal,
-    })
-    if (!res.ok) return null
-    const json = await res.json() as { result?: T; error?: unknown }
-    if (json.error) return null
-    return json.result ?? null
-  } catch (e) {
-    if ((e as Error)?.name === 'AbortError') throw e
-    return null
+  for (const url of getSolRpcUrls()) {
+    try {
+      const res = await fetch(url, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        signal,
+      })
+      if (!res.ok) continue
+      const json = await res.json() as { result?: T; error?: unknown }
+      if (json.error) continue
+      return json.result ?? null
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') throw e
+      continue  // CORS / network error → coba URL berikutnya
+    }
   }
+  return null
 }
 
-// ── SOL Price ─────────────────────────────────────────────────────────────────
+// ── SOL Price — aggressive caching 5 menit ───────────────────────────────────
 
-let _cachedSolPrice: number | null = null
+let _cachedSolPrice    = 150
 let _solPriceCacheTime = 0
+const SOL_PRICE_TTL    = 5 * 60_000
 
 export async function getSolPrice(signal?: AbortSignal): Promise<number> {
-  const now = Date.now()
-  if (_cachedSolPrice && now - _solPriceCacheTime < 60_000) return _cachedSolPrice
-  try {
-    const res  = await fetch(SOL_PRICE_URL, { signal })
-    if (!res.ok) return _cachedSolPrice ?? 150
-    const data = await res.json() as { solana?: { usd?: number } }
-    const price = data.solana?.usd ?? 0
-    if (price > 0) {
-      _cachedSolPrice    = price
-      _solPriceCacheTime = now
+  if (Date.now() - _solPriceCacheTime < SOL_PRICE_TTL) return _cachedSolPrice
+
+  const urls = [
+    PROXY ? `${PROXY}/coingecko/price?ids=solana&vs_currencies=usd` : null,
+    'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
+  ].filter(Boolean) as string[]
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { signal })
+      if (!res.ok) continue
+      const data  = await res.json() as { solana?: { usd?: number } }
+      const price = data?.solana?.usd ?? 0
+      if (price > 0) {
+        _cachedSolPrice    = price
+        _solPriceCacheTime = Date.now()
+        return price
+      }
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') throw e
+      continue
     }
-    return _cachedSolPrice ?? 150
-  } catch {
-    return _cachedSolPrice ?? 150
   }
+
+  return _cachedSolPrice
 }
 
 // ── SOL Balance ───────────────────────────────────────────────────────────────
@@ -105,14 +121,13 @@ export async function getSolBalance(
   address: string,
   signal?: AbortSignal
 ): Promise<string> {
-  const result = await rpcPost<{ value: number }>(
+  const result = await rpcPost<number>(
     'getBalance',
     [address, { commitment: 'confirmed' }],
     signal
   )
   if (result === null) return '0'
-  const sol = (result as unknown as number) / 1e9
-  return sol.toFixed(4)
+  return ((result as unknown as number) / 1e9).toFixed(4)
 }
 
 // ── SPL Token Accounts ────────────────────────────────────────────────────────
@@ -123,36 +138,34 @@ interface TokenAccountResult {
       parsed: {
         info: {
           mint:        string
-          tokenAmount: { uiAmountString: string; decimals: number }
+          tokenAmount: { uiAmountString: string }
         }
       }
     }
   }
 }
 
-const KNOWN_SPL: Record<string, { symbol: string; name: string; geckoId: string }> = {
-  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': { symbol: 'USDC',    name: 'USD Coin',     geckoId: 'usd-coin' },
-  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': { symbol: 'USDT',    name: 'Tether',        geckoId: 'tether' },
-  'So11111111111111111111111111111111111111112':    { symbol: 'wSOL',    name: 'Wrapped SOL',   geckoId: 'solana' },
-  'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So': { symbol: 'mSOL',    name: 'Marinade SOL',  geckoId: 'msol' },
-  'JitoSOLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL': { symbol: 'jitoSOL', name: 'Jito SOL',   geckoId: 'jito-staked-sol' },
-  'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263': { symbol: 'BONK',    name: 'Bonk',          geckoId: 'bonk' },
-  'WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk':   { symbol: 'WEN',     name: 'WEN',           geckoId: 'wen-4' },
-  'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm': { symbol: 'WIF',     name: 'dogwifhat',     geckoId: 'dogwifcoin' },
-  'A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM':  { symbol: 'USDCet',  name: 'USDC (Portal)', geckoId: 'usd-coin' },
+const KNOWN_SPL: Record<string, { symbol: string; name: string; isStable?: boolean; isSOL?: boolean }> = {
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': { symbol: 'USDC',   name: 'USD Coin',    isStable: true  },
+  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': { symbol: 'USDT',   name: 'Tether',       isStable: true  },
+  'So11111111111111111111111111111111111111112':    { symbol: 'wSOL',   name: 'Wrapped SOL',  isSOL:    true  },
+  'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So': { symbol: 'mSOL',   name: 'Marinade SOL', isSOL:    true  },
+  'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263': { symbol: 'BONK',   name: 'Bonk'                          },
+  'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm': { symbol: 'WIF',    name: 'dogwifhat'                     },
+  'A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM':  { symbol: 'USDCet', name: 'USDC (Portal)',isStable: true  },
 }
 
 export async function getSolTokens(
-  address: string,
+  address:  string,
   solPrice: number,
-  signal?: AbortSignal
+  signal?:  AbortSignal
 ): Promise<SolTokenHolding[]> {
   const result = await rpcPost<{ value: TokenAccountResult[] }>(
     'getTokenAccountsByOwner',
     [
       address,
       { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
-      { encoding: 'jsonParsed' },
+      { encoding:  'jsonParsed' },
     ],
     signal
   )
@@ -161,30 +174,25 @@ export async function getSolTokens(
 
   const holdings: SolTokenHolding[] = []
   for (const acct of result.value.slice(0, 20)) {
-    const info = acct.account.data.parsed.info
-    const mint = info.mint
-    const bal  = parseFloat(info.tokenAmount.uiAmountString) || 0
-    if (bal <= 0) continue
+    try {
+      const info = acct.account.data.parsed.info
+      const bal  = parseFloat(info.tokenAmount.uiAmountString) || 0
+      if (bal <= 0) continue
+      const known = KNOWN_SPL[info.mint]
+      if (!known) continue
 
-    const known = KNOWN_SPL[mint]
-    if (!known) continue
+      const usdValue = known.isStable ? bal : known.isSOL ? bal * solPrice : 0
 
-    let usdValue = 0
-    if (known.symbol === 'USDC' || known.symbol === 'USDT' || known.symbol === 'USDCet') {
-      usdValue = bal
-    } else if (known.symbol === 'wSOL' || known.symbol === 'mSOL' || known.symbol === 'jitoSOL') {
-      usdValue = bal * solPrice
-    }
-
-    holdings.push({
-      symbol:      known.symbol,
-      name:        known.name,
-      balance:     bal >= 1_000_000 ? `${(bal / 1_000_000).toFixed(2)}M`
-                 : bal >= 1_000     ? `${(bal / 1_000).toFixed(1)}K`
-                 : bal.toFixed(4),
-      usdValue,
-      mintAddress: mint,
-    })
+      holdings.push({
+        symbol:      known.symbol,
+        name:        known.name,
+        balance:     bal >= 1_000_000 ? `${(bal / 1_000_000).toFixed(2)}M`
+                   : bal >= 1_000     ? `${(bal / 1_000).toFixed(1)}K`
+                   : bal.toFixed(4),
+        usdValue,
+        mintAddress: info.mint,
+      })
+    } catch { continue }
   }
 
   return holdings.sort((a, b) => b.usdValue - a.usdValue)
@@ -192,18 +200,13 @@ export async function getSolTokens(
 
 // ── Transactions ──────────────────────────────────────────────────────────────
 
-interface SignatureInfo {
-  signature: string
-  blockTime: number | null
-  err:       unknown
-}
-
+interface SignatureInfo { signature: string; blockTime: number | null; err: unknown }
 interface ParsedTx {
   blockTime: number | null
   meta:      { err: unknown; preBalances: number[]; postBalances: number[] } | null
   transaction: {
     message: {
-      accountKeys: Array<{ pubkey: string }>
+      accountKeys:  Array<{ pubkey: string }>
       instructions: Array<{ program?: string; programId?: string }>
     }
   }
@@ -211,7 +214,7 @@ interface ParsedTx {
 
 export async function getSolTransactions(
   address: string,
-  limit = 20,
+  limit    = 20,
   signal?: AbortSignal
 ): Promise<SolTransaction[]> {
   const sigs = await rpcPost<SignatureInfo[]>(
@@ -254,8 +257,7 @@ export async function getSolTransactions(
       ? Math.abs((postBals[addrIdx] ?? 0) - (preBals[addrIdx] ?? 0)) / 1e9
       : 0
 
-    const instrs  = tx.transaction.message.instructions
-    const hasSwap = instrs.some(ix =>
+    const hasSwap = tx.transaction.message.instructions.some(ix =>
       (ix.program ?? ix.programId ?? '').toLowerCase().includes('swap') ||
       (ix.programId ?? '') === 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB'
     )
@@ -292,12 +294,7 @@ export async function fetchSolWalletData(
 
   return {
     address,
-    balance: {
-      address,
-      solBalance,
-      usdValue: solUsd + tokenUsd,
-      tokens,
-    },
+    balance: { address, solBalance, usdValue: solUsd + tokenUsd, tokens },
     transactions,
     lastUpdated: Date.now(),
   }
