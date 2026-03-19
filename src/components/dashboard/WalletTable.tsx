@@ -105,7 +105,7 @@ const CopyBtn = memo(({ address }: { address: string }) => {
   return (
     <button
       onClick={handle}
-      style={{ color: copied ? 'rgba(0, 212, 255, 0.7)' : 'rgba(255,255,255,0.18)', flexShrink: 0 }}
+      style={{ color: copied ? 'rgba(0,255,136,0.7)' : 'rgba(255,255,255,0.18)', flexShrink: 0 }}
     >
       {copied
         ? <Check style={{ width: '11px', height: '11px' }} />
@@ -214,10 +214,10 @@ interface EntityGroupRowProps {
 const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChild }: EntityGroupRowProps) => {
   const cfg      = SIGNAL[group.topSignal] ?? SIGNAL.DORMANT
   const pinned   = PINNED_CONFIG[group.entity]
-  const rowColor = pinned ? pinned.color : (hasSelectedChild ? 'rgba(0, 212, 255, 0.06)' : 'transparent')
+  const rowColor = pinned ? pinned.color : (hasSelectedChild ? 'rgba(0,255,136,0.05)' : 'transparent')
   const borderL  = pinned
     ? `2px solid ${pinned.border}`
-    : hasSelectedChild ? '2px solid rgba(0, 212, 255, 0.4)' : '2px solid transparent'
+    : hasSelectedChild ? '2px solid rgba(0,255,136,0.28)' : '2px solid transparent'
 
   const handleToggle = useCallback(() => onToggle(group.entity), [group.entity, onToggle])
 
@@ -230,7 +230,7 @@ const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChi
       style={{
         height:       '48px',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
-        background:   pinned ? pinned.bg : (hasSelectedChild ? 'rgba(0, 212, 255, 0.03)' : 'transparent'),
+        background:   pinned ? pinned.bg : (hasSelectedChild ? 'rgba(0,255,136,0.02)' : 'transparent'),
         borderLeft:   borderL,
         transition:   'all 0.12s ease',
       }}
@@ -275,10 +275,10 @@ const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChi
         ) : (
           <div style={{
             width: '24px', height: '24px', borderRadius: '6px', flexShrink: 0,
-            background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.15)',
+            background: 'rgba(0,255,136,0.07)', border: '1px solid rgba(0,255,136,0.12)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700,
-            color: 'rgba(0,212,255,0.7)',
+            color: 'rgba(0,255,136,0.7)',
           }}>
             {group.entity.slice(0, 2).toUpperCase()}
           </div>
@@ -365,9 +365,9 @@ const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChi
         {walletCount > 1 && (
           <span style={{
             fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px',
-            color: isExpanded ? 'rgba(0, 212, 255, 0.7)' : 'rgba(255,255,255,0.16)',
-            background: isExpanded ? 'rgba(0, 212, 255, 0.07)' : 'rgba(255,255,255,0.04)',
-            border: isExpanded ? '1px solid rgba(0, 212, 255, 0.20)' : '1px solid rgba(255,255,255,0.08)',
+            color: isExpanded ? 'rgba(0,255,136,0.7)' : 'rgba(255,255,255,0.16)',
+            background: isExpanded ? 'rgba(0,255,136,0.06)' : 'rgba(255,255,255,0.04)',
+            border: isExpanded ? '1px solid rgba(0,255,136,0.14)' : '1px solid rgba(255,255,255,0.08)',
             borderRadius: '4px',
             padding: '1px 5px',
             transition: 'all 0.15s',
@@ -414,8 +414,8 @@ const WalletSubRow = memo(({ wallet, intel, isSelected, onSelect, isLoading, isL
       style={{
         height:       '40px',
         borderBottom: isLast ? '2px solid rgba(255,255,255,0.06)' : '1px solid rgba(255,255,255,0.03)',
-        background:   isSelected ? 'rgba(0, 212, 255, 0.06)' : 'rgba(255,255,255,0.012)',
-        borderLeft:   isSelected ? '2px solid rgba(0, 212, 255, 0.6)' : '2px solid transparent',
+        background:   isSelected ? 'rgba(0,255,136,0.05)' : 'rgba(255,255,255,0.012)',
+        borderLeft:   isSelected ? '2px solid rgba(0,255,136,0.6)' : '2px solid transparent',
         opacity:      isEmpty && !isSelected ? 0.38 : 1,
         transition:   'all 0.12s ease',
       }}
@@ -423,7 +423,7 @@ const WalletSubRow = memo(({ wallet, intel, isSelected, onSelect, isLoading, isL
         if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.025)'
       }}
       onMouseLeave={e => {
-        if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = isSelected ? 'rgba(0, 212, 255, 0.06)' : 'rgba(255,255,255,0.012)'
+        if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = isSelected ? 'rgba(0,255,136,0.05)' : 'rgba(255,255,255,0.012)'
       }}
     >
       {/* Indent spacer (index col) */}
@@ -450,7 +450,7 @@ const WalletSubRow = memo(({ wallet, intel, isSelected, onSelect, isLoading, isL
             fontFamily:   "'IBM Plex Mono',monospace",
             fontSize:     '11px',
             fontWeight:   isSelected ? 600 : 400,
-            color:        isSelected ? 'rgba(0, 212, 255, 1)' : 'rgba(255,255,255,0.70)',
+            color:        isSelected ? 'rgba(0,255,136,1)' : 'rgba(255,255,255,0.70)',
             whiteSpace:   'nowrap',
             overflow:     'hidden',
             textOverflow: 'ellipsis',
@@ -461,8 +461,8 @@ const WalletSubRow = memo(({ wallet, intel, isSelected, onSelect, isLoading, isL
           {wallet.txNew > 0 && (
             <span style={{
               fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700,
-              color: 'rgba(0, 212, 255, 1)', background: 'rgba(0, 212, 255, 0.10)',
-              border: '1px solid rgba(0, 212, 255, 0.22)', borderRadius: '99px',
+              color: 'rgba(0,255,136,1)', background: 'rgba(0,255,136,0.08)',
+              border: '1px solid rgba(0,255,136,0.16)', borderRadius: '99px',
               padding: '0 4px', lineHeight: '14px', flexShrink: 0,
             }}>
               {wallet.txNew}
@@ -549,7 +549,7 @@ const WalletSubRow = memo(({ wallet, intel, isSelected, onSelect, isLoading, isL
           target="_blank" rel="noopener noreferrer"
           onClick={e => e.stopPropagation()}
           style={{ color: 'rgba(255,255,255,0.12)', flexShrink: 0 }}
-          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0, 212, 255, 0.5)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,136,0.5)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.12)' }}
         >
           <ExternalLink style={{ width: '10px', height: '10px' }} />
@@ -591,8 +591,8 @@ const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index, isLoading 
       style={{
         height:       '44px',
         borderBottom: '1px solid rgba(255,255,255,0.04)',
-        background:   isSelected ? 'rgba(0, 212, 255, 0.06)' : 'transparent',
-        borderLeft:   isSelected ? '2px solid rgba(0, 212, 255, 0.7)' : '2px solid transparent',
+        background:   isSelected ? 'rgba(0,255,136,0.05)' : 'transparent',
+        borderLeft:   isSelected ? '2px solid rgba(0,255,136,0.7)' : '2px solid transparent',
         opacity:      isEmpty && !isSelected ? 0.38 : 1,
         transition:   'all 0.12s ease',
       }}
@@ -607,8 +607,8 @@ const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index, isLoading 
       </div>
       <div style={{ flex: '0 0 160px', minWidth: 0, paddingRight: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: isSelected ? 600 : 400, color: isSelected ? 'rgba(0, 212, 255, 1)' : 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{wallet.label}</span>
-          {wallet.txNew > 0 && <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700, color: 'rgba(0, 212, 255, 1)', background: 'rgba(0, 212, 255, 0.10)', border: '1px solid rgba(0, 212, 255, 0.22)', borderRadius: '99px', padding: '0 4px', lineHeight: '14px', flexShrink: 0 }}>{wallet.txNew}</span>}
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '12px', fontWeight: isSelected ? 600 : 400, color: isSelected ? 'rgba(0,255,136,1)' : 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{wallet.label}</span>
+          {wallet.txNew > 0 && <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700, color: 'rgba(0,255,136,1)', background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.16)', borderRadius: '99px', padding: '0 4px', lineHeight: '14px', flexShrink: 0 }}>{wallet.txNew}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
           <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.20)' }}>{wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}</span>
@@ -641,7 +641,7 @@ const WalletRow = memo(({ wallet, intel, isSelected, onSelect, index, isLoading 
             <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700, color: 'rgba(251,191,36,1)', whiteSpace: 'nowrap' }}>{fmtVal(bigVal)}</span>
           </div>
         )}
-        <a href={`https://etherscan.io/address/${wallet.address}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: 'rgba(255,255,255,0.14)', flexShrink: 0 }} onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0, 212, 255, 0.6)' }} onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.14)' }}>
+        <a href={`https://etherscan.io/address/${wallet.address}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: 'rgba(255,255,255,0.14)', flexShrink: 0 }} onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(0,255,136,0.6)' }} onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.14)' }}>
           <ExternalLink style={{ width: '11px', height: '11px' }} />
         </a>
       </div>
