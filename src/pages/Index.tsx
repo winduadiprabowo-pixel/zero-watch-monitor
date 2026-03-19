@@ -567,7 +567,11 @@ const Index = () => {
         '—'
       )
 
-      return { entity, wallets: gw, totalUsd, chains, activeChains, topSignal, conviction, lastMove, pinned }
+      // Logo — ambil dari wallet pertama di group
+      const firstWallet = storeWallets.find(s => s.id === gw[0]?.id)
+      const logo = (firstWallet as typeof firstWallet & { logo?: string })?.logo
+
+      return { entity, wallets: gw, totalUsd, chains, activeChains, topSignal, conviction, lastMove, pinned, logo }
     })
 
     // Sort: pinned first (Satoshi > MtGox > FTX), then by totalUsd desc
