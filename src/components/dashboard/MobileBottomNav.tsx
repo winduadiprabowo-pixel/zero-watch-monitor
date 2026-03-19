@@ -43,7 +43,7 @@ const MobileBottomNav = memo(({
   return (
     <nav
       style={{
-        background:           'rgba(4,4,10,0.97)',
+        background:           'rgba(4,4,10,1)',
         borderTop:            '1px solid rgba(255,255,255,0.07)',
         backdropFilter:       'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
@@ -73,19 +73,19 @@ const MobileBottomNav = memo(({
           const isRadar    = tab.id === 'radar'
           const activeBg   = isRadar
             ? 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.06) 100%)'
-            : 'linear-gradient(135deg, rgba(0, 212, 255, 0.12) 0%, rgba(0, 212, 255, 0.06) 100%)'
+            : 'linear-gradient(135deg, rgba(0,255,136,0.09) 0%, rgba(0,255,136,0.05) 100%)'
           const activeBorder = isRadar
             ? 'rgba(239,68,68,0.25)'
-            : 'rgba(0, 212, 255, 0.25)'
+            : 'rgba(0,255,136,0.18)'
           const activeColor = isRadar
             ? 'rgba(239,68,68,1)'
-            : 'rgba(0, 212, 255, 1)'
+            : 'rgba(0,255,136,1)'
           const dotColor    = showRadar
             ? 'rgba(239,68,68,1)'
-            : 'rgba(0, 212, 255, 1)'
+            : 'rgba(0,255,136,1)'
           const dotShadow   = showRadar
             ? '0 0 6px rgba(239,68,68,0.8)'
-            : '0 0 6px rgba(0, 212, 255, 0.8)'
+            : '0 0 6px rgba(0,255,136,0.8)'
 
           return (
             <button
@@ -140,7 +140,7 @@ const MobileBottomNav = memo(({
                   width:      '18px',
                   height:     '18px',
                   filter:     isActive
-                    ? `drop-shadow(0 0 6px ${isRadar ? 'rgba(239,68,68,0.6)' : 'rgba(0, 212, 255, 0.6)'})`
+                    ? `drop-shadow(0 0 6px ${isRadar ? 'rgba(239,68,68,0.6)' : 'rgba(0,255,136,0.6)'})`
                     : 'none',
                   transition: 'filter 0.18s ease',
                 }}
