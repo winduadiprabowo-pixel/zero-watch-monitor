@@ -48,9 +48,9 @@ const MenuItem = memo(({ icon, label, badge, badgeColor, arrow, dim, onClick }: 
       cursor: 'pointer', color: dim ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.85)',
       transition: 'color 0.15s', WebkitTapHighlightColor: 'transparent',
     }}
-    onTouchStart={e => { e.currentTarget.style.color = 'rgba(0,212,255,1)' }}
+    onTouchStart={e => { e.currentTarget.style.color = 'rgba(0,255,136,1)' }}
     onTouchEnd={e   => { e.currentTarget.style.color = dim ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.85)' }}
-    onMouseEnter={e => { e.currentTarget.style.color = 'rgba(0,212,255,1)' }}
+    onMouseEnter={e => { e.currentTarget.style.color = 'rgba(0,255,136,1)' }}
     onMouseLeave={e => { e.currentTarget.style.color = dim ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.85)' }}
   >
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -114,7 +114,7 @@ const MobileMenuOverlay = memo(({
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img src="/icon-192.png" alt="ZERØ WATCH" style={{ width: 32, height: 32, borderRadius: 9 }} />
             <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: '16px', lineHeight: 1 }}>
-              ZER<span style={{ color: 'rgba(0,212,255,1)' }}>Ø</span>
+              ZER<span style={{ color: 'rgba(0,255,136,1)' }}>Ø</span>
               <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '10px', letterSpacing: '0.14em', marginLeft: '4px', fontWeight: 400 }}>WATCH</span>
             </span>
           </div>
@@ -157,7 +157,7 @@ const MobileMenuOverlay = memo(({
                 icon={<Zap style={{ width: 16, height: 16 }} />}
                 label="Upgrade to PRO"
                 badge="$12/mo"
-                badgeColor="rgba(0,212,255,1)"
+                badgeColor="rgba(0,255,136,1)"
                 onClick={() => { onUpgrade(); onClose() }}
               />
             )}
@@ -167,7 +167,7 @@ const MobileMenuOverlay = memo(({
               <>
                 {userEmail && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0 4px', opacity: 0.5 }}>
-                    <User style={{ width: '12px', height: '12px', color: 'rgba(0,212,255,0.6)' }} />
+                    <User style={{ width: '12px', height: '12px', color: 'rgba(0,255,136,0.6)' }} />
                     <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{userEmail}</span>
                   </div>
                 )}
