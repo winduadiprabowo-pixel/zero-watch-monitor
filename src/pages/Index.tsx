@@ -115,23 +115,49 @@ function toUiWallet(
 
 function toUiEvents(
   storeWallet: ReturnType<typeof selectWallets>[number],
-  apiData:     WalletData | undefined
+  apiData:     WalletData | undefined,
+  ethPrice = 2500
 ): ActivityEvent[] {
-  return (apiData?.transactions ?? []).slice(0, 5).map(tx => ({
-    id:          tx.hash,
-    walletId:    storeWallet.id,
-    walletLabel: storeWallet.label,
-    action:      tx.type === 'UNKNOWN' ? 'TRANSFER' : tx.type,
-    detail:      `${tx.value} ETH → ${tx.to?.slice(0, 10)}…`,
-    usdSize:     `${tx.value} ETH`,
-    timestamp: (() => {
-      const secs = Math.floor(Date.now() / 1000) - parseInt(tx.timeStamp)
-      if (secs < 120)   return `${secs}s ago`
-      if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`
-      if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`
-      return `${Math.floor(secs / 86400)}d ago`
-    })(),
-  }))
+  const txs = (apiData?.transactions ?? [])
+  const result: ActivityEvent[] = []
+
+  for (const tx of txs) {
+    const ethVal = parseFloat(tx.value) || 0
+    const usdVal = ethVal * ethPrice
+
+    // Skip dust transactions (< $1 USD equivalent)
+    if (ethVal > 0 && usdVal < 1) continue
+
+    // Format USD size
+    let usdSize: string
+    if (usdVal >= 1_000_000)    usdSize = `$${(usdVal / 1_000_000).toFixed(1)}M`
+    else if (usdVal >= 1_000)   usdSize = `$${(usdVal / 1_000).toFixed(0)}K`
+    else if (usdVal > 0)        usdSize = `$${usdVal.toFixed(0)}`
+    else                        usdSize = `${ethVal > 0 ? ethVal.toFixed(4) + ' ETH' : 'contract call'}`
+
+    // Skip zero-value contract calls (swap internals)
+    if (usdVal === 0 && ethVal === 0) continue
+
+    const secs = Math.floor(Date.now() / 1000) - parseInt(tx.timeStamp)
+    const timestamp = secs < 120   ? `${secs}s ago`
+                    : secs < 3600  ? `${Math.floor(secs / 60)}m ago`
+                    : secs < 86400 ? `${Math.floor(secs / 3600)}h ago`
+                    :                `${Math.floor(secs / 86400)}d ago`
+
+    result.push({
+      id:          tx.hash,
+      walletId:    storeWallet.id,
+      walletLabel: storeWallet.label,
+      action:      tx.type === 'UNKNOWN' ? 'TRANSFER' : tx.type,
+      detail:      `${ethVal > 0 ? ethVal.toFixed(4) + ' ETH' : tx.functionName?.slice(0, 20) || 'contract call'}`,
+      usdSize,
+      timestamp,
+    })
+
+    if (result.length >= 8) break
+  }
+
+  return result
 }
 
 // ── Hero Screen ───────────────────────────────────────────────────────────────
@@ -414,7 +440,7 @@ const Index = () => {
     [storeWallets, apiDataArr]
   )
   const allEvents = useMemo<ActivityEvent[]>(
-    () => storeWallets.flatMap((w, i) => toUiEvents(w, apiDataArr?.[i])),
+    () => storeWallets.flatMap((w, i) => toUiEvents(w, apiDataArr?.[i], ETH_PRICE)),
     [storeWallets, apiDataArr]
   )
   // Hitung berapa wallet yang udah loaded (non-zero atau punya lastMove)
@@ -567,11 +593,7 @@ const Index = () => {
         '—'
       )
 
-      // Logo — ambil dari wallet pertama di group
-      const firstWallet = storeWallets.find(s => s.id === gw[0]?.id)
-      const logo = (firstWallet as typeof firstWallet & { logo?: string })?.logo
-
-      return { entity, wallets: gw, totalUsd, chains, activeChains, topSignal, conviction, lastMove, pinned, logo }
+      return { entity, wallets: gw, totalUsd, chains, activeChains, topSignal, conviction, lastMove, pinned }
     })
 
     // Sort: pinned first (Satoshi > MtGox > FTX), then by totalUsd desc
