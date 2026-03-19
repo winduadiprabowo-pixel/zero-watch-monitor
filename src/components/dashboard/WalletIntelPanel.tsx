@@ -1348,116 +1348,191 @@ const WalletIntelPanel = memo(({
 
   const handleTab = useCallback((id: Tab) => () => setActiveTab(id), [])
 
+  const logo = (selectedWallet as (typeof selectedWallet & { logo?: string }) | null)?.logo
+  const totalValue = selectedWalletIntel?.totalValueUsd ?? 0
+  const fmtHero = (n: number) => {
+    if (n === 0) return '$0'
+    if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`
+    if (n >= 1_000_000)     return `$${(n / 1_000_000).toFixed(2)}M`
+    return `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+  }
+
+  const ARKHAM_TABS: Array<{ id: Tab; label: string }> = [
+    { id: 'INTEL',   label: 'PORTFOLIO'  },
+    { id: 'TOKENS',  label: 'HOLDINGS'   },
+    { id: 'BOARD',   label: 'HISTORY'    },
+    { id: 'FLOWS',   label: 'TRANSFERS'  },
+    { id: 'SIGNALS', label: 'SIGNALS'    },
+    { id: 'RADAR',   label: 'RADAR'      },
+  ]
+
   return (
     <aside
       className="flex flex-col animate-fade-up delay-3"
       style={{
-        flex:        1,
-        minWidth:    0,
-        borderColor: 'rgba(255,255,255,0.065)',
-        background:  'rgba(6,6,14,0.7)',
-        overflow:    'hidden',
+        flex:       1,
+        minWidth:   0,
+        background: 'rgba(6,6,14,1)',
+        borderLeft: '1px solid rgba(255,255,255,0.06)',
+        overflow:   'hidden',
       }}
     >
-      {/* ── Panel header ── */}
-      <div
-        className="px-4 py-4 flex-shrink-0"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.065)' }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            {!selectedWallet && (
-              <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{
-                  background: 'rgba(0, 212, 255, 1)',
-                  boxShadow:  '0 0 5px rgba(0, 212, 255, 0.8)',
-                  animation:  'pulse-glow 2s ease-in-out infinite',
-                }}
-              />
-            )}
-            <h2
-              className="font-mono font-semibold uppercase truncate"
-              style={{ fontSize: '12px', letterSpacing: '0.10em', color: 'rgba(255,255,255,0.85)' }}
-            >
-              {selectedWallet?.label ?? 'Intelligence'}
-            </h2>
-          </div>
-          {hasBigMoves && (
-            <div
-              className="flex items-center gap-1 px-2 py-1 rounded-full animate-pulse flex-shrink-0 ml-2"
-              style={{
-                background: 'rgba(251,191,36,0.10)',
-                border:     '1px solid rgba(251,191,36,0.25)',
-              }}
-            >
-              <Zap className="w-2.5 h-2.5" style={{ color: 'rgba(251,191,36,1)' }} />
-              <span className="font-mono font-bold" style={{ fontSize: '8px', letterSpacing: '0.08em', color: 'rgba(251,191,36,1)' }}>
-                ALERT
-              </span>
-            </div>
-          )}
-        </div>
-        {selectedWallet ? (
-          <div className="flex items-center gap-2 mt-1">
-            <span className="font-mono text-[10px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
-              {selectedWallet.address}
-            </span>
-            <span
-              className="font-mono text-[8px] px-1.5 py-0.5 rounded"
-              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}
-            >
-              {selectedWallet.chain}
-            </span>
-          </div>
-        ) : (
-          <div className="font-mono text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            Live whale surveillance · 44 wallets tracked
-          </div>
-        )}
-      </div>
+      {selectedWallet ? (
+        /* ── Arkham-style entity header ── */
+        <div className="flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '20px 24px 0' }}>
 
-      {/* ── Tabs ── */}
-      <div
-        className="flex flex-shrink-0 overflow-x-auto"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.065)' }}
-      >
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={handleTab(tab.id)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 relative min-w-0 transition-colors"
-            style={{
-              color:      activeTab === tab.id ? 'rgba(0, 212, 255, 1)' : 'rgba(255,255,255,0.28)',
-              background: activeTab === tab.id ? 'rgba(0, 212, 255, 0.05)' : 'transparent',
-              fontSize:   '9px',
-              fontFamily: 'IBM Plex Mono, monospace',
-              fontWeight: activeTab === tab.id ? 600 : 400,
-              letterSpacing: '0.08em',
-            }}
-          >
-            <tab.icon className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{tab.label}</span>
-            {/* Indicator dots */}
-            {tab.id === 'SIGNALS' && hasSignals  && (
-              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(0, 212, 255, 1)' }} />
-            )}
-            {tab.id === 'INTEL'   && hasBigMoves && (
-              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'rgba(251,191,36,1)' }} />
-            )}
-            {tab.id === 'TOKENS'  && hasTokens   && (
-              <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(147,197,253,1)' }} />
-            )}
-            {/* Active underline */}
-            {activeTab === tab.id && (
-              <span
-                className="absolute bottom-0 left-2 right-2 h-px"
-                style={{ background: 'rgba(0, 212, 255, 0.7)' }}
-              />
-            )}
-          </button>
-        ))}
-      </div>
+          {/* Row 1: avatar + name + balance + buttons */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '14px' }}>
+
+            {/* Avatar */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              {logo ? (
+                <img
+                  src={logo}
+                  alt={selectedWallet.label}
+                  style={{ width: '56px', height: '56px', borderRadius: '16px', objectFit: 'cover', display: 'block' }}
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                />
+              ) : (
+                <div style={{
+                  width: '56px', height: '56px', borderRadius: '16px', flexShrink: 0,
+                  background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.18)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'Syne, sans-serif', fontSize: '18px', fontWeight: 800,
+                  color: 'rgba(0,212,255,0.8)',
+                }}>
+                  {selectedWallet.label.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              {/* Verified dot */}
+              <div style={{
+                position: 'absolute', bottom: '-3px', right: '-3px',
+                width: '18px', height: '18px', borderRadius: '50%',
+                background: 'rgba(52,211,153,1)', border: '2px solid rgba(6,6,14,1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '9px', color: 'rgba(0,0,0,1)', fontWeight: 700,
+              }}>✓</div>
+            </div>
+
+            {/* Name + balance */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: '20px', fontWeight: 800, color: 'rgba(255,255,255,0.97)', letterSpacing: '-0.02em', margin: 0 }}>
+                  {selectedWallet.label}
+                </h2>
+                {hasBigMoves && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 7px', borderRadius: '20px', background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.28)' }}>
+                    <Zap style={{ width: '10px', height: '10px', color: 'rgba(251,191,36,1)' }} />
+                    <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(251,191,36,1)' }}>ALERT</span>
+                  </div>
+                )}
+              </div>
+              <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', color: 'rgba(255,255,255,0.28)', marginBottom: '6px' }}>
+                {selectedWallet.address.slice(0, 8)}...{selectedWallet.address.slice(-6)}
+                <span style={{ marginLeft: '8px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>{selectedWallet.chain}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '24px', fontWeight: 700, color: 'rgba(255,255,255,0.97)', letterSpacing: '-0.02em' }}>
+                  {fmtHero(totalValue)}
+                </span>
+                {selectedWalletIntel && (
+                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '13px', fontWeight: 700, color: selectedWalletIntel.netFlow24h >= 0 ? 'rgba(52,211,153,1)' : 'rgba(239,68,68,1)' }}>
+                    {selectedWalletIntel.netFlow24h >= 0 ? '+' : ''}{fmtHero(Math.abs(selectedWalletIntel.netFlow24h))}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+              <button
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.6)', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', cursor: 'pointer' }}
+              >
+                <Activity style={{ width: '11px', height: '11px' }} />
+                Alert
+              </button>
+              <button
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.6)', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', cursor: 'pointer' }}
+              >
+                <Globe style={{ width: '11px', height: '11px' }} />
+                Trace
+              </button>
+              <button
+                onClick={() => window.open(`https://etherscan.io/address/${selectedWallet.address}`, '_blank')}
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '20px', background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.22)', color: 'rgba(0,212,255,0.9)', fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', cursor: 'pointer' }}
+              >
+                <ExternalLink style={{ width: '11px', height: '11px' }} />
+                Etherscan
+              </button>
+            </div>
+          </div>
+
+          {/* Tags row */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+            {['Smart Money', selectedWallet.tag, selectedWallet.chain].filter(Boolean).map(tag => (
+              <span key={tag} style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '10px', padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.5)' }}>
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: '0', borderTop: '1px solid rgba(255,255,255,0.055)', marginLeft: '-24px', marginRight: '-24px', paddingLeft: '24px' }}>
+            {ARKHAM_TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={handleTab(tab.id)}
+                style={{
+                  padding: '10px 16px',
+                  fontFamily: "'IBM Plex Mono',monospace",
+                  fontSize: '10px',
+                  fontWeight: activeTab === tab.id ? 600 : 400,
+                  letterSpacing: '0.08em',
+                  color: activeTab === tab.id ? 'rgba(0,212,255,1)' : 'rgba(255,255,255,0.30)',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === tab.id ? '2px solid rgba(0,212,255,0.8)' : '2px solid transparent',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tab.label}
+                {tab.id === 'SIGNALS' && hasSignals && <span style={{ position: 'absolute', top: '6px', right: '8px', width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(0,212,255,1)' }} />}
+                {tab.id === 'INTEL'   && hasBigMoves && <span style={{ position: 'absolute', top: '6px', right: '8px', width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(251,191,36,1)' }} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* ── No wallet: compact header ── */
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(0,212,255,1)', animation: 'pulse-glow 2s ease-in-out infinite', display: 'inline-block' }} />
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.88)', margin: 0, letterSpacing: '-0.01em' }}>Intelligence</h2>
+          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginLeft: '4px' }}>44 wallets tracked</span>
+
+          {/* Tabs for no-wallet state */}
+          <div style={{ display: 'flex', gap: '0', marginLeft: 'auto' }}>
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={handleTab(tab.id)}
+                style={{
+                  padding: '4px 10px',
+                  fontFamily: "'IBM Plex Mono',monospace", fontSize: '9px',
+                  fontWeight: activeTab === tab.id ? 600 : 400,
+                  color: activeTab === tab.id ? 'rgba(0,212,255,1)' : 'rgba(255,255,255,0.25)',
+                  background: 'transparent', border: 'none',
+                  borderBottom: activeTab === tab.id ? '2px solid rgba(0,212,255,0.8)' : '2px solid transparent',
+                  cursor: 'pointer',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Tab content ── */}
       <div className="flex-1 overflow-y-auto">
