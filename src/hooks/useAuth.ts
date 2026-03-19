@@ -36,11 +36,23 @@ export interface AuthState {
 // Context — populated by AuthProvider in App.tsx
 export const AuthContext = createContext<AuthState | null>(null)
 
-// useAuth — context consumer (use anywhere inside AuthProvider)
+// useAuth — context consumer. Falls back gracefully if used outside AuthProvider.
 export function useAuth(): AuthState {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
-  return ctx
+  return useContext(AuthContext) ?? _fallbackState
+}
+
+// Static fallback — used when useAuth is called outside AuthProvider (should not happen in prod)
+const _fallbackState: AuthState = {
+  user:         null,
+  status:       'idle',
+  error:        '',
+  isLoggedIn:   false,
+  register:     async () => false,
+  login:        async () => false,
+  logout:       () => {},
+  linkLicense:  async () => false,
+  resetRequest: async () => false,
+  resetStatus:  () => {},
 }
 
 function decodeJWT(token: string): AuthUser | null {
