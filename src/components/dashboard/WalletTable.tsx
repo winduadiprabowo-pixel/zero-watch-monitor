@@ -208,10 +208,11 @@ interface EntityGroupRowProps {
   rank:       number
   isExpanded: boolean
   onToggle:   (entity: string) => void
+  onSelect:   (id: string) => void
   hasSelectedChild: boolean
 }
 
-const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChild }: EntityGroupRowProps) => {
+const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, onSelect, hasSelectedChild }: EntityGroupRowProps) => {
   const cfg      = SIGNAL[group.topSignal] ?? SIGNAL.DORMANT
   const pinned   = PINNED_CONFIG[group.entity]
   const rowColor = pinned ? pinned.color : (hasSelectedChild ? 'rgba(0,255,136,0.05)' : 'transparent')
@@ -219,7 +220,11 @@ const EntityGroupRow = memo(({ group, rank, isExpanded, onToggle, hasSelectedChi
     ? `2px solid ${pinned.border}`
     : hasSelectedChild ? '2px solid rgba(0,255,136,0.28)' : '2px solid transparent'
 
-  const handleToggle = useCallback(() => onToggle(group.entity), [group.entity, onToggle])
+  const handleToggle = useCallback(() => {
+    onToggle(group.entity)
+    // Select first wallet in group so intel panel opens
+    if (group.wallets.length > 0) onSelect(group.wallets[0].id)
+  }, [group.entity, group.wallets, onToggle, onSelect])
 
   const walletCount = group.wallets.length
 
@@ -752,6 +757,7 @@ const WalletTable = memo(({
                 rank={i + 1}
                 isExpanded={isExpanded}
                 onToggle={handleToggle}
+                onSelect={onSelectWallet}
                 hasSelectedChild={hasSelectedChild}
               />
 
